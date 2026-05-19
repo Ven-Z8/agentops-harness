@@ -1,0 +1,14 @@
+services:
+  agentops:
+    build: .
+    command:
+      - uv
+      - run
+      - --extra
+      - dev
+      - agentops
+      - run
+      - --repo
+      - examples/sample_fastapi_app
+      - --task
+      - Add request logging middleware

@@ -1,0 +1,7 @@
+name: ContextIQ Hardcoding Audit
+repo: ../contextiq
+task: Validate that ContextIQ keeps corpus-specific vocabulary out of core retrieval logic.
+expected:
+  max_risk_score: 30
+  required_commands:
+    - uv run --extra dev pytest tests/unit/test_no_corpus_hardcoding.py -q
