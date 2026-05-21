@@ -6,6 +6,19 @@ AgentOps Harness is a local-first framework for safely orchestrating AI coding a
 
 AI coding agents can generate code. Engineering teams still need the surrounding control plane: structured plans, repeatable validation, review findings, risk gates, run history, and PR-ready reports. That is the layer this project demonstrates.
 
+## Open for Collaboration
+
+This project is actively being built and is open to contributors interested in agent harness engineering, coding-agent orchestration, safety gates, evaluation pipelines, or developer-productivity AI. Issues and PRs are welcome.
+
+Areas where contribution is especially welcome:
+- New worker integrations (Aider, OpenHands, Continue, other CLI agents)
+- Additional safety rules and risk-scoring heuristics
+- Workload manifests for real open-source repos
+- Evaluation suites and benchmark datasets
+- Documentation, examples, and onboarding flows
+
+If you'd like to discuss before opening a PR, open a GitHub issue or reach out at `venkatesh.gtd1@gmail.com`.
+
 ## Demo
 
 > _Walkthrough video and screenshots: TBD — to be added before public release._
