@@ -21,6 +21,8 @@ def test_langgraph_run_records_node_trace(tmp_path: Path) -> None:
     assert record.execution_logs == [
         "scan_repo:start",
         "scan_repo:complete",
+        "recall_experience:start",
+        "recall_experience:miss",
         "create_plan:start",
         "create_plan:complete",
         "collect_diff:start",
@@ -31,11 +33,17 @@ def test_langgraph_run_records_node_trace(tmp_path: Path) -> None:
         "review_diff:complete",
         "assess_risk:start",
         "assess_risk:complete",
+        "classify_permissions:start",
+        "classify_permissions:complete",
         "write_report:start",
         "write_report:complete",
         "check_report_quality:start",
         "check_report_quality:complete",
         "check_evidence:start",
         "check_evidence:complete",
+        "assemble_verification:start",
+        "assemble_verification:complete",
+        "audit_conflicts:start",
+        "audit_conflicts:complete",
     ]
     assert record.status == "completed"

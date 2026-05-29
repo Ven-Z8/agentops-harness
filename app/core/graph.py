@@ -8,19 +8,26 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 
 from app.agents.evidence_guard import EvidenceGuard
+from app.agents.permission_gate import PermissionGate
 from app.agents.planner import Planner
 from app.agents.pr_writer import PRWriter
 from app.agents.repo_scanner import RepoScanner
 from app.agents.report_quality_guard import ReportQualityGuard
 from app.agents.reviewer import Reviewer
 from app.agents.risk_guard import RiskGuard
+from app.agents.verification_stack import VerificationStack
+from app.core.conflict import ConflictAuditor
 from app.core.edit_runner import ExternalWorkerRunner
 from app.core.git_utils import collect_changed_files, collect_deleted_files, collect_diff_summary
 from app.core.llm import LLMClient
+from app.core.memory import ExperienceMemory
 from app.core.state import AgentOpsGraphState
 from app.core.storage import RunStorage
 from app.core.test_runner import TestRunner
 from app.core.workers.claude_worker import ClaudeCodeWorker
+from app.core.workers.codex_worker import CodexWorker
+from app.core.workers.opencode_worker import OpenCodeWorker
+from app.schemas.memory import MemoryReport
 from app.schemas.run import RunRecord
 
 
@@ -36,15 +43,38 @@ def scan_repo_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
     }
 
 
+def recall_experience_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
+    """Recall lessons from similar past runs before planning (§3.2.3)."""
+    try:
+        history = RunStorage(state["storage_path"]).list(limit=200)
+    except Exception:
+        history = []
+    memory_report = ExperienceMemory().retrieve(state["task"], history, k=3)
+    log = (
+        "recall_experience:hit"
+        if memory_report.has_recall
+        else "recall_experience:miss"
+    )
+    return {
+        "memory_report": memory_report,
+        "execution_logs": append_logs(state, "recall_experience:start", log),
+    }
+
+
 def create_plan_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
     logs = append_logs(state, "create_plan:start")
+    memory_report = state.get("memory_report") or MemoryReport()
+    lessons = memory_report.lessons
     try:
         plan = Planner(llm_client=state.get("llm_client")).create_plan(
             state["task"],
             state["repo_profile"],
+            memory_lessons=lessons,
         )
     except Exception:
-        plan = Planner().create_plan(state["task"], state["repo_profile"])
+        plan = Planner().create_plan(
+            state["task"], state["repo_profile"], memory_lessons=lessons
+        )
         logs.append("provider_fallback:create_plan")
     logs.append("create_plan:complete")
     return {
@@ -61,6 +91,20 @@ def run_external_worker_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
 
     if worker_type == "claude":
         edit_result = ClaudeCodeWorker().run(
+            repo_path=state["repo_path"],
+            task=state["task"],
+            timeout_seconds=timeout,
+            allow_dirty=allow_dirty,
+        )
+    elif worker_type == "codex":
+        edit_result = CodexWorker().run(
+            repo_path=state["repo_path"],
+            task=state["task"],
+            timeout_seconds=timeout,
+            allow_dirty=allow_dirty,
+        )
+    elif worker_type == "opencode":
+        edit_result = OpenCodeWorker().run(
             repo_path=state["repo_path"],
             task=state["task"],
             timeout_seconds=timeout,
@@ -134,6 +178,22 @@ def assess_risk_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
     return {
         "risk_report": risk_report,
         "execution_logs": append_logs(state, "assess_risk:start", "assess_risk:complete"),
+    }
+
+
+def classify_permissions_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
+    permission_report = PermissionGate().classify(
+        changed_files=state["changed_files"],
+        deleted_files=state["deleted_files"],
+        commands=state.get("test_commands") or [],
+    )
+    return {
+        "permission_report": permission_report,
+        "execution_logs": append_logs(
+            state,
+            "classify_permissions:start",
+            "classify_permissions:complete",
+        ),
     }
 
 
@@ -215,30 +275,81 @@ def check_evidence_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
     }
 
 
+def assemble_verification_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
+    verification_stack = VerificationStack()
+    bundle = verification_stack.assemble(
+        changed_files=state["changed_files"],
+        test_results=state["test_results"],
+        review_report=state["review_report"],
+        risk_report=state["risk_report"],
+        evidence_report=state["evidence_report"],
+    )
+    final_report = verification_stack.append_to_report(state["final_report"], bundle)
+    return {
+        "verification_bundle": bundle,
+        "final_report": final_report,
+        "execution_logs": append_logs(
+            state,
+            "assemble_verification:start",
+            "assemble_verification:complete",
+        ),
+    }
+
+
+def audit_conflicts_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
+    auditor = ConflictAuditor()
+    conflict_report = auditor.audit(
+        final_report=state["final_report"],
+        test_results=state["test_results"],
+        evidence_report=state["evidence_report"],
+        risk_report=state["risk_report"],
+        permission_report=state["permission_report"],
+        plan=state["plan"],
+    )
+    final_report = auditor.append_to_report(state["final_report"], conflict_report)
+    return {
+        "conflict_report": conflict_report,
+        "final_report": final_report,
+        "execution_logs": append_logs(
+            state,
+            "audit_conflicts:start",
+            "audit_conflicts:complete",
+        ),
+    }
+
+
 def build_workflow_graph() -> CompiledStateGraph:
     graph = StateGraph(AgentOpsGraphState)
     graph.add_node("scan_repo", scan_repo_node)
+    graph.add_node("recall_experience", recall_experience_node)
     graph.add_node("create_plan", create_plan_node)
     graph.add_node("run_external_worker", run_external_worker_node)
     graph.add_node("collect_diff", collect_diff_node)
     graph.add_node("run_tests", run_tests_node)
     graph.add_node("review_diff", review_diff_node)
     graph.add_node("assess_risk", assess_risk_node)
+    graph.add_node("classify_permissions", classify_permissions_node)
     graph.add_node("write_report", write_report_node)
     graph.add_node("check_report_quality", check_report_quality_node)
     graph.add_node("check_evidence", check_evidence_node)
+    graph.add_node("assemble_verification", assemble_verification_node)
+    graph.add_node("audit_conflicts", audit_conflicts_node)
 
     graph.add_edge(START, "scan_repo")
-    graph.add_edge("scan_repo", "create_plan")
+    graph.add_edge("scan_repo", "recall_experience")
+    graph.add_edge("recall_experience", "create_plan")
     graph.add_edge("create_plan", "run_external_worker")
     graph.add_edge("run_external_worker", "collect_diff")
     graph.add_edge("collect_diff", "run_tests")
     graph.add_edge("run_tests", "review_diff")
     graph.add_edge("review_diff", "assess_risk")
-    graph.add_edge("assess_risk", "write_report")
+    graph.add_edge("assess_risk", "classify_permissions")
+    graph.add_edge("classify_permissions", "write_report")
     graph.add_edge("write_report", "check_report_quality")
     graph.add_edge("check_report_quality", "check_evidence")
-    graph.add_edge("check_evidence", END)
+    graph.add_edge("check_evidence", "assemble_verification")
+    graph.add_edge("assemble_verification", "audit_conflicts")
+    graph.add_edge("audit_conflicts", END)
     return graph.compile()
 
 
@@ -273,8 +384,9 @@ def run_harness(
     )
 
     risk_report = graph_state["risk_report"]
+    permission_report = graph_state["permission_report"]
     edit_result = graph_state.get("edit_result")
-    status = "blocked" if risk_report.blocked else "completed"
+    status = "blocked" if (risk_report.blocked or permission_report.blocked) else "completed"
     if status == "completed" and edit_result is not None and edit_result.status != "completed":
         status = "failed"
     record = RunRecord(
@@ -282,6 +394,7 @@ def run_harness(
         task=task,
         repo_path=str(repo_path.resolve()),
         repo_profile=graph_state["repo_profile"],
+        memory_report=graph_state.get("memory_report") or MemoryReport(),
         plan=graph_state["plan"],
         changed_files=graph_state["changed_files"],
         deleted_files=graph_state["deleted_files"],
@@ -289,9 +402,12 @@ def run_harness(
         test_results=graph_state["test_results"],
         review_report=graph_state["review_report"],
         risk_report=risk_report,
+        permission_report=permission_report,
         final_report=graph_state["final_report"],
         report_quality=graph_state["report_quality"],
         evidence_report=graph_state["evidence_report"],
+        verification_bundle=graph_state["verification_bundle"],
+        conflict_report=graph_state["conflict_report"],
         edit_result=edit_result,
         execution_logs=graph_state["execution_logs"],
         token_usage={"tokens_in": 0, "tokens_out": 0},

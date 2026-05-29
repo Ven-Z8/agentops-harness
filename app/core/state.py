@@ -4,8 +4,11 @@ from pathlib import Path
 from typing import TypedDict
 
 from app.core.llm import LLMClient
+from app.schemas.conflict import ConflictReport
 from app.schemas.edit import ExternalEditResult
 from app.schemas.evidence import EvidenceReport
+from app.schemas.memory import MemoryReport
+from app.schemas.permission import PermissionReport
 from app.schemas.plan import ImplementationPlan
 from app.schemas.quality import ReportQualityReport
 from app.schemas.repo import RepoProfile
@@ -13,6 +16,7 @@ from app.schemas.report import FinalReport
 from app.schemas.review import ReviewReport
 from app.schemas.risk import RiskReport
 from app.schemas.test import TestRunSummary
+from app.schemas.verification import VerificationBundle
 
 
 class AgentOpsGraphState(TypedDict, total=False):
@@ -27,6 +31,7 @@ class AgentOpsGraphState(TypedDict, total=False):
     worker_timeout_seconds: int
     allow_dirty: bool
     repo_profile: RepoProfile
+    memory_report: MemoryReport
     plan: ImplementationPlan
     edit_result: ExternalEditResult | None
     changed_files: list[str]
@@ -35,7 +40,10 @@ class AgentOpsGraphState(TypedDict, total=False):
     test_results: TestRunSummary
     review_report: ReviewReport
     risk_report: RiskReport
+    permission_report: PermissionReport
     final_report: FinalReport
     report_quality: ReportQualityReport
     evidence_report: EvidenceReport
+    verification_bundle: VerificationBundle
+    conflict_report: ConflictReport
     execution_logs: list[str]

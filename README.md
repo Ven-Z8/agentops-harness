@@ -6,19 +6,6 @@ AgentOps Harness is a local-first framework for safely orchestrating AI coding a
 
 AI coding agents can generate code. Engineering teams still need the surrounding control plane: structured plans, repeatable validation, review findings, risk gates, run history, and PR-ready reports. That is the layer this project demonstrates.
 
-## Open for Collaboration
-
-This project is actively being built and is open to contributors interested in agent harness engineering, coding-agent orchestration, safety gates, evaluation pipelines, or developer-productivity AI. Issues and PRs are welcome.
-
-Areas where contribution is especially welcome:
-- New worker integrations (Aider, OpenHands, Continue, other CLI agents)
-- Additional safety rules and risk-scoring heuristics
-- Workload manifests for real open-source repos
-- Evaluation suites and benchmark datasets
-- Documentation, examples, and onboarding flows
-
-If you'd like to discuss before opening a PR, open a GitHub issue or reach out at `venkatesh.gtd1@gmail.com`.
-
 ## Demo
 
 > _Walkthrough video and screenshots: TBD — to be added before public release._
@@ -51,21 +38,29 @@ uv run --extra dev agentops run --repo examples/sample_fastapi_app --task "Add r
 ```mermaid
 flowchart LR
   T[Task + Repo] --> S[Repo Scanner]
-  S --> P[Planner]
+  S --> M[Experience Recall]
+  M --> P[Planner]
   P --> W[Optional External Worker]
   W --> D[Diff Collector]
   D --> R[Test Runner]
   R --> V[Reviewer]
   V --> RG[Risk Guard]
-  RG --> PR[PR Writer]
-  PR --> EG[Evidence Guard]
-  EG --> H[Run History]
+  RG --> PG[Permission Gate]
+  PG --> PR[PR Writer]
+  PR --> QG[Report Quality Guard]
+  QG --> EG[Evidence Guard]
+  EG --> VS[Verification Stack]
+  VS --> CA[Conflict Auditor]
+  CA --> H[Run History]
 ```
 
 The pipeline is implemented as a LangGraph state machine:
 
 ```text
-scan_repo -> create_plan -> optional_external_worker -> collect_diff -> run_tests -> review_diff -> assess_risk -> write_report -> check_evidence
+scan_repo -> recall_experience -> create_plan -> optional_external_worker ->
+collect_diff -> run_tests -> review_diff -> assess_risk -> classify_permissions ->
+write_report -> check_report_quality -> check_evidence -> assemble_verification ->
+audit_conflicts
 ```
 
 ## Observe Mode And Edit Mode
@@ -196,6 +191,28 @@ This is the core harness-engine idea: AI output is not trusted until it is groun
 If a provider returns malformed output, AgentOps Harness falls back to a deterministic local PR report and appends a `Report Quality Guard` section explaining why. The run stays usable even when the model output is not.
 
 Provider failures are also isolated. If OpenRouter/OpenAI returns malformed structured output during planning or review, the graph records a provider fallback event and continues with deterministic local behavior.
+
+## Research Grounding: "Code as Agent Harness"
+
+The harness implements concepts from the *Code as Agent Harness* paper, mapping
+its four properties (Executable, Inspectable, Stateful, Governed) onto concrete,
+tested components. Each is deterministic and runs in mock mode — no API key needed.
+
+| Paper concept | Component | What it does |
+|---|---|---|
+| §5.2.2 Verification stack | `app/agents/verification_stack.py` | Assembles a layered verification bundle (tests, review, risk, evidence) with explicit scope, appended to every report. |
+| §5.2.5 Multi-tier permissions | `app/agents/permission_gate.py` | Classifies each change/command into `auto`/`ask`/`deny` tiers; secret edits and destructive commands are denied, dependency and sensitive-folder changes need approval. |
+| §4.3.2 Convergence benchmark | `app/core/benchmark.py` | Types each run by which of the six convergence kinds it reached, and flags **implicit convergence** — completing without verifying — the paper's "most significant gap." |
+| §3.2.3 Experiential memory | `app/core/memory.py` | Before planning, recalls the most lexically similar past runs and feeds their lessons (implicit gaps, prior blocks, failing tests) into the new plan. |
+| §5.2.3 Conflict policy | `app/core/conflict.py` | Audits the plan, tests, report, evidence, and gates for contradictions (e.g. a report claiming tests pass while they failed) before shipping. |
+| §3.5 Evolution Agent | `app/core/evolution.py` | Reads aggregate run history and proposes structural harness improvements, each citing the run IDs that justify it. |
+
+Run the convergence-typed benchmark and the Evolution Agent:
+
+```bash
+uv run --extra dev python scripts/benchmark.py
+uv run --extra dev python scripts/evolve.py .agentops/runs.jsonl
+```
 
 ## Local Mac App Direction
 

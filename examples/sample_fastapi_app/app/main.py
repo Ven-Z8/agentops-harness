@@ -1,10 +1,5 @@
+import tomllib
 from pathlib import Path
-import sys
-
-if sys.version_info >= (3, 11):
-    import tomllib
-else:  # pragma: no cover
-    import tomli as tomllib
 
 from fastapi import FastAPI
 

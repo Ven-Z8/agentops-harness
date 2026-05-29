@@ -13,7 +13,7 @@ def copy_sample_repo(source: Path, destination: Path) -> None:
     destination.mkdir()
     for path in source.rglob("*"):
         relative = path.relative_to(source)
-        if "__pycache__" in relative.parts or ".pytest_cache" in relative.parts:
+        if {".git", "__pycache__", ".pytest_cache"}.intersection(relative.parts):
             continue
         target = destination / relative
         if path.is_dir():

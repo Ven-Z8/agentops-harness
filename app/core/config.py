@@ -15,6 +15,10 @@ class Settings(BaseSettings):
     openrouter_site_url: str | None = None
     openrouter_app_title: str = "AgentOps Harness"
 
+    # Obsidian Brain (VaultCodec)
+    vault_url: str = "https://localhost:27124"
+    vault_api_key: str = ""
+
     model_config = SettingsConfigDict(env_prefix="AGENTOPS_", env_file=".env", extra="ignore")
 
 

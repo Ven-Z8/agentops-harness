@@ -110,7 +110,7 @@ def edit(
     ] = None,
     worker_type: Annotated[
         str | None,
-        typer.Option(help="Built-in worker type. Use 'claude' for the Claude Code CLI worker."),
+        typer.Option(help="Built-in worker type: claude, codex, or opencode."),
     ] = None,
     storage: Annotated[Path, typer.Option(help="Run history JSONL path.")] = settings.run_storage,
     worker_timeout_seconds: Annotated[
@@ -125,7 +125,7 @@ def edit(
     """Run an explicit external worker, then validate and report its diff.
 
     Use --worker-command for arbitrary CLI workers (Cursor, Codex, etc.) or
-    --worker-type claude to delegate to the Claude Code CLI.
+    --worker-type claude/codex/opencode to delegate to a built-in CLI worker.
     """
     if worker_command is None and worker_type is None:
         raise typer.BadParameter(
