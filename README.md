@@ -216,7 +216,7 @@ uv run --extra dev python scripts/evolve.py .agentops/runs.jsonl
 
 ## Local Mac App Direction
 
-A local-only macOS app should be a SwiftUI shell over the Python harness engine, not a rewrite. See [docs/MAC_APP_PLAN.md](docs/MAC_APP_PLAN.md).
+A local-only macOS app should be a SwiftUI shell over the Python harness engine, not a rewrite.
 
 The MVP uses deterministic mock agents so the full demo runs without paid API keys.
 
@@ -254,6 +254,4 @@ No real `.env` file is required for the demo. Use `.env.example` as the referenc
 
 This is intended to be the main GitHub showcase repo for an **Agent Harness Specialist** profile. The other portfolio projects can become workloads evaluated by this harness: ContextForge for context engineering, AgentOrchestra for multi-agent systems, EvalEngine for evals, MCPGuard for safety, and Second Brain OS for research/knowledge workflows.
 
-Read [docs/AGENT_HARNESS_STRATEGY.md](docs/AGENT_HARNESS_STRATEGY.md) before extending the harness. It defines the control-plane strategy: AgentOps Harness plans, delegates to external coding workers, validates the result, and packages portfolio evidence.
-
-See [docs/GITHUB_SHOWCASE.md](docs/GITHUB_SHOWCASE.md) for the full positioning strategy.
+The control-plane strategy: AgentOps Harness plans, delegates to external coding workers, validates the result, and packages portfolio evidence.
