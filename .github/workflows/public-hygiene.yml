@@ -1,0 +1,17 @@
+name: public-hygiene
+on: [push, pull_request]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fail on process docs in tree
+        run: |
+          set -e
+          hits=$(git ls-files | grep -E 'docs/superpowers/|(^|/)PORTFOLIO\.md$|(^|/)AUDIT-|(^|/)docs/cursor/|(^|/)docs/harness/' || true)
+          if [ -n "$hits" ]; then
+            echo "::error::Process/planning docs must stay local (public-repo policy):"
+            echo "$hits"
+            exit 1
+          fi
+          echo "OK: no process docs tracked."
