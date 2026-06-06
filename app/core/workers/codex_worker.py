@@ -8,17 +8,8 @@ import time
 from pathlib import Path
 
 from app.core.git_utils import collect_status_lines, is_git_repo
+from app.prompts.workers import build_worker_prompt
 from app.schemas.edit import ExternalEditResult
-
-_PROMPT_TEMPLATE = """\
-You are a coding agent working inside the repository at {repo_path}.
-
-Task: {task}
-
-Implement the task. Edit files as needed, run tests to verify your work, then
-stop. Do not explain what you did — just make the changes and confirm with a
-one-sentence summary of what changed.
-"""
 
 
 def _find_codex_bin() -> str | None:
@@ -78,7 +69,7 @@ class CodexWorker:
                 ),
             )
 
-        prompt = _PROMPT_TEMPLATE.format(repo_path=repo_path, task=task)
+        prompt = build_worker_prompt(repo_path=repo_path, task=task)
         argv = _build_argv(codex_bin, prompt)
         command_str = "codex --approval-mode full-auto -q <prompt>"
 

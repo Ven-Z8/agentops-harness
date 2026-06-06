@@ -1,4 +1,5 @@
 from app.core.llm import LLMClient
+from app.prompts.planner import build_planner_prompt
 from app.schemas.plan import ImplementationPlan, PlanStep
 from app.schemas.repo import RepoProfile
 
@@ -76,49 +77,11 @@ class Planner:
         repo_profile: RepoProfile,
         lessons: list[str] | None = None,
     ) -> str:
-        framework = self._display_framework(repo_profile.framework or repo_profile.language)
-        source_files = "\n".join(f"- {path}" for path in repo_profile.source_files[:60])
-        entrypoints = "\n".join(f"- {path}" for path in repo_profile.entrypoints)
-        config_files = "\n".join(f"- {path}" for path in repo_profile.config_files)
-        lessons_block = (
-            "\n".join(f"- {lesson}" for lesson in lessons)
-            if lessons
-            else "- None recalled"
+        return build_planner_prompt(
+            task=task,
+            repo_profile=repo_profile,
+            memory_lessons=lessons,
         )
-
-        return f"""You are the Planner Agent in AgentOps Harness.
-
-Create a focused, safe implementation plan for a coding agent.
-Return only data matching the ImplementationPlan schema.
-
-Task:
-{task}
-
-Repository profile:
-- Language: {repo_profile.language}
-- Framework: {framework}
-- Package manager: {repo_profile.package_manager}
-- Test framework: {repo_profile.test_framework}
-
-Entrypoints:
-{entrypoints or "- None detected"}
-
-Config files:
-{config_files or "- None detected"}
-
-Source files:
-{source_files or "- None detected"}
-
-Lessons recalled from similar past runs (experiential memory, §3.2.3):
-{lessons_block}
-
-Planning rules:
-- Keep the plan small and implementation-oriented.
-- Include likely files to inspect and edit.
-- Include acceptance criteria.
-- Include exact validation commands.
-- Mention risk notes for secrets, auth, dependency, and broad refactor hazards.
-"""
 
     def _display_framework(self, framework: str | None) -> str:
         if not framework:
