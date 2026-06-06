@@ -4,6 +4,7 @@ from app.agents.planner import Planner
 from app.agents.pr_writer import PRWriter
 from app.agents.reviewer import Reviewer
 from app.core.graph import run_harness
+from app.core.repo_graph import RepoGraphBuilder
 from app.schemas.plan import ImplementationPlan, PlanStep
 from app.schemas.repo import RepoProfile
 from app.schemas.report import FinalReport
@@ -94,6 +95,26 @@ def test_planner_uses_llm_client_when_provided() -> None:
     assert plan.summary == "LLM plan for request logging middleware."
     assert llm_client.structured_prompts
     assert "FastAPI" in llm_client.structured_prompts[0]
+
+
+def test_planner_prompt_includes_graph_context_for_llm() -> None:
+    llm_client = FakeLLMClient()
+    graph = RepoGraphBuilder().build(Path("examples/sample_fastapi_app"))
+    profile = RepoProfile(
+        repo_path="examples/sample_fastapi_app",
+        language="python",
+        framework="fastapi",
+        entrypoints=["app/main.py"],
+        source_files=["app/main.py", "tests/test_health.py"],
+    )
+
+    Planner(llm_client=llm_client).create_plan("Add a route", profile, repo_graph=graph)
+
+    prompt = llm_client.structured_prompts[0]
+    assert "Repository graph" in prompt
+    assert "GET /health" in prompt
+    assert "app/main.py" in prompt
+    assert "uv run pytest -q" in prompt
 
 
 def test_reviewer_uses_llm_client_when_provided() -> None:
