@@ -25,6 +25,7 @@ from app.core.portfolio import (
     render_portfolio_episode_markdown,
     write_portfolio_episode,
 )
+from app.core.repo_graph import RepoGraphBuilder
 from app.core.storage import RunStorage
 from app.core.workload import evaluate_workload_gates, load_workload_manifest
 
@@ -61,7 +62,10 @@ def scan(
 ) -> None:
     """Profile a local repository."""
     profile = RepoScanner().scan(repo)
-    console.print_json(profile.model_dump_json())
+    repo_graph = RepoGraphBuilder().build(repo)
+    payload = profile.model_dump(mode="json")
+    payload["repo_graph"] = repo_graph.model_dump(mode="json")
+    console.print_json(data=payload)
 
 
 @app.command()

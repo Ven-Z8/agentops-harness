@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import TypedDict
 
 from app.core.llm import LLMClient
+from app.core.repo_graph.models import RepoGraph
 from app.schemas.conflict import ConflictReport
 from app.schemas.edit import ExternalEditResult
 from app.schemas.evidence import EvidenceReport
@@ -47,3 +48,4 @@ class AgentOpsGraphState(TypedDict, total=False):
     verification_bundle: VerificationBundle
     conflict_report: ConflictReport
     execution_logs: list[str]
+    repo_graph: RepoGraph

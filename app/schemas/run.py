@@ -3,6 +3,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from app.core.repo_graph.models import RepoGraph
 from app.schemas.conflict import ConflictReport
 from app.schemas.edit import ExternalEditResult
 from app.schemas.evidence import EvidenceReport
@@ -25,6 +26,7 @@ class RunRecord(BaseModel):
     task: str
     repo_path: str
     repo_profile: RepoProfile
+    repo_graph: RepoGraph | None = None
     memory_report: MemoryReport = Field(default_factory=MemoryReport)
     plan: ImplementationPlan
     changed_files: list[str] = Field(default_factory=list)

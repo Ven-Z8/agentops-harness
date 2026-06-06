@@ -15,6 +15,7 @@ def test_mcp_scan_returns_repo_profile() -> None:
     assert result["language"] == "python"
     assert result["framework"] == "fastapi"
     assert "app/main.py" in result["entrypoints"]
+    assert result["repo_graph"]["summary"]["languages"] == ["python"]
 
 
 def test_mcp_run_report_and_list_round_trip(

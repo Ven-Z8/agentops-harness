@@ -9,6 +9,7 @@ from app.agents.repo_scanner import RepoScanner
 from app.core.config import settings
 from app.core.graph import run_harness
 from app.core.llm import build_runtime_llm_client
+from app.core.repo_graph import RepoGraphBuilder
 from app.core.storage import RunStorage
 
 
@@ -17,9 +18,13 @@ def _storage_path(storage_path: str | None) -> Path:
 
 
 def agentops_scan(repo_path: str) -> dict[str, Any]:
-    """Profile a local repository for language, framework, tests, and entrypoints."""
-    profile = RepoScanner().scan(Path(repo_path))
-    return profile.model_dump(mode="json")
+    """Profile a local repository and produce its deterministic repo graph."""
+    path = Path(repo_path)
+    profile = RepoScanner().scan(path)
+    repo_graph = RepoGraphBuilder().build(path)
+    payload = profile.model_dump(mode="json")
+    payload["repo_graph"] = repo_graph.model_dump(mode="json")
+    return payload
 
 
 def agentops_run(
