@@ -21,6 +21,7 @@ from app.core.edit_runner import ExternalWorkerRunner
 from app.core.git_utils import collect_changed_files, collect_deleted_files, collect_diff_summary
 from app.core.llm import LLMClient
 from app.core.memory import ExperienceMemory
+from app.core.repo_graph import RepoGraphBuilder
 from app.core.state import AgentOpsGraphState
 from app.core.storage import RunStorage
 from app.core.test_runner import TestRunner
@@ -37,9 +38,16 @@ def append_logs(state: AgentOpsGraphState, *entries: str) -> list[str]:
 
 def scan_repo_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
     profile = RepoScanner().scan(state["repo_path"])
+    repo_graph = RepoGraphBuilder().build(state["repo_path"])
     return {
         "repo_profile": profile,
-        "execution_logs": append_logs(state, "scan_repo:start", "scan_repo:complete"),
+        "repo_graph": repo_graph,
+        "execution_logs": append_logs(
+            state,
+            "scan_repo:start",
+            "repo_graph:complete",
+            "scan_repo:complete",
+        ),
     }
 
 
@@ -394,6 +402,7 @@ def run_harness(
         task=task,
         repo_path=str(repo_path.resolve()),
         repo_profile=graph_state["repo_profile"],
+        repo_graph=graph_state["repo_graph"],
         memory_report=graph_state.get("memory_report") or MemoryReport(),
         plan=graph_state["plan"],
         changed_files=graph_state["changed_files"],

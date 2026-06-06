@@ -20,6 +20,7 @@ def test_langgraph_run_records_node_trace(tmp_path: Path) -> None:
 
     assert record.execution_logs == [
         "scan_repo:start",
+        "repo_graph:complete",
         "scan_repo:complete",
         "recall_experience:start",
         "recall_experience:miss",
@@ -46,4 +47,6 @@ def test_langgraph_run_records_node_trace(tmp_path: Path) -> None:
         "audit_conflicts:start",
         "audit_conflicts:complete",
     ]
+    assert record.repo_graph is not None
+    assert record.repo_graph.summary.languages == ["python"]
     assert record.status == "completed"

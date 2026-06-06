@@ -61,7 +61,8 @@ def test_run_harness_edit_mode_records_worker_diff(tmp_path: Path) -> None:
     assert record.edit_result is not None
     assert record.edit_result.status == "completed"
     assert "app/worker_marker.py" in record.changed_files
-    assert record.execution_logs[6:8] == [
+    worker_start = record.execution_logs.index("run_external_worker:start")
+    assert record.execution_logs[worker_start : worker_start + 2] == [
         "run_external_worker:start",
         "run_external_worker:complete",
     ]
