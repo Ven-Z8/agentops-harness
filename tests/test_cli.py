@@ -36,6 +36,28 @@ def init_git_repo(repo_path: Path) -> None:
     )
 
 
+def test_cli_plan_is_graph_aware() -> None:
+    runner = CliRunner()
+
+    result = runner.invoke(
+        app,
+        [
+            "plan",
+            "--repo",
+            "examples/sample_fastapi_app",
+            "--task",
+            "Add a /healthz endpoint",
+        ],
+    )
+
+    assert result.exit_code == 0
+    # uv repo (pyproject + uv.lock) -> graph-aware validation commands, not the
+    # profile-only "python -m pytest -q" fallback.
+    assert "uv run pytest -q" in result.output
+    assert "uv run ruff check ." in result.output
+    assert "app/main.py" in result.output
+
+
 def test_cli_edit_runs_external_worker(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.setattr("app.cli.settings.llm_provider", "mock")
     repo_path = tmp_path / "sample_fastapi_app"
