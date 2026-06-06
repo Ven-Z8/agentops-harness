@@ -9,22 +9,11 @@ import time
 from pathlib import Path
 
 from app.core.git_utils import collect_status_lines, is_git_repo
+from app.prompts.workers import build_worker_prompt
 from app.schemas.edit import ExternalEditResult
 
 # Tools a coding worker needs; excludes agent-management tools.
 _CODING_TOOLS = "Read,Edit,Write,Bash,Glob,Grep"
-
-# Prompt template handed to claude CLI. Keeps the instruction compact so
-# the worker focuses on the repo rather than re-explaining the harness.
-_PROMPT_TEMPLATE = """\
-You are a coding agent working inside the repository at {repo_path}.
-
-Task: {task}
-
-Implement the task. Edit files as needed, run tests to verify your work, then
-stop. Do not explain what you did — just make the changes and confirm with a
-one-sentence summary of what changed.
-"""
 
 
 def _find_claude_bin() -> str | None:
@@ -97,7 +86,7 @@ class ClaudeCodeWorker:
                 ),
             )
 
-        prompt = _PROMPT_TEMPLATE.format(repo_path=repo_path, task=task)
+        prompt = build_worker_prompt(repo_path=repo_path, task=task)
         argv = _build_argv(claude_bin, prompt, allowed_tools)
         bare_flag = "--bare " if "--bare" in argv else ""
         command_str = f"claude {bare_flag}-p <prompt> --allowedTools {allowed_tools}"
