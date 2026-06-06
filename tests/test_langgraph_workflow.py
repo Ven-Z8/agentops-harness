@@ -50,3 +50,17 @@ def test_langgraph_run_records_node_trace(tmp_path: Path) -> None:
     assert record.repo_graph is not None
     assert record.repo_graph.summary.languages == ["python"]
     assert record.status == "completed"
+
+
+def test_langgraph_plan_is_graph_aware(tmp_path: Path) -> None:
+    record = run_harness(
+        repo_path=Path("examples/sample_fastapi_app"),
+        task="Add request logging middleware",
+        storage_path=tmp_path / "runs.db",
+    )
+
+    # No LLM client -> deterministic graph-aware planner. uv commands prove the
+    # repo_graph flowed from scan_repo_node into create_plan_node.
+    assert "uv run pytest -q" in record.plan.tests_to_run
+    inspected = {path for step in record.plan.steps for path in step.files_to_inspect}
+    assert "app/main.py" in inspected

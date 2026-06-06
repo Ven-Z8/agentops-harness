@@ -78,7 +78,8 @@ def plan(
 ) -> None:
     """Create a structured implementation plan."""
     profile = RepoScanner().scan(repo)
-    implementation_plan = Planner().create_plan(task, profile)
+    repo_graph = RepoGraphBuilder().build(repo)
+    implementation_plan = Planner().create_plan(task, profile, repo_graph=repo_graph)
     console.print_json(implementation_plan.model_dump_json())
 
 

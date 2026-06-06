@@ -5,6 +5,7 @@ from pathlib import Path
 from app.agents.planner import Planner
 from app.agents.repo_scanner import RepoScanner
 from app.core.llm import LLMClient
+from app.core.repo_graph import RepoGraphBuilder
 from app.schemas.handoff import HandoffPlanStepBrief, WorkerHandoffPacket
 from app.schemas.plan import ImplementationPlan
 from app.schemas.run import RunRecord
@@ -75,7 +76,8 @@ def draft_worker_handoff(
     llm_client: LLMClient | None = None,
 ) -> WorkerHandoffPacket:
     profile = RepoScanner().scan(repo_path)
-    plan = Planner(llm_client=llm_client).create_plan(task, profile)
+    repo_graph = RepoGraphBuilder().build(repo_path)
+    plan = Planner(llm_client=llm_client).create_plan(task, profile, repo_graph=repo_graph)
     verification = _verification_from_plan(plan)
     return WorkerHandoffPacket(
         phase="draft_pre_worker",

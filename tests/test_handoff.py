@@ -86,6 +86,15 @@ def test_draft_handoff_flags_pending(tmp_path: Path) -> None:
     assert "Draft (pre-worker)" in rendered
 
 
+def test_draft_handoff_uses_graph_aware_plan() -> None:
+    repo_path = Path("examples/sample_fastapi_app")
+    packet = draft_worker_handoff(repo_path=repo_path, task="Add a route")
+
+    assert "uv run pytest -q" in packet.tests_to_run
+    inspected = {path for step in packet.plan_steps for path in step.files_to_inspect}
+    assert "app/main.py" in inspected
+
+
 def test_handoff_documents_external_edit_status_when_present() -> None:
     record = _minimal_run(edit=ExternalEditResult(status="completed", command="codex exec"))
     markdown = render_handoff_markdown(worker_handoff_from_run(record))

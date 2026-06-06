@@ -73,15 +73,20 @@ def create_plan_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
     logs = append_logs(state, "create_plan:start")
     memory_report = state.get("memory_report") or MemoryReport()
     lessons = memory_report.lessons
+    repo_graph = state.get("repo_graph")
     try:
         plan = Planner(llm_client=state.get("llm_client")).create_plan(
             state["task"],
             state["repo_profile"],
+            repo_graph=repo_graph,
             memory_lessons=lessons,
         )
     except Exception:
         plan = Planner().create_plan(
-            state["task"], state["repo_profile"], memory_lessons=lessons
+            state["task"],
+            state["repo_profile"],
+            repo_graph=repo_graph,
+            memory_lessons=lessons,
         )
         logs.append("provider_fallback:create_plan")
     logs.append("create_plan:complete")
