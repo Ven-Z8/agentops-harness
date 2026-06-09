@@ -60,6 +60,7 @@ def test_run_harness_produces_report_and_persists_record(tmp_path: Path) -> None
     assert (artifact_dir / "repo_graph.json").exists()
     assert (artifact_dir / "task_plan.yaml").exists()
     assert (artifact_dir / "worker_packet.md").exists()
+    assert (artifact_dir / "impacted_graph.json").exists()
     assert (artifact_dir / "test_results.json").exists()
     assert (artifact_dir / "risk_report.json").exists()
     assert (artifact_dir / "permission_report.json").exists()
@@ -70,3 +71,43 @@ def test_run_harness_produces_report_and_persists_record(tmp_path: Path) -> None
     assert (artifact_dir / "trace.jsonl").exists()
     assert "## Run artifacts" in result.final_report.markdown
     assert str(artifact_dir) in result.final_report.markdown
+
+
+def test_run_harness_maps_changed_file_to_impacted_graph(tmp_path: Path) -> None:
+    repo = tmp_path / "sample_fastapi_app"
+    _copy_sample_repo(Path("examples/sample_fastapi_app"), repo)
+    _init_git_repo(repo)
+    storage_path = tmp_path / "runs.db"
+    worker_path = tmp_path / "worker.py"
+    worker_path.write_text(
+        "from pathlib import Path\n"
+        "path = Path('app/main.py')\n"
+        "path.write_text(path.read_text() + '\\n# impact smoke\\n')\n"
+        "print('updated app/main.py')\n"
+    )
+
+    result = run_harness(
+        repo_path=repo,
+        task="Touch FastAPI app entrypoint",
+        storage_path=storage_path,
+        worker_command=f"python {worker_path}",
+    )
+
+    assert result.status == "completed"
+    assert "app/main.py" in result.changed_files
+    assert "app/main.py" in result.changed_subgraph.changed_files
+    assert {route.path for route in result.changed_subgraph.impacted_routes} == {
+        "/health",
+        "/version",
+    }
+    assert "tests/test_health.py" in result.changed_subgraph.related_tests
+    commands = [item.command for item in result.changed_subgraph.recommended_validation]
+    assert "uv run pytest tests/test_health.py tests/test_version.py -q" in commands
+    assert "uv run ruff check ." in commands
+    assert "## Impacted Area" in result.final_report.markdown
+    assert "GET /health" in result.final_report.markdown
+
+    artifact_dir = storage_path.parent / "runs" / result.run_id
+    impacted_graph = artifact_dir / "impacted_graph.json"
+    assert impacted_graph.exists()
+    assert "app/main.py" in impacted_graph.read_text()

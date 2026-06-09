@@ -28,6 +28,8 @@ def test_langgraph_run_records_node_trace(tmp_path: Path) -> None:
         "create_plan:complete",
         "collect_diff:start",
         "collect_diff:complete",
+        "build_changed_subgraph:start",
+        "build_changed_subgraph:complete",
         "run_tests:start",
         "run_tests:complete",
         "review_diff:start",

@@ -3,6 +3,7 @@ from __future__ import annotations
 import subprocess
 import sys
 from pathlib import Path
+from zipfile import ZipFile
 
 from typer.testing import CliRunner
 
@@ -147,3 +148,5 @@ def test_cli_artifacts_path_and_export(tmp_path: Path, monkeypatch) -> None:
     )
     assert export_result.exit_code == 0
     assert output_file.exists()
+    with ZipFile(output_file) as archive:
+        assert "impacted_graph.json" in archive.namelist()

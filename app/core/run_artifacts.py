@@ -39,6 +39,7 @@ class RunArtifactWriter:
             artifact_dir / "worker_packet.md",
             render_handoff_markdown(worker_handoff_from_run(record)),
         )
+        self._write_json(artifact_dir / "impacted_graph.json", record.changed_subgraph)
         self._write_diff_patch(artifact_dir / "diff.patch", Path(record.repo_path))
         self._write_json(artifact_dir / "test_results.json", record.test_results)
         self._write_json(artifact_dir / "risk_report.json", record.risk_report)
@@ -91,7 +92,8 @@ def artifact_links_markdown(artifact_dir: Path) -> str:
         "\n\n## Run artifacts\n\n"
         f"- Artifact directory: `{artifact_dir}`\n"
         "- Key files: `repo_profile.json`, `repo_graph.json`, `task_plan.yaml`, "
-        "`worker_packet.md`, `test_results.json`, `final_report.md`, `trace.jsonl`\n"
+        "`worker_packet.md`, `impacted_graph.json`, `test_results.json`, "
+        "`final_report.md`, `trace.jsonl`\n"
     )
 
 
