@@ -26,6 +26,7 @@ from app.core.portfolio import (
     write_portfolio_episode,
 )
 from app.core.repo_graph import RepoGraphBuilder
+from app.core.run_artifacts import artifact_path_for_run, export_artifact_bundle
 from app.core.storage import RunStorage
 from app.core.workload import evaluate_workload_gates, load_workload_manifest
 
@@ -37,11 +38,13 @@ handoff_app = typer.Typer(
 )
 workload_app = typer.Typer(help="Validate portfolio workload manifests and gate checks.")
 portfolio_app = typer.Typer(help="Package harness runs as portfolio evidence.")
+artifacts_app = typer.Typer(help="Inspect and export per-run artifact folders.")
 app.add_typer(integrations_app, name="integrations")
 app.add_typer(providers_app, name="providers")
 app.add_typer(handoff_app, name="handoff")
 app.add_typer(workload_app, name="workload")
 app.add_typer(portfolio_app, name="portfolio")
+app.add_typer(artifacts_app, name="artifacts")
 console = Console()
 
 
@@ -157,6 +160,34 @@ def report(
     """Print a saved run report."""
     record = RunStorage(storage).get(run_id)
     console.print(Panel(record.final_report.markdown, title=f"Run {record.run_id}"))
+
+
+@artifacts_app.command("path")
+def show_artifact_path(
+    run_id: Annotated[str, typer.Option(help="Run identifier.")],
+    storage: Annotated[Path, typer.Option(help="Run history path.")] = settings.run_storage,
+) -> None:
+    """Print the artifact directory for a saved run."""
+    RunStorage(storage).get(run_id)
+    artifact_dir = artifact_path_for_run(storage, run_id)
+    typer.echo(str(artifact_dir))
+
+
+@artifacts_app.command("export")
+def export_artifacts(
+    run_id: Annotated[str, typer.Option(help="Run identifier.")],
+    storage: Annotated[Path, typer.Option(help="Run history path.")] = settings.run_storage,
+    output_file: Annotated[
+        Path | None,
+        typer.Option("--output", "-o", help="Write bundle to this zip file."),
+    ] = None,
+) -> None:
+    """Export a run artifact directory as a zip bundle."""
+    RunStorage(storage).get(run_id)
+    artifact_dir = artifact_path_for_run(storage, run_id)
+    bundle = output_file or artifact_dir.with_suffix(".zip")
+    export_artifact_bundle(artifact_dir, bundle)
+    typer.echo(f"Exported run artifacts to {bundle}")
 
 
 @handoff_app.command("export")

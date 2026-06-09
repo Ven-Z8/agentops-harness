@@ -53,3 +53,20 @@ def test_run_harness_produces_report_and_persists_record(tmp_path: Path) -> None
     assert "Risk assessment" in result.final_report.markdown
     assert storage_path.exists()
     assert result.run_id in storage_path.read_text()
+
+    artifact_dir = storage_path.parent / "runs" / result.run_id
+    assert artifact_dir.is_dir()
+    assert (artifact_dir / "repo_profile.json").exists()
+    assert (artifact_dir / "repo_graph.json").exists()
+    assert (artifact_dir / "task_plan.yaml").exists()
+    assert (artifact_dir / "worker_packet.md").exists()
+    assert (artifact_dir / "test_results.json").exists()
+    assert (artifact_dir / "risk_report.json").exists()
+    assert (artifact_dir / "permission_report.json").exists()
+    assert (artifact_dir / "evidence_report.json").exists()
+    assert (artifact_dir / "verification_bundle.json").exists()
+    assert (artifact_dir / "conflict_report.json").exists()
+    assert (artifact_dir / "final_report.md").exists()
+    assert (artifact_dir / "trace.jsonl").exists()
+    assert "## Run artifacts" in result.final_report.markdown
+    assert str(artifact_dir) in result.final_report.markdown
