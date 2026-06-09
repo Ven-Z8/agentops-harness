@@ -89,3 +89,61 @@ def test_cli_edit_runs_external_worker(tmp_path: Path, monkeypatch) -> None:
     assert result.exit_code == 0
     assert "Mode: external worker" in result.output
     assert "app/cli_marker.py" in result.output
+
+
+def test_cli_artifacts_path_and_export(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setattr("app.cli.settings.llm_provider", "mock")
+    repo_path = tmp_path / "sample_fastapi_app"
+    copy_sample_repo(Path("examples/sample_fastapi_app"), repo_path)
+    init_git_repo(repo_path)
+    storage_path = tmp_path / "runs.db"
+    runner = CliRunner()
+
+    run_result = runner.invoke(
+        app,
+        [
+            "run",
+            "--repo",
+            str(repo_path),
+            "--task",
+            "Analyze request logging",
+            "--storage",
+            str(storage_path),
+        ],
+    )
+
+    assert run_result.exit_code == 0
+    run_id = next((part for part in run_result.output.split() if len(part) == 32), "")
+    assert run_id
+
+    path_result = runner.invoke(
+        app,
+        [
+            "artifacts",
+            "path",
+            "--run-id",
+            run_id,
+            "--storage",
+            str(storage_path),
+        ],
+    )
+    assert path_result.exit_code == 0
+    artifact_dir = storage_path.parent / "runs" / run_id
+    assert str(artifact_dir) in path_result.output
+
+    output_file = tmp_path / "bundle.zip"
+    export_result = runner.invoke(
+        app,
+        [
+            "artifacts",
+            "export",
+            "--run-id",
+            run_id,
+            "--storage",
+            str(storage_path),
+            "--output",
+            str(output_file),
+        ],
+    )
+    assert export_result.exit_code == 0
+    assert output_file.exists()

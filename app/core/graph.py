@@ -22,6 +22,7 @@ from app.core.git_utils import collect_changed_files, collect_deleted_files, col
 from app.core.llm import LLMClient
 from app.core.memory import ExperienceMemory
 from app.core.repo_graph import RepoGraphBuilder
+from app.core.run_artifacts import RunArtifactWriter, append_artifact_links, artifact_dir_for_run
 from app.core.state import AgentOpsGraphState
 from app.core.storage import RunStorage
 from app.core.test_runner import TestRunner
@@ -429,5 +430,8 @@ def run_harness(
         started_at=started_at,
         completed_at=datetime.now(UTC),
     )
+    artifact_dir = artifact_dir_for_run(storage_path, run_id)
+    record = append_artifact_links(record, artifact_dir)
     RunStorage(storage_path).save(record)
+    RunArtifactWriter().write(record, storage_path)
     return record
