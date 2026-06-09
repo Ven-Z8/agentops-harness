@@ -3,6 +3,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from app.core.repo_graph.impact import ChangedSubgraph
 from app.core.repo_graph.models import RepoGraph
 from app.schemas.conflict import ConflictReport
 from app.schemas.edit import ExternalEditResult
@@ -32,6 +33,7 @@ class RunRecord(BaseModel):
     changed_files: list[str] = Field(default_factory=list)
     deleted_files: list[str] = Field(default_factory=list)
     diff_summary: str = ""
+    changed_subgraph: ChangedSubgraph = Field(default_factory=ChangedSubgraph)
     test_results: TestRunSummary
     review_report: ReviewReport
     risk_report: RiskReport

@@ -22,6 +22,7 @@ from app.core.git_utils import collect_changed_files, collect_deleted_files, col
 from app.core.llm import LLMClient
 from app.core.memory import ExperienceMemory
 from app.core.repo_graph import RepoGraphBuilder
+from app.core.repo_graph.impact import ChangedSubgraphBuilder, render_changed_subgraph_markdown
 from app.core.run_artifacts import RunArtifactWriter, append_artifact_links, artifact_dir_for_run
 from app.core.state import AgentOpsGraphState
 from app.core.storage import RunStorage
@@ -155,6 +156,23 @@ def collect_diff_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
     }
 
 
+def build_changed_subgraph_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
+    changed_subgraph = ChangedSubgraphBuilder().build(
+        state["repo_graph"],
+        changed_files=state["changed_files"],
+        deleted_files=state["deleted_files"],
+        fallback_validation=state["plan"].tests_to_run,
+    )
+    return {
+        "changed_subgraph": changed_subgraph,
+        "execution_logs": append_logs(
+            state,
+            "build_changed_subgraph:start",
+            "build_changed_subgraph:complete",
+        ),
+    }
+
+
 def run_tests_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
     test_results = TestRunner().run(
         state["repo_path"],
@@ -259,6 +277,10 @@ def check_report_quality_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
         quality_report = quality_guard.mark_fallback(quality_report)
 
     final_report = quality_guard.append_to_report(final_report, quality_report)
+    final_report.markdown = (
+        final_report.markdown.rstrip()
+        + render_changed_subgraph_markdown(state["changed_subgraph"])
+    )
     return {
         "report_quality": quality_report,
         "final_report": final_report,
@@ -339,6 +361,7 @@ def build_workflow_graph() -> CompiledStateGraph:
     graph.add_node("create_plan", create_plan_node)
     graph.add_node("run_external_worker", run_external_worker_node)
     graph.add_node("collect_diff", collect_diff_node)
+    graph.add_node("build_changed_subgraph", build_changed_subgraph_node)
     graph.add_node("run_tests", run_tests_node)
     graph.add_node("review_diff", review_diff_node)
     graph.add_node("assess_risk", assess_risk_node)
@@ -354,7 +377,8 @@ def build_workflow_graph() -> CompiledStateGraph:
     graph.add_edge("recall_experience", "create_plan")
     graph.add_edge("create_plan", "run_external_worker")
     graph.add_edge("run_external_worker", "collect_diff")
-    graph.add_edge("collect_diff", "run_tests")
+    graph.add_edge("collect_diff", "build_changed_subgraph")
+    graph.add_edge("build_changed_subgraph", "run_tests")
     graph.add_edge("run_tests", "review_diff")
     graph.add_edge("review_diff", "assess_risk")
     graph.add_edge("assess_risk", "classify_permissions")
@@ -414,6 +438,7 @@ def run_harness(
         changed_files=graph_state["changed_files"],
         deleted_files=graph_state["deleted_files"],
         diff_summary=graph_state["diff_summary"],
+        changed_subgraph=graph_state["changed_subgraph"],
         test_results=graph_state["test_results"],
         review_report=graph_state["review_report"],
         risk_report=risk_report,
