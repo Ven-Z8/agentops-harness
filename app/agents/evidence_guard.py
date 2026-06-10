@@ -158,13 +158,34 @@ This report contains claims that are not supported by the run record.
             ]
         return []
 
+    LINT_EXECUTION_WORDS = (
+        "passed",
+        "pass",
+        "ran",
+        "executed",
+        "completed",
+        "clean",
+        "no errors",
+        "succeeded",
+        "verified",
+    )
+    LINT_RECOMMENDATION_WORDS = (
+        "recommended",
+        "should run",
+        "not executed",
+        "planned",
+        "follow-up",
+        "to run",
+    )
+
     def _check_lint_claims(
         self,
         markdown: str,
         test_results: TestRunSummary,
     ) -> list[EvidenceFinding]:
-        lowered = markdown.lower()
-        claims_lint = "ruff" in lowered or "lint" in lowered
+        claims_lint = any(
+            self._line_claims_lint_executed(line) for line in markdown.splitlines()
+        )
         executed = {result.command for result in test_results.commands}
         ran_lint = any("ruff" in command or "lint" in command for command in executed)
         if claims_lint and not ran_lint:
@@ -339,6 +360,14 @@ This report contains claims that are not supported by the run record.
             )
             for command in unsupported
         ]
+
+    def _line_claims_lint_executed(self, line: str) -> bool:
+        lowered = line.lower()
+        if "ruff" not in lowered and "lint" not in lowered:
+            return False
+        if any(word in lowered for word in self.LINT_RECOMMENDATION_WORDS):
+            return False
+        return any(word in lowered for word in self.LINT_EXECUTION_WORDS)
 
     def _looks_like_change_claim(self, line: str) -> bool:
         lowered = line.lower()
