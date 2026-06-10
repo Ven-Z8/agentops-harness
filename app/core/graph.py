@@ -298,6 +298,8 @@ def check_evidence_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
         final_report=state["final_report"],
         changed_files=state["changed_files"],
         test_results=state["test_results"],
+        risk_report=state["risk_report"],
+        changed_subgraph=state["changed_subgraph"],
     )
     final_report = evidence_guard.append_to_report(state["final_report"], evidence_report)
     return {
