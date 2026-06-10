@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import re
 
+from app.core.repo_graph.impact import ChangedSubgraph
 from app.schemas.evidence import EvidenceFinding, EvidenceReport
 from app.schemas.report import FinalReport
+from app.schemas.risk import RiskReport
 from app.schemas.test import TestRunSummary
 
 
@@ -28,6 +30,15 @@ class EvidenceGuard:
         "added tests",
         "new tests",
         "comprehensive tests",
+        "tests changed",
+        "test changed",
+    )
+    TEST_UPDATE_CLAIM = re.compile(r"\b(updated|modified|changed)\b.*\btest\b")
+    ROUTE_CLAIM_PATTERN = re.compile(r"\b(GET|POST|PUT|PATCH|DELETE|ANY)\s+(/[A-Za-z0-9_./{}-]*)")
+    VALIDATION_RECOMMENDATION_WORDS = (
+        "recommended targeted validation",
+        "recommended validation",
+        "should run",
     )
 
     def check(
@@ -35,6 +46,8 @@ class EvidenceGuard:
         final_report: FinalReport,
         changed_files: list[str],
         test_results: TestRunSummary,
+        risk_report: RiskReport | None = None,
+        changed_subgraph: ChangedSubgraph | None = None,
     ) -> EvidenceReport:
         markdown = final_report.markdown
         findings: list[EvidenceFinding] = []
@@ -44,6 +57,17 @@ class EvidenceGuard:
         findings.extend(self._check_new_test_claims(markdown, changed_file_set))
         findings.extend(self._check_analysis_only(markdown, changed_files))
         findings.extend(self._check_test_pass_claims(markdown, test_results))
+        findings.extend(self._check_lint_claims(markdown, test_results))
+        findings.extend(self._check_risk_claims(markdown, risk_report))
+        findings.extend(self._check_route_claims(markdown, changed_subgraph))
+        findings.extend(
+            self._check_validation_execution_claims(
+                markdown,
+                test_results,
+                changed_subgraph,
+            )
+        )
+        findings = self._dedupe_findings(findings)
 
         return EvidenceReport(
             grounded=not findings,
@@ -62,7 +86,9 @@ class EvidenceGuard:
         findings = "\n".join(
             (
                 f"- **Unsupported claim** `{finding.claim}`: "
-                f"{finding.reason} Evidence: {finding.evidence}"
+                f"{finding.reason} "
+                f"Source: {finding.source_of_truth}. "
+                f"Observed: {finding.observed or finding.evidence}."
             )
             for finding in evidence_report.findings
         )
@@ -96,6 +122,11 @@ This report contains claims that are not supported by the run record.
                                 "does not include it."
                             ),
                             evidence=f"changed_files={sorted(changed_file_set)}",
+                            claim_type="file_changed_without_diff",
+                            source_of_truth="changed_files",
+                            expected=file_path,
+                            observed=str(sorted(changed_file_set)),
+                            citation="RunRecord.changed_files",
                         )
                     )
         return findings
@@ -106,7 +137,10 @@ This report contains claims that are not supported by the run record.
         changed_file_set: set[str],
     ) -> list[EvidenceFinding]:
         lowered = markdown.lower()
-        has_test_claim = any(pattern in lowered for pattern in self.TEST_CLAIM_PATTERNS)
+        has_test_claim = (
+            any(pattern in lowered for pattern in self.TEST_CLAIM_PATTERNS)
+            or self.TEST_UPDATE_CLAIM.search(lowered) is not None
+        )
         has_changed_tests = any(path.startswith("tests/") for path in changed_file_set)
         if has_test_claim and not has_changed_tests:
             return [
@@ -115,6 +149,38 @@ This report contains claims that are not supported by the run record.
                     claim="new tests added",
                     reason="Report claims tests were added, but no changed test file is present.",
                     evidence=f"changed_files={sorted(changed_file_set)}",
+                    claim_type="tests_added_without_test_diff",
+                    source_of_truth="changed_files",
+                    expected="at least one tests/ file",
+                    observed=str(sorted(changed_file_set)),
+                    citation="RunRecord.changed_files",
+                )
+            ]
+        return []
+
+    def _check_lint_claims(
+        self,
+        markdown: str,
+        test_results: TestRunSummary,
+    ) -> list[EvidenceFinding]:
+        lowered = markdown.lower()
+        claims_lint = "ruff" in lowered or "lint" in lowered
+        executed = {result.command for result in test_results.commands}
+        ran_lint = any("ruff" in command or "lint" in command for command in executed)
+        if claims_lint and not ran_lint:
+            return [
+                EvidenceFinding(
+                    severity="error",
+                    claim="linting passed",
+                    reason=(
+                        "Report claims lint/static validation ran, but no lint command executed."
+                    ),
+                    evidence=f"executed_commands={sorted(executed)}",
+                    claim_type="lint_claim_without_execution",
+                    source_of_truth="test_results.commands",
+                    expected="a ruff/lint command in executed validation",
+                    observed=str(sorted(executed)),
+                    citation="RunRecord.test_results.commands",
                 )
             ]
         return []
@@ -140,6 +206,11 @@ This report contains claims that are not supported by the run record.
                     "it is analysis-only."
                 ),
                 evidence="changed_files=[]",
+                claim_type="implementation_claim_without_diff",
+                source_of_truth="changed_files",
+                expected="analysis-only wording or changed files",
+                observed="[]",
+                citation="RunRecord.changed_files",
             )
         ]
 
@@ -157,10 +228,131 @@ This report contains claims that are not supported by the run record.
                     claim="tests pass",
                     reason="Report claims tests pass, but validation commands failed.",
                     evidence="test_results.passed=False",
+                    claim_type="tests_pass_claim_but_failed",
+                    source_of_truth="test_results",
+                    expected="all command exit codes are 0",
+                    observed="test_results.passed=False",
+                    citation="RunRecord.test_results.commands",
                 )
             ]
         return []
 
+    def _check_risk_claims(
+        self,
+        markdown: str,
+        risk_report: RiskReport | None,
+    ) -> list[EvidenceFinding]:
+        if risk_report is None:
+            return []
+        lowered = markdown.lower()
+        claims_low_risk = any(
+            phrase in lowered
+            for phrase in (
+                "no risk",
+                "low risk",
+                "minimal risk",
+                "risk level: low",
+                "level: low",
+            )
+        )
+        if claims_low_risk and risk_report.risk_level in {"medium", "high", "critical"}:
+            return [
+                EvidenceFinding(
+                    severity="error",
+                    claim="low risk",
+                    reason="Report claims low/no risk, but risk report is elevated.",
+                    evidence=f"risk_level={risk_report.risk_level}",
+                    claim_type="risk_level_understated",
+                    source_of_truth="risk_report",
+                    expected="low risk claim only when risk_report.risk_level is low",
+                    observed=f"risk_level={risk_report.risk_level}",
+                    citation="RunRecord.risk_report.risk_level",
+                )
+            ]
+        return []
+
+    def _check_route_claims(
+        self,
+        markdown: str,
+        changed_subgraph: ChangedSubgraph | None,
+    ) -> list[EvidenceFinding]:
+        if changed_subgraph is None:
+            return []
+        impacted = {
+            (route.method.upper(), route.path)
+            for route in changed_subgraph.impacted_routes
+        }
+        findings: list[EvidenceFinding] = []
+        for method, path in self.ROUTE_CLAIM_PATTERN.findall(markdown):
+            route = (method.upper(), path)
+            if route not in impacted:
+                findings.append(
+                    EvidenceFinding(
+                        severity="warning",
+                        claim=f"{method.upper()} {path}",
+                        reason=(
+                            "Report claims route/API impact, but changed subgraph "
+                            "does not include that route."
+                        ),
+                        evidence=f"impacted_routes={sorted(impacted)}",
+                        claim_type="route_claim_without_graph_impact",
+                        source_of_truth="changed_subgraph.impacted_routes",
+                        expected=f"{method.upper()} {path}",
+                        observed=str(sorted(impacted)),
+                        citation="RunRecord.changed_subgraph.impacted_routes",
+                    )
+                )
+        return findings
+
+    def _check_validation_execution_claims(
+        self,
+        markdown: str,
+        test_results: TestRunSummary,
+        changed_subgraph: ChangedSubgraph | None,
+    ) -> list[EvidenceFinding]:
+        if changed_subgraph is None:
+            return []
+        executed = {result.command for result in test_results.commands}
+        recommended = {item.command for item in changed_subgraph.recommended_validation}
+        if not recommended:
+            return []
+        lowered = markdown.lower()
+        if any(word in lowered for word in self.VALIDATION_RECOMMENDATION_WORDS):
+            return []
+        claimed_as_run = recommended.intersection(
+            command for command in recommended if command.lower() in lowered
+        )
+        unsupported = sorted(claimed_as_run - executed)
+        if not unsupported:
+            return []
+        return [
+            EvidenceFinding(
+                severity="error",
+                claim=command,
+                reason="Report presents recommended validation as executed.",
+                evidence=f"executed_commands={sorted(executed)}",
+                claim_type="recommended_validation_claimed_as_executed",
+                source_of_truth="test_results.commands",
+                expected="command appears in executed validation",
+                observed=str(sorted(executed)),
+                citation="RunRecord.test_results.commands",
+            )
+            for command in unsupported
+        ]
+
     def _looks_like_change_claim(self, line: str) -> bool:
         lowered = line.lower()
+        if "external worker" in lowered or "executed the change" in lowered:
+            return False
         return any(word in lowered for word in self.CHANGE_WORDS)
+
+    def _dedupe_findings(self, findings: list[EvidenceFinding]) -> list[EvidenceFinding]:
+        seen: set[tuple[str, str, str]] = set()
+        deduped: list[EvidenceFinding] = []
+        for finding in findings:
+            key = (finding.claim_type, finding.claim, finding.source_of_truth)
+            if key in seen:
+                continue
+            seen.add(key)
+            deduped.append(finding)
+        return deduped
