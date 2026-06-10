@@ -38,20 +38,22 @@ class PRWriter:
 
         files = "\n".join(f"- `{path}`" for path in changed_files) or "- No files changed"
         edit_summary = self._format_edit_summary(edit_result)
-        tests = "\n".join(
-            f"- `{result.command}`: exit {result.exit_code} in {result.duration_seconds:.3f}s"
-            for result in test_results.commands
-        )
+        tests = self._format_test_results(test_results)
         findings = "\n".join(
             f"- **{finding.severity.upper()}** {finding.title}: {finding.recommendation}"
             for finding in review_report.findings
         ) or "- No review findings"
         risk_factors = "\n".join(f"- {factor}" for factor in risk_report.factors)
 
+        summary_status = (
+            ""
+            if changed_files
+            else "\n\nAnalysis-only run: no files were changed."
+        )
         markdown = f"""# AgentOps Harness Report
 
 ## Summary
-{task}
+{task}{summary_status}
 
 ## What changed
 {plan.summary}
@@ -102,3 +104,17 @@ class PRWriter:
 
     def _format_edit_summary(self, edit_result: ExternalEditResult | None) -> str:
         return format_edit_summary(edit_result)
+
+    def _format_test_results(self, test_results: TestRunSummary) -> str:
+        if not test_results.commands:
+            return "- No validation commands were executed."
+        lines = [
+            f"- `{result.command}`: exit {result.exit_code} in {result.duration_seconds:.3f}s"
+            for result in test_results.commands
+        ]
+        status = (
+            "All executed validation commands passed."
+            if test_results.passed
+            else "Validation failed: one or more commands exited non-zero."
+        )
+        return "\n".join([*lines, "", status])

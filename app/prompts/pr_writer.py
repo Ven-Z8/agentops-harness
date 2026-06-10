@@ -33,6 +33,18 @@ def build_pr_writer_prompt(
 
 Write a professional GitHub-style PR report in Markdown.
 
+Grounding rules (hard constraints — every claim must be supported by the inputs below):
+- Only describe a command as executed if it appears in the Tests section, and report
+  its real exit code. Never mention lint/ruff/static analysis unless such a command
+  appears there.
+- Claim that tests pass only if every listed command exited 0. If any exit code is
+  non-zero, state that validation failed.
+- If the Changed files list is empty, state clearly that this was an analysis-only
+  run and describe the plan as proposed work, not completed work.
+- Keep risk wording consistent with the stated risk level; never describe medium or
+  higher risk as low or minimal.
+- Do not invent files, routes, tests, or commands that are not listed below.
+
 Required sections:
 - Summary
 - What changed
