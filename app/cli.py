@@ -94,6 +94,9 @@ def run(
     ],
     task: Annotated[str, typer.Option(help="Engineering task to analyze.")],
     storage: Annotated[Path, typer.Option(help="Run history JSONL path.")] = settings.run_storage,
+    goal: Annotated[
+        str | None, typer.Option("--goal", help="Intent-graph goal id this run targets.")
+    ] = None,
 ) -> None:
     """Run the full AgentOps Harness pipeline."""
     record = run_harness(
@@ -101,6 +104,7 @@ def run(
         task=task,
         storage_path=storage,
         llm_client=build_runtime_llm_client(settings),
+        target_goal_id=goal,
     )
     console.print(Panel(record.final_report.markdown, title=f"Run {record.run_id}"))
 
@@ -129,6 +133,9 @@ def edit(
         bool,
         typer.Option(help="Allow worker runs when the target repo already has changes."),
     ] = False,
+    goal: Annotated[
+        str | None, typer.Option("--goal", help="Intent-graph goal id this run targets.")
+    ] = None,
 ) -> None:
     """Run an explicit external worker, then validate and report its diff.
 
@@ -148,6 +155,7 @@ def edit(
         worker_type=worker_type,
         worker_timeout_seconds=worker_timeout_seconds,
         allow_dirty=allow_dirty,
+        target_goal_id=goal,
     )
     console.print(Panel(record.final_report.markdown, title=f"Run {record.run_id}"))
 

@@ -11,6 +11,7 @@ from app.schemas.evidence import EvidenceReport
 from app.schemas.memory import MemoryReport
 from app.schemas.permission import PermissionReport
 from app.schemas.plan import ImplementationPlan
+from app.schemas.product_review import ProductReview
 from app.schemas.quality import ReportQualityReport
 from app.schemas.repo import RepoProfile
 from app.schemas.report import FinalReport
@@ -43,6 +44,7 @@ class RunRecord(BaseModel):
     evidence_report: EvidenceReport = Field(default_factory=EvidenceReport)
     verification_bundle: VerificationBundle = Field(default_factory=VerificationBundle)
     conflict_report: ConflictReport = Field(default_factory=ConflictReport)
+    product_review: ProductReview = Field(default_factory=ProductReview)
     edit_result: ExternalEditResult | None = None
     execution_logs: list[str] = Field(default_factory=list)
     token_usage: dict[str, int] = Field(default_factory=dict)

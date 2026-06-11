@@ -11,6 +11,7 @@ from app.agents.evidence_guard import EvidenceGuard
 from app.agents.permission_gate import PermissionGate
 from app.agents.planner import Planner
 from app.agents.pr_writer import PRWriter
+from app.agents.product_reviewer import ProductReviewer
 from app.agents.repo_scanner import RepoScanner
 from app.agents.report_quality_guard import ReportQualityGuard
 from app.agents.reviewer import Reviewer
@@ -19,6 +20,7 @@ from app.agents.verification_stack import VerificationStack
 from app.core.conflict import ConflictAuditor
 from app.core.edit_runner import ExternalWorkerRunner
 from app.core.git_utils import collect_changed_files, collect_deleted_files, collect_diff_summary
+from app.core.goal_model import GoalModelError, load_goal_model
 from app.core.llm import LLMClient
 from app.core.memory import ExperienceMemory
 from app.core.repo_graph import RepoGraphBuilder
@@ -41,13 +43,21 @@ def append_logs(state: AgentOpsGraphState, *entries: str) -> list[str]:
 def scan_repo_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
     profile = RepoScanner().scan(state["repo_path"])
     repo_graph = RepoGraphBuilder().build(state["repo_path"])
+    try:
+        goal_model = load_goal_model(state["repo_path"])
+        goal_log = "goal_model:loaded" if goal_model else "goal_model:absent"
+    except GoalModelError:
+        goal_model = None
+        goal_log = "goal_model:invalid"
     return {
         "repo_profile": profile,
         "repo_graph": repo_graph,
+        "goal_model": goal_model,
         "execution_logs": append_logs(
             state,
             "scan_repo:start",
             "repo_graph:complete",
+            goal_log,
             "scan_repo:complete",
         ),
     }
@@ -178,10 +188,10 @@ def run_tests_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
     # run the validation the planner selected (e.g. `uv run pytest` for a uv
     # project) instead of falling back to the hardcoded default.
     commands = state.get("test_commands") or state["plan"].tests_to_run or None
-    test_results = TestRunner().run(
-        state["repo_path"],
-        commands=commands,
-    )
+    runner_kwargs: dict = {"commands": commands}
+    if state.get("test_timeout_seconds"):
+        runner_kwargs["timeout_seconds"] = state["test_timeout_seconds"]
+    test_results = TestRunner().run(state["repo_path"], **runner_kwargs)
     return {
         "test_results": test_results,
         "execution_logs": append_logs(state, "run_tests:start", "run_tests:complete"),
@@ -317,6 +327,33 @@ def check_evidence_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
     }
 
 
+def build_product_review_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
+    logs = append_logs(state, "build_product_review:start")
+    kwargs = dict(
+        task=state["task"],
+        plan=state["plan"],
+        changed_files=state["changed_files"],
+        diff_summary=state["diff_summary"],
+        changed_subgraph=state.get("changed_subgraph"),
+        test_results=state["test_results"],
+        goal_model=state.get("goal_model"),
+        target_goal_id=state.get("target_goal_id"),
+    )
+    reviewer = ProductReviewer(llm_client=state.get("llm_client"))
+    try:
+        review = reviewer.review(**kwargs)
+    except Exception:
+        review = ProductReviewer().review(**kwargs)
+        logs.append("provider_fallback:build_product_review")
+    final_report = reviewer.append_to_report(state["final_report"], review)
+    logs.append("build_product_review:complete")
+    return {
+        "product_review": review,
+        "final_report": final_report,
+        "execution_logs": logs,
+    }
+
+
 def assemble_verification_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
     verification_stack = VerificationStack()
     bundle = verification_stack.assemble(
@@ -375,6 +412,7 @@ def build_workflow_graph() -> CompiledStateGraph:
     graph.add_node("write_report", write_report_node)
     graph.add_node("check_report_quality", check_report_quality_node)
     graph.add_node("check_evidence", check_evidence_node)
+    graph.add_node("build_product_review", build_product_review_node)
     graph.add_node("assemble_verification", assemble_verification_node)
     graph.add_node("audit_conflicts", audit_conflicts_node)
 
@@ -391,7 +429,8 @@ def build_workflow_graph() -> CompiledStateGraph:
     graph.add_edge("classify_permissions", "write_report")
     graph.add_edge("write_report", "check_report_quality")
     graph.add_edge("check_report_quality", "check_evidence")
-    graph.add_edge("check_evidence", "assemble_verification")
+    graph.add_edge("check_evidence", "build_product_review")
+    graph.add_edge("build_product_review", "assemble_verification")
     graph.add_edge("assemble_verification", "audit_conflicts")
     graph.add_edge("audit_conflicts", END)
     return graph.compile()
@@ -407,6 +446,8 @@ def run_harness(
     worker_type: str | None = None,
     worker_timeout_seconds: int = 300,
     allow_dirty: bool = False,
+    target_goal_id: str | None = None,
+    test_timeout_seconds: int | None = None,
 ) -> RunRecord:
     started_at = datetime.now(UTC)
     run_id = uuid4().hex
@@ -422,6 +463,8 @@ def run_harness(
             "worker_type": worker_type,
             "worker_timeout_seconds": worker_timeout_seconds,
             "allow_dirty": allow_dirty,
+            "test_timeout_seconds": test_timeout_seconds,
+            "target_goal_id": target_goal_id,
             "execution_logs": [],
         },
         config={"configurable": {"thread_id": run_id}},
@@ -454,6 +497,7 @@ def run_harness(
         evidence_report=graph_state["evidence_report"],
         verification_bundle=graph_state["verification_bundle"],
         conflict_report=graph_state["conflict_report"],
+        product_review=graph_state["product_review"],
         edit_result=edit_result,
         execution_logs=graph_state["execution_logs"],
         token_usage={"tokens_in": 0, "tokens_out": 0},
