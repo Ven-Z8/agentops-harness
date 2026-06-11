@@ -11,6 +11,7 @@ from app.schemas.conflict import ConflictReport
 from app.schemas.edit import ExternalEditResult
 from app.schemas.evidence import EvidenceReport
 from app.schemas.goal_model import ProductGoalModel
+from app.schemas.governance import PreDispatchDecision
 from app.schemas.memory import MemoryReport
 from app.schemas.permission import PermissionReport
 from app.schemas.plan import ImplementationPlan
@@ -62,3 +63,11 @@ class AgentOpsGraphState(TypedDict, total=False):
     goal_model: ProductGoalModel | None
     target_goal_id: str | None
     product_review: ProductReview
+    pre_dispatch: PreDispatchDecision
+    attempts: int
+    max_attempts: int
+    retry_feedback: str
+    converged: bool
+    enforced_reverts: list[str]
+    isolation: str
+    sandbox_blocked: list[str]

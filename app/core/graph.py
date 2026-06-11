@@ -24,6 +24,7 @@ from app.core.git_utils import (
     collect_deleted_files,
     collect_diff_body,
     collect_diff_summary,
+    run_git,
 )
 from app.core.goal_model import GoalModelError, load_goal_model
 from app.core.llm import LLMClient
@@ -40,6 +41,8 @@ from app.core.workers.opencode_worker import OpenCodeWorker
 from app.core.workspace.base import Workspace
 from app.core.workspace.docker import DockerWorkspace
 from app.core.workspace.local import LocalWorkspace
+from app.schemas.edit import ExternalEditResult
+from app.schemas.governance import PreDispatchDecision
 from app.schemas.memory import MemoryReport
 from app.schemas.run import RunRecord
 from app.schemas.test import TestRunSummary
@@ -53,11 +56,14 @@ def append_logs(state: AgentOpsGraphState, *entries: str) -> list[str]:
 def make_workspace(state: AgentOpsGraphState) -> Workspace:
     """Return the Workspace implementation for this run.
 
-    `--workspace docker` runs validation in an isolated container; the default
-    LocalWorkspace preserves today's host behavior exactly.
+    ``--workspace docker`` runs validation in an isolated container; the default
+    LocalWorkspace preserves today's host behaviour exactly.  When
+    ``isolation="full"`` the DockerWorkspace is configured for full-isolation mode
+    (no bind-mount; worker runs inside; extract_permitted controls what lands on host).
     """
     if state.get("workspace_kind") == "docker":
-        return DockerWorkspace(state["repo_path"])
+        isolation = state.get("isolation") or "validation"
+        return DockerWorkspace(state["repo_path"], isolation=isolation)
     return LocalWorkspace(state["repo_path"])
 
 
@@ -73,6 +79,20 @@ def prepare_workspace_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
         "workspace_report": result,
         "execution_logs": logs,
     }
+
+
+def pre_dispatch_gate_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
+    from app.core.security import is_sensitive_path
+
+    planned = {f for step in state["plan"].steps for f in step.files_to_edit}
+    denied = sorted(p for p in planned if is_sensitive_path(p))
+    decision = PreDispatchDecision(
+        blocked=bool(denied),
+        denied_paths=denied,
+        reason=f"Plan targets sensitive paths: {denied}" if denied else "",
+    )
+    log = "pre_dispatch:blocked" if denied else "pre_dispatch:ok"
+    return {"pre_dispatch": decision, "execution_logs": append_logs(state, log)}
 
 
 def scan_repo_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
@@ -144,52 +164,118 @@ def create_plan_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
 
 
 def run_external_worker_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
-    # Task 4: skip the worker when the workspace could not be prepared.
+    from app.core.security import is_sensitive_path
+
+    # Increment attempt counter (starts at 0 in initial state, so first run → 1).
+    attempts = state.get("attempts", 0) + 1
+
+    # Skip when workspace could not be prepared.
     if not state.get("workspace_report", PrepareResult()).ok:
         return {
+            "attempts": attempts,
             "edit_result": None,
+            "sandbox_blocked": [],
             "execution_logs": append_logs(state, "worker_skipped:workspace_not_ready"),
+        }
+
+    # Skip when pre-dispatch gate blocked the plan.
+    if state.get("pre_dispatch", PreDispatchDecision()).blocked:
+        return {
+            "attempts": attempts,
+            "edit_result": None,
+            "sandbox_blocked": [],
+            "execution_logs": append_logs(state, "worker_skipped:pre_dispatch_blocked"),
         }
 
     worker_type = state.get("worker_type")
     worker_command = state.get("worker_command")
     timeout = state.get("worker_timeout_seconds") or 300
-    allow_dirty = state.get("allow_dirty") or False
+    # On retries (attempts > 1), the repo will already have changes from the previous
+    # attempt, so always allow dirty on subsequent attempts.
+    allow_dirty = (state.get("allow_dirty") or False) or (attempts > 1)
+
+    # If retry_feedback is set, append it to the task so the worker knows what failed.
+    task = state["task"]
+    retry_feedback = state.get("retry_feedback") or ""
+    if retry_feedback:
+        task = f"{task}\n\n[Retry feedback from previous attempt]:\n{retry_feedback}"
+
+    # ------------------------------------------------------------------
+    # Full-isolation sandbox path: run worker INSIDE the container, then
+    # extract only permitted changes back to the host.
+    # ------------------------------------------------------------------
+    isolation = state.get("isolation") or "validation"
+    workspace = state.get("workspace")
+    if isolation == "full" and isinstance(workspace, DockerWorkspace) and worker_command:
+        import shlex
+
+        argv = shlex.split(worker_command)
+        # Run the worker entirely inside the sandbox container (no host execution).
+        cmd_result = workspace.run_worker(argv, timeout)
+        edit_result = ExternalEditResult(
+            status="completed" if cmd_result.exit_code == 0 else "failed",
+            command=cmd_result.command,
+            exit_code=cmd_result.exit_code,
+            stdout=cmd_result.stdout,
+            stderr=cmd_result.stderr,
+            duration_seconds=cmd_result.duration_seconds,
+        )
+
+        extracted, blocked = workspace.extract_permitted(is_sensitive_path)
+        logs = append_logs(
+            state,
+            "run_external_worker:start",
+            f"sandbox:extracted {len(extracted)} blocked {len(blocked)}",
+            "run_external_worker:complete",
+        )
+        return {
+            "attempts": attempts,
+            "edit_result": edit_result,
+            "sandbox_blocked": blocked,
+            "execution_logs": logs,
+        }
+
+    # ------------------------------------------------------------------
+    # Standard (non-sandbox) paths: unchanged.
+    # ------------------------------------------------------------------
+    sandbox_blocked: list[str] = []
 
     if worker_type == "claude":
         edit_result = ClaudeCodeWorker().run(
             repo_path=state["repo_path"],
-            task=state["task"],
+            task=task,
             timeout_seconds=timeout,
             allow_dirty=allow_dirty,
         )
     elif worker_type == "codex":
         edit_result = CodexWorker().run(
             repo_path=state["repo_path"],
-            task=state["task"],
+            task=task,
             timeout_seconds=timeout,
             allow_dirty=allow_dirty,
         )
     elif worker_type == "opencode":
         edit_result = OpenCodeWorker().run(
             repo_path=state["repo_path"],
-            task=state["task"],
+            task=task,
             timeout_seconds=timeout,
             allow_dirty=allow_dirty,
         )
     elif worker_command:
         edit_result = ExternalWorkerRunner().run(
             repo_path=state["repo_path"],
-            task=state["task"],
+            task=task,
             command_template=worker_command,
             timeout_seconds=timeout,
             allow_dirty=allow_dirty,
         )
     else:
-        return {"edit_result": None}
+        return {"attempts": attempts, "edit_result": None, "sandbox_blocked": []}
 
     return {
+        "attempts": attempts,
         "edit_result": edit_result,
+        "sandbox_blocked": sandbox_blocked,
         "execution_logs": append_logs(
             state,
             "run_external_worker:start",
@@ -218,6 +304,60 @@ def collect_diff_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
         "deleted_files": deleted_files,
         "diff_summary": diff_summary,
         "execution_logs": append_logs(state, "collect_diff:start", "collect_diff:complete"),
+    }
+
+
+def enforce_permissions_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
+    """Revert files the worker changed that violate path-based policy.
+
+    Edit-mode only: when no worker ran (edit_result is None), this is a no-op.
+    Reverted file names are stored in the state so classify_permissions can fold
+    them into the single PermissionReport that reaches RunRecord.
+    """
+    from app.core.security import is_sensitive_path
+
+    if state.get("edit_result") is None:
+        return {
+            "enforced_reverts": [],
+            "execution_logs": append_logs(state, "enforce_permissions:skip"),
+        }
+
+    repo_path = state["repo_path"]
+    reverted: list[str] = []
+
+    for f in list(state.get("changed_files", [])):
+        if not is_sensitive_path(f):
+            continue
+        file_path = repo_path / f
+        # Check if the file is tracked in git (exists in HEAD).
+        ls_result = run_git(repo_path, ["ls-files", "--error-unmatch", f])
+        if ls_result.returncode == 0:
+            # Tracked file — restore to HEAD state.
+            run_git(repo_path, ["checkout", "--", f])
+        else:
+            # Untracked new file — delete it.
+            if file_path.exists():
+                file_path.unlink()
+        reverted.append(f)
+
+    # Re-read changes after reverts so downstream nodes see the cleaned state.
+    ws = state.get("workspace")
+    if ws is not None:
+        changed_files, diff_summary, _diff_body = ws.read_changes()
+    else:
+        changed_files = collect_changed_files(repo_path)
+        diff_summary = collect_diff_summary(repo_path)
+
+    return {
+        "changed_files": changed_files,
+        "diff_summary": diff_summary,
+        "enforced_reverts": reverted,
+        "execution_logs": append_logs(
+            state,
+            "enforce_permissions:start",
+            f"enforce_permissions:reverted={reverted}",
+            "enforce_permissions:complete",
+        ),
     }
 
 
@@ -270,6 +410,54 @@ def _run_tests_in_workspace(
     return TestRunSummary(commands=results)
 
 
+def check_convergence_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
+    """Decide whether the loop has converged or needs another attempt.
+
+    Observe mode (edit_result is None) → always converged, loop exits immediately.
+    Edit mode: converged when tests passed OR attempts reached max_attempts.
+    retry_feedback is set to the truncated stderr of failed test commands so the
+    worker can act on it on the next attempt.
+    """
+    edit_result = state.get("edit_result")
+    # Observe mode: no worker ran — short-circuit, converged immediately.
+    if edit_result is None:
+        return {
+            "converged": True,
+            "retry_feedback": "",
+            "execution_logs": append_logs(state, "check_convergence:skip"),
+        }
+
+    test_results = state.get("test_results")
+    passed = test_results.passed if test_results is not None else True
+    attempts = state.get("attempts", 1)
+    max_attempts = state.get("max_attempts", 2)
+
+    # converged = tests passed (regardless of attempt count).
+    # The router uses attempts < max_attempts to decide retry vs proceed.
+    converged = passed
+
+    retry_feedback = ""
+    if not converged and attempts < max_attempts:
+        # Collect truncated stderr from failed commands.
+        failed_outputs: list[str] = []
+        if test_results is not None:
+            for cmd in test_results.commands:
+                if cmd.exit_code != 0:
+                    output = (cmd.stderr or cmd.stdout or "").strip()
+                    failed_outputs.append(output[:500])
+        retry_feedback = "\n---\n".join(failed_outputs) if failed_outputs else "Validation failed."
+
+    return {
+        "converged": converged,
+        "retry_feedback": retry_feedback,
+        "execution_logs": append_logs(
+            state,
+            "check_convergence:start",
+            f"check_convergence:converged={converged}",
+        ),
+    }
+
+
 def review_diff_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
     logs = append_logs(state, "review_diff:start")
     try:
@@ -305,6 +493,13 @@ def classify_permissions_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
         deleted_files=state["deleted_files"],
         commands=state.get("test_commands") or [],
     )
+    # Fold in any files already reverted by enforce_permissions_node so the
+    # single PermissionReport reaching RunRecord carries the full enforcement record.
+    enforced_reverts = state.get("enforced_reverts") or []
+    if enforced_reverts:
+        permission_report = permission_report.model_copy(
+            update={"enforced_reverts": list(enforced_reverts)}
+        )
     return {
         "permission_report": permission_report,
         "execution_logs": append_logs(
@@ -470,16 +665,29 @@ def audit_conflicts_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
     }
 
 
+def _route_convergence(state: AgentOpsGraphState) -> str:
+    """Router for check_convergence conditional edge."""
+    conv = state.get("converged", True)
+    attempts = state.get("attempts", 1)
+    max_attempts = state.get("max_attempts", 2)
+    if not conv and attempts < max_attempts:
+        return "retry"
+    return "proceed"
+
+
 def build_workflow_graph() -> CompiledStateGraph:
     graph = StateGraph(AgentOpsGraphState)
     graph.add_node("scan_repo", scan_repo_node)
     graph.add_node("recall_experience", recall_experience_node)
     graph.add_node("create_plan", create_plan_node)
     graph.add_node("prepare_workspace", prepare_workspace_node)
+    graph.add_node("pre_dispatch_gate", pre_dispatch_gate_node)
     graph.add_node("run_external_worker", run_external_worker_node)
     graph.add_node("collect_diff", collect_diff_node)
-    graph.add_node("build_changed_subgraph", build_changed_subgraph_node)
+    graph.add_node("enforce_permissions", enforce_permissions_node)
     graph.add_node("run_tests", run_tests_node)
+    graph.add_node("check_convergence", check_convergence_node)
+    graph.add_node("build_changed_subgraph", build_changed_subgraph_node)
     graph.add_node("review_diff", review_diff_node)
     graph.add_node("assess_risk", assess_risk_node)
     graph.add_node("classify_permissions", classify_permissions_node)
@@ -494,11 +702,21 @@ def build_workflow_graph() -> CompiledStateGraph:
     graph.add_edge("scan_repo", "recall_experience")
     graph.add_edge("recall_experience", "create_plan")
     graph.add_edge("create_plan", "prepare_workspace")
-    graph.add_edge("prepare_workspace", "run_external_worker")
+    graph.add_edge("prepare_workspace", "pre_dispatch_gate")
+    graph.add_edge("pre_dispatch_gate", "run_external_worker")
+    # Loop body: worker → collect → enforce → tests → check_convergence
     graph.add_edge("run_external_worker", "collect_diff")
-    graph.add_edge("collect_diff", "build_changed_subgraph")
-    graph.add_edge("build_changed_subgraph", "run_tests")
-    graph.add_edge("run_tests", "review_diff")
+    graph.add_edge("collect_diff", "enforce_permissions")
+    graph.add_edge("enforce_permissions", "run_tests")
+    graph.add_edge("run_tests", "check_convergence")
+    # Conditional: retry goes back to run_external_worker; proceed exits loop
+    graph.add_conditional_edges(
+        "check_convergence",
+        _route_convergence,
+        {"retry": "run_external_worker", "proceed": "build_changed_subgraph"},
+    )
+    # Post-loop: heavy analysis runs once after convergence
+    graph.add_edge("build_changed_subgraph", "review_diff")
     graph.add_edge("review_diff", "assess_risk")
     graph.add_edge("assess_risk", "classify_permissions")
     graph.add_edge("classify_permissions", "write_report")
@@ -524,6 +742,8 @@ def run_harness(
     target_goal_id: str | None = None,
     test_timeout_seconds: int | None = None,
     workspace_kind: str = "local",
+    isolation: str = "validation",
+    max_attempts: int = 1,
 ) -> RunRecord:
     started_at = datetime.now(UTC)
     run_id = uuid4().hex
@@ -542,9 +762,19 @@ def run_harness(
             "test_timeout_seconds": test_timeout_seconds,
             "target_goal_id": target_goal_id,
             "workspace_kind": workspace_kind,
+            "isolation": isolation,
             "execution_logs": [],
+            # Retry loop seeds
+            "attempts": 0,
+            "max_attempts": max_attempts,
+            "retry_feedback": "",
+            "converged": True,
+            "sandbox_blocked": [],
         },
-        config={"configurable": {"thread_id": run_id}},
+        config={
+            "configurable": {"thread_id": run_id},
+            "recursion_limit": 50,
+        },
     )
 
     # Tear down any isolated workspace (e.g. Docker container) so nothing leaks.
@@ -554,8 +784,13 @@ def run_harness(
 
     risk_report = graph_state["risk_report"]
     permission_report = graph_state["permission_report"]
+    pre_dispatch = graph_state.get("pre_dispatch") or PreDispatchDecision()
     edit_result = graph_state.get("edit_result")
-    status = "blocked" if (risk_report.blocked or permission_report.blocked) else "completed"
+    status: str
+    if pre_dispatch.blocked or risk_report.blocked or permission_report.blocked:
+        status = "blocked"
+    else:
+        status = "completed"
     if status == "completed" and edit_result is not None and edit_result.status != "completed":
         status = "failed"
     record = RunRecord(
@@ -580,11 +815,15 @@ def run_harness(
         verification_bundle=graph_state["verification_bundle"],
         conflict_report=graph_state["conflict_report"],
         workspace_report=graph_state.get("workspace_report") or PrepareResult(),
+        pre_dispatch=pre_dispatch,
         product_review=graph_state["product_review"],
         edit_result=edit_result,
         execution_logs=graph_state["execution_logs"],
         token_usage={"tokens_in": 0, "tokens_out": 0},
         status=status,
+        attempts=graph_state.get("attempts", 1),
+        converged=graph_state.get("converged", True),
+        sandbox_blocked=graph_state.get("sandbox_blocked") or [],
         started_at=started_at,
         completed_at=datetime.now(UTC),
     )

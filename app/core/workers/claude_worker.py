@@ -9,6 +9,7 @@ import time
 from pathlib import Path
 
 from app.core.git_utils import collect_status_lines, is_git_repo
+from app.core.workers.auth_errors import detect_auth_failure
 from app.prompts.workers import build_worker_prompt
 from app.schemas.edit import ExternalEditResult
 
@@ -117,6 +118,18 @@ class ClaudeCodeWorker:
         # claude --output-format json emits a JSON envelope; extract .result
         stdout = completed.stdout
         parsed_result = _extract_result(stdout)
+
+        if completed.returncode != 0:
+            auth_reason = detect_auth_failure(stdout, completed.stderr)
+            if auth_reason is not None:
+                return ExternalEditResult(
+                    status="blocked",
+                    command=command_str,
+                    exit_code=completed.returncode,
+                    stdout=parsed_result or stdout,
+                    stderr=f"{auth_reason}\n{completed.stderr}".strip(),
+                    duration_seconds=duration,
+                )
 
         return ExternalEditResult(
             status="completed" if completed.returncode == 0 else "failed",

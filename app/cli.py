@@ -101,15 +101,27 @@ def run(
         str,
         typer.Option("--workspace", help="Execution workspace: local (default) or docker."),
     ] = "local",
+    sandbox: Annotated[
+        bool,
+        typer.Option("--sandbox/--no-sandbox", help="Run worker in full-isolation Docker sandbox."),
+    ] = False,
+    max_attempts: Annotated[
+        int,
+        typer.Option("--max-attempts", help="Maximum retry attempts for the validation loop."),
+    ] = 2,
 ) -> None:
     """Run the full AgentOps Harness pipeline."""
+    workspace_kind = "docker" if sandbox else workspace
+    isolation = "full" if sandbox else "validation"
     record = run_harness(
         repo_path=repo,
         task=task,
         storage_path=storage,
         llm_client=build_runtime_llm_client(settings),
         target_goal_id=goal,
-        workspace_kind=workspace,
+        workspace_kind=workspace_kind,
+        isolation=isolation,
+        max_attempts=max_attempts,
     )
     console.print(Panel(record.final_report.markdown, title=f"Run {record.run_id}"))
 
@@ -141,16 +153,28 @@ def edit(
     goal: Annotated[
         str | None, typer.Option("--goal", help="Intent-graph goal id this run targets.")
     ] = None,
+    sandbox: Annotated[
+        bool,
+        typer.Option("--sandbox/--no-sandbox", help="Run worker in full-isolation Docker sandbox."),
+    ] = False,
+    max_attempts: Annotated[
+        int,
+        typer.Option("--max-attempts", help="Maximum retry attempts for the validation loop."),
+    ] = 2,
 ) -> None:
     """Run an explicit external worker, then validate and report its diff.
 
     Use --worker-command for arbitrary CLI workers (Cursor, Codex, etc.) or
     --worker-type claude/codex/opencode to delegate to a built-in CLI worker.
+    Use --sandbox to run the worker inside a full-isolation Docker container so
+    denied writes never reach the host filesystem.
     """
     if worker_command is None and worker_type is None:
         raise typer.BadParameter(
             "Provide either --worker-command or --worker-type (e.g. --worker-type claude)."
         )
+    workspace_kind = "docker" if sandbox else "local"
+    isolation = "full" if sandbox else "validation"
     record = run_harness(
         repo_path=repo,
         task=task,
@@ -161,6 +185,9 @@ def edit(
         worker_timeout_seconds=worker_timeout_seconds,
         allow_dirty=allow_dirty,
         target_goal_id=goal,
+        workspace_kind=workspace_kind,
+        isolation=isolation,
+        max_attempts=max_attempts,
     )
     console.print(Panel(record.final_report.markdown, title=f"Run {record.run_id}"))
 

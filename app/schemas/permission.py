@@ -32,6 +32,7 @@ class PermissionDecision(BaseModel):
 
 class PermissionReport(BaseModel):
     decisions: list[PermissionDecision] = Field(default_factory=list)
+    enforced_reverts: list[str] = Field(default_factory=list)
 
     @property
     def highest_tier(self) -> PermissionTier:
