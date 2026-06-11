@@ -170,6 +170,35 @@ def run_external_worker_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
     # Increment attempt counter (starts at 0 in initial state, so first run → 1).
     attempts = state.get("attempts", 0) + 1
 
+    # Sandbox (full isolation) runs the worker INSIDE the container, which only
+    # supports an explicit --worker-command for now. The built-in worker types
+    # (codex/claude/opencode/openhands) are not installed in the sandbox image yet,
+    # so block the combination explicitly instead of silently running on the host
+    # (which would not be sandboxed) or producing no edits. Checked first, so the
+    # invalid combination is reported regardless of workspace preparation.
+    if (
+        (state.get("isolation") or "validation") == "full"
+        and state.get("worker_type")
+        and not state.get("worker_command")
+    ):
+        wt = state.get("worker_type")
+        return {
+            "attempts": attempts,
+            "edit_result": ExternalEditResult(
+                status="blocked",
+                command=f"--worker-type {wt} --sandbox",
+                stderr=(
+                    "Sandbox mode (--sandbox) runs the worker inside the container and "
+                    f"currently supports --worker-command only; the built-in '{wt}' worker "
+                    "is not installed in the sandbox image yet. Use --worker-command for "
+                    "sandboxed runs, or drop --sandbox to run the worker on the host with "
+                    "isolated validation (--workspace docker)."
+                ),
+            ),
+            "sandbox_blocked": [],
+            "execution_logs": append_logs(state, "worker_blocked:sandbox_worker_type_unsupported"),
+        }
+
     # Skip when workspace could not be prepared.
     if not state.get("workspace_report", PrepareResult()).ok:
         return {
@@ -441,11 +470,12 @@ def check_convergence_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
     max_attempts = state.get("max_attempts", 2)
 
     # converged = tests passed (regardless of attempt count).
-    # The router uses attempts < max_attempts to decide retry vs proceed.
+    # The router uses _is_retriable_failure + attempts to decide retry vs proceed,
+    # so env/infra failures (can't run, no tests, timeout) don't trigger pointless retries.
     converged = passed
 
     retry_feedback = ""
-    if not converged and attempts < max_attempts:
+    if _is_retriable_failure(state) and attempts < max_attempts:
         # Collect truncated stderr from failed commands.
         failed_outputs: list[str] = []
         if test_results is not None:
@@ -673,12 +703,27 @@ def audit_conflicts_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
     }
 
 
+def _is_retriable_failure(state: AgentOpsGraphState) -> bool:
+    """A failure is worth a worker retry only when tests genuinely RAN and FAILED.
+
+    A test command exit code of 1 means tests executed and failed — the worker can
+    fix that. Environment/infra failures are NOT the worker's fault and retrying is
+    pointless: exit 2 (can't run / collection error), 5 (no tests collected),
+    124 (timeout), 127 (command not found). Treat those as non-retriable.
+    """
+    test_results = state.get("test_results")
+    if test_results is None or test_results.passed:
+        return False
+    return any(cmd.exit_code == 1 for cmd in test_results.commands)
+
+
 def _route_convergence(state: AgentOpsGraphState) -> str:
     """Router for check_convergence conditional edge."""
-    conv = state.get("converged", True)
+    if state.get("edit_result") is None:
+        return "proceed"
     attempts = state.get("attempts", 1)
     max_attempts = state.get("max_attempts", 2)
-    if not conv and attempts < max_attempts:
+    if _is_retriable_failure(state) and attempts < max_attempts:
         return "retry"
     return "proceed"
 
@@ -801,6 +846,15 @@ def run_harness(
         status = "completed"
     if status == "completed" and edit_result is not None and edit_result.status != "completed":
         status = "failed"
+    # A worker was requested but never ran (e.g. workspace not ready) — don't report a
+    # bare "completed" with no edits; surface that the worker was blocked.
+    if (
+        status == "completed"
+        and edit_result is None
+        and (worker_type or worker_command)
+        and not graph_state["workspace_report"].ok
+    ):
+        status = "blocked"
     record = RunRecord(
         run_id=run_id,
         task=task,

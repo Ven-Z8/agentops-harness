@@ -44,3 +44,20 @@ def test_loop_stops_at_one_when_validation_passes(tmp_path):
     )
     assert record.attempts == 1
     assert record.converged is True
+
+
+def test_loop_does_not_retry_on_env_failure(tmp_path):
+    # Exit code 2 = the test command could not run (env/infra error, not a genuine
+    # test failure). Retrying the worker cannot fix that, so the loop must NOT retry.
+    repo = tmp_path / "renv"
+    _repo(repo)
+    record = run_harness(
+        repo_path=repo,
+        task="add notes",
+        storage_path=tmp_path / "runs.db",
+        worker_command="agentops-scripted-edit NOTES.md 'note'",
+        test_commands=["python -c 'import sys; sys.exit(2)'"],
+        max_attempts=3,
+    )
+    assert record.attempts == 1
+    assert record.converged is False
