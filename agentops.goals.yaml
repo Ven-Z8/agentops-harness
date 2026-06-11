@@ -1,0 +1,41 @@
+north_star: >-
+  A local-first control harness that wraps any coding worker with planning,
+  validation, and evidence — so a CEO/CTO can govern what gets built.
+not_this:
+  - A hosted SaaS that stores your code or run history off your machine.
+  - A new coding agent / inner editing loop (we wrap existing workers).
+constraints:
+  - Local-first; the demo runs with no API key (mock provider).
+  - Anthropic SDK only; never the OpenAI SDK.
+  - Every shipped claim must be grounded in the run record.
+goals:
+  - id: G1
+    statement: Ground every worker run in deterministic repo + intent structure.
+    rationale: A grounded start makes runs traceable and judgeable, not vibes.
+    priority: now
+    success_when:
+      - Repo graph is built without an LLM call.
+      - The worker packet carries the plan-as-contract and impacted subgraph.
+      - Each run targets a stated goal from the intent graph.
+    scope_out:
+      - Model fine-tuning or training.
+      - Token-cost optimization.
+  - id: G2
+    statement: Make every run produce a usable evidence bundle, even on failure.
+    rationale: Governance requires inspectable proof, not just an outcome.
+    priority: now
+    success_when:
+      - A completed run writes the full artifact bundle to .agentops/runs/<id>/.
+      - Guards (risk, permission, report-quality, evidence) run on every pass.
+      - A timed-out or failing command is recorded, not crashed on.
+    scope_out:
+      - Cloud dashboards or hosted reporting.
+  - id: G3
+    statement: Judge each run against product intent at the CEO/CTO altitude.
+    rationale: Correct code is not the same as the right work done.
+    priority: next
+    success_when:
+      - Product Reviewer emits a cited verdict per alignment/completeness/value/priority lens.
+      - A run with no intent graph degrades to not_evaluated, never bluffs.
+    scope_out:
+      - Auto-assigning the next task (suggestions are deferred).

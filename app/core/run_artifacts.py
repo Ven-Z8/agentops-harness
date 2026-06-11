@@ -45,6 +45,7 @@ class RunArtifactWriter:
         self._write_json(artifact_dir / "risk_report.json", record.risk_report)
         self._write_json(artifact_dir / "permission_report.json", record.permission_report)
         self._write_json(artifact_dir / "evidence_report.json", record.evidence_report)
+        self._write_json(artifact_dir / "product_review.json", record.product_review)
         self._write_json(artifact_dir / "verification_bundle.json", record.verification_bundle)
         self._write_json(artifact_dir / "conflict_report.json", record.conflict_report)
         self._write_text(artifact_dir / "final_report.md", record.final_report.markdown)

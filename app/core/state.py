@@ -9,9 +9,11 @@ from app.core.repo_graph.models import RepoGraph
 from app.schemas.conflict import ConflictReport
 from app.schemas.edit import ExternalEditResult
 from app.schemas.evidence import EvidenceReport
+from app.schemas.goal_model import ProductGoalModel
 from app.schemas.memory import MemoryReport
 from app.schemas.permission import PermissionReport
 from app.schemas.plan import ImplementationPlan
+from app.schemas.product_review import ProductReview
 from app.schemas.quality import ReportQualityReport
 from app.schemas.repo import RepoProfile
 from app.schemas.report import FinalReport
@@ -31,6 +33,7 @@ class AgentOpsGraphState(TypedDict, total=False):
     worker_command: str | None
     worker_type: str | None
     worker_timeout_seconds: int
+    test_timeout_seconds: int | None
     allow_dirty: bool
     repo_profile: RepoProfile
     memory_report: MemoryReport
@@ -51,3 +54,6 @@ class AgentOpsGraphState(TypedDict, total=False):
     execution_logs: list[str]
     repo_graph: RepoGraph
     changed_subgraph: ChangedSubgraph
+    goal_model: ProductGoalModel | None
+    target_goal_id: str | None
+    product_review: ProductReview
