@@ -32,6 +32,7 @@ class RunArtifactWriter:
         artifact_dir = artifact_dir_for_run(storage_path, record.run_id)
         artifact_dir.mkdir(parents=True, exist_ok=True)
 
+        self._write_json(artifact_dir / "workspace_report.json", record.workspace_report)
         self._write_json(artifact_dir / "repo_profile.json", record.repo_profile)
         self._write_json(artifact_dir / "repo_graph.json", record.repo_graph)
         self._write_yaml(artifact_dir / "task_plan.yaml", record.plan.model_dump(mode="json"))

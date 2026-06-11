@@ -97,6 +97,10 @@ def run(
     goal: Annotated[
         str | None, typer.Option("--goal", help="Intent-graph goal id this run targets.")
     ] = None,
+    workspace: Annotated[
+        str,
+        typer.Option("--workspace", help="Execution workspace: local (default) or docker."),
+    ] = "local",
 ) -> None:
     """Run the full AgentOps Harness pipeline."""
     record = run_harness(
@@ -105,6 +109,7 @@ def run(
         storage_path=storage,
         llm_client=build_runtime_llm_client(settings),
         target_goal_id=goal,
+        workspace_kind=workspace,
     )
     console.print(Panel(record.final_report.markdown, title=f"Run {record.run_id}"))
 

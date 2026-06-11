@@ -87,3 +87,27 @@ def test_later_goal_while_now_open_flags_prioritization():
         goal_model=model(), target_goal_id="G2",
     )
     assert any(f.lens == "prioritization" and f.verdict == "concern" for f in review.findings)
+
+
+def test_completeness_credits_signals_found_only_in_diff_body():
+    # The signals ("healthz endpoint added", "test added") are absent from the file
+    # paths and the --stat summary; they appear only in the diff body. The reviewer
+    # must read the body, otherwise it false-negatives on real work (the gap a real
+    # codex run exposed on contextiq).
+    diff_body = (
+        "+@app.get('/healthz')\n+def healthz():\n+    return {'status': 'ok'}\n"
+        "+def test_api_healthz_readiness():\n+    assert resp.status_code == 200\n"
+    )
+    review = ProductReviewer().review(
+        task="add healthz",
+        plan=plan(["src/main.py", "tests/test_api.py"]),
+        changed_files=["src/main.py", "tests/test_api.py"],
+        diff_summary="2 files changed, 13 insertions(+)",
+        diff_body=diff_body,
+        changed_subgraph=None,
+        test_results=make_test_results(True),
+        goal_model=model(),
+        target_goal_id="G1",
+    )
+    completeness = next(f for f in review.findings if f.lens == "completeness")
+    assert completeness.verdict == "pass", completeness.observation

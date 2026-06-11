@@ -1,0 +1,31 @@
+<svg viewBox="0 0 900 560" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <rect x="0" y="0" width="900" height="560" rx="16" fill="#F6F4EF"/>
+
+  <text x="40" y="42" font-size="22" font-weight="700" fill="#20242A">A harness is everything around a loop — and it nests.</text>
+  <text x="40" y="66" font-size="13" fill="#6B7280">AgentOps owns the outer layers. The model is rented in exactly one box.</text>
+
+  <!-- YOU / CEO layer -->
+  <rect x="40" y="86" width="820" height="446" rx="14" fill="#FBEEE6" stroke="#E2B59C" stroke-width="1.5"/>
+  <text x="62" y="114" font-size="15" font-weight="700" fill="#C2552F">YOU — the human CEO / CTO</text>
+  <text x="62" y="133" font-size="12.5" fill="#8A6F60">review evidence → assign the next goal → ship</text>
+
+  <!-- AGENTOPS layer -->
+  <rect x="72" y="150" width="756" height="366" rx="12" fill="#E7EFE9" stroke="#A9C3B3" stroke-width="1.5"/>
+  <text x="94" y="178" font-size="15" font-weight="700" fill="#2C5F2D">AGENTOPS — the control harness</text>
+  <text x="94" y="197" font-size="12.5" fill="#5E7E6A">plan → assign → validate → guard → evidence</text>
+  <text x="806" y="178" font-size="11.5" font-weight="600" fill="#2C5F2D" text-anchor="end">grounded by the INTENT GRAPH</text>
+
+  <!-- WORKER layer -->
+  <rect x="104" y="214" width="692" height="286" rx="12" fill="#E6ECF4" stroke="#9DB0CB" stroke-width="1.5"/>
+  <text x="126" y="242" font-size="15" font-weight="700" fill="#2F3C7E">WORKER — the inner harness (swappable)</text>
+  <text x="126" y="261" font-size="12.5" fill="#5C6B8F">prompt → model → edit → test → repeat  ·  50–200 iterations</text>
+  <text x="774" y="242" font-size="11.5" font-weight="600" fill="#2F3C7E" text-anchor="end">grounded by the REPO GRAPH</text>
+  <text x="126" y="282" font-size="11.5" fill="#7A86A3">Claude Code · Codex · OpenHands · Cursor</text>
+
+  <!-- MODEL -->
+  <rect x="136" y="306" width="628" height="166" rx="10" fill="#DBE0E7" stroke="#B7BFC9" stroke-width="1.5"/>
+  <text x="158" y="392" font-size="15" font-weight="700" fill="#3A4049">MODEL — rented, swappable</text>
+  <text x="158" y="412" font-size="12.5" fill="#6B7280">answers once, then stops</text>
+
+  <text x="40" y="552" font-size="13.5" font-style="italic" font-weight="600" fill="#C2552F">AgentOps governs; the worker runs the loop.</text>
+</svg>
