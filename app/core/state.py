@@ -69,3 +69,5 @@ class AgentOpsGraphState(TypedDict, total=False):
     retry_feedback: str
     converged: bool
     enforced_reverts: list[str]
+    isolation: str
+    sandbox_blocked: list[str]

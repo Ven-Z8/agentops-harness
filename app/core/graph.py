@@ -41,6 +41,7 @@ from app.core.workers.opencode_worker import OpenCodeWorker
 from app.core.workspace.base import Workspace
 from app.core.workspace.docker import DockerWorkspace
 from app.core.workspace.local import LocalWorkspace
+from app.schemas.edit import ExternalEditResult
 from app.schemas.governance import PreDispatchDecision
 from app.schemas.memory import MemoryReport
 from app.schemas.run import RunRecord
@@ -55,11 +56,14 @@ def append_logs(state: AgentOpsGraphState, *entries: str) -> list[str]:
 def make_workspace(state: AgentOpsGraphState) -> Workspace:
     """Return the Workspace implementation for this run.
 
-    `--workspace docker` runs validation in an isolated container; the default
-    LocalWorkspace preserves today's host behavior exactly.
+    ``--workspace docker`` runs validation in an isolated container; the default
+    LocalWorkspace preserves today's host behaviour exactly.  When
+    ``isolation="full"`` the DockerWorkspace is configured for full-isolation mode
+    (no bind-mount; worker runs inside; extract_permitted controls what lands on host).
     """
     if state.get("workspace_kind") == "docker":
-        return DockerWorkspace(state["repo_path"])
+        isolation = state.get("isolation") or "validation"
+        return DockerWorkspace(state["repo_path"], isolation=isolation)
     return LocalWorkspace(state["repo_path"])
 
 
@@ -160,6 +164,8 @@ def create_plan_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
 
 
 def run_external_worker_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
+    from app.core.security import is_sensitive_path
+
     # Increment attempt counter (starts at 0 in initial state, so first run → 1).
     attempts = state.get("attempts", 0) + 1
 
@@ -168,6 +174,7 @@ def run_external_worker_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
         return {
             "attempts": attempts,
             "edit_result": None,
+            "sandbox_blocked": [],
             "execution_logs": append_logs(state, "worker_skipped:workspace_not_ready"),
         }
 
@@ -176,6 +183,7 @@ def run_external_worker_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
         return {
             "attempts": attempts,
             "edit_result": None,
+            "sandbox_blocked": [],
             "execution_logs": append_logs(state, "worker_skipped:pre_dispatch_blocked"),
         }
 
@@ -191,6 +199,46 @@ def run_external_worker_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
     retry_feedback = state.get("retry_feedback") or ""
     if retry_feedback:
         task = f"{task}\n\n[Retry feedback from previous attempt]:\n{retry_feedback}"
+
+    # ------------------------------------------------------------------
+    # Full-isolation sandbox path: run worker INSIDE the container, then
+    # extract only permitted changes back to the host.
+    # ------------------------------------------------------------------
+    isolation = state.get("isolation") or "validation"
+    workspace = state.get("workspace")
+    if isolation == "full" and isinstance(workspace, DockerWorkspace) and worker_command:
+        import shlex
+
+        argv = shlex.split(worker_command)
+        # Run the worker entirely inside the sandbox container (no host execution).
+        cmd_result = workspace.run_worker(argv, timeout)
+        edit_result = ExternalEditResult(
+            status="completed" if cmd_result.exit_code == 0 else "failed",
+            command=cmd_result.command,
+            exit_code=cmd_result.exit_code,
+            stdout=cmd_result.stdout,
+            stderr=cmd_result.stderr,
+            duration_seconds=cmd_result.duration_seconds,
+        )
+
+        extracted, blocked = workspace.extract_permitted(is_sensitive_path)
+        logs = append_logs(
+            state,
+            "run_external_worker:start",
+            f"sandbox:extracted {len(extracted)} blocked {len(blocked)}",
+            "run_external_worker:complete",
+        )
+        return {
+            "attempts": attempts,
+            "edit_result": edit_result,
+            "sandbox_blocked": blocked,
+            "execution_logs": logs,
+        }
+
+    # ------------------------------------------------------------------
+    # Standard (non-sandbox) paths: unchanged.
+    # ------------------------------------------------------------------
+    sandbox_blocked: list[str] = []
 
     if worker_type == "claude":
         edit_result = ClaudeCodeWorker().run(
@@ -222,11 +270,12 @@ def run_external_worker_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
             allow_dirty=allow_dirty,
         )
     else:
-        return {"attempts": attempts, "edit_result": None}
+        return {"attempts": attempts, "edit_result": None, "sandbox_blocked": []}
 
     return {
         "attempts": attempts,
         "edit_result": edit_result,
+        "sandbox_blocked": sandbox_blocked,
         "execution_logs": append_logs(
             state,
             "run_external_worker:start",
@@ -693,6 +742,7 @@ def run_harness(
     target_goal_id: str | None = None,
     test_timeout_seconds: int | None = None,
     workspace_kind: str = "local",
+    isolation: str = "validation",
     max_attempts: int = 1,
 ) -> RunRecord:
     started_at = datetime.now(UTC)
@@ -712,12 +762,14 @@ def run_harness(
             "test_timeout_seconds": test_timeout_seconds,
             "target_goal_id": target_goal_id,
             "workspace_kind": workspace_kind,
+            "isolation": isolation,
             "execution_logs": [],
             # Retry loop seeds
             "attempts": 0,
             "max_attempts": max_attempts,
             "retry_feedback": "",
             "converged": True,
+            "sandbox_blocked": [],
         },
         config={
             "configurable": {"thread_id": run_id},
@@ -771,6 +823,7 @@ def run_harness(
         status=status,
         attempts=graph_state.get("attempts", 1),
         converged=graph_state.get("converged", True),
+        sandbox_blocked=graph_state.get("sandbox_blocked") or [],
         started_at=started_at,
         completed_at=datetime.now(UTC),
     )

@@ -55,5 +55,6 @@ class RunRecord(BaseModel):
     status: RunStatus
     attempts: int = 1
     converged: bool = True
+    sandbox_blocked: list[str] = Field(default_factory=list)
     started_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     completed_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
