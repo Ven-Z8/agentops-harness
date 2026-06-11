@@ -19,6 +19,7 @@ from app.schemas.review import ReviewReport
 from app.schemas.risk import RiskReport
 from app.schemas.test import TestRunSummary
 from app.schemas.verification import VerificationBundle
+from app.schemas.workspace import PrepareResult
 
 RunStatus = Literal["completed", "blocked", "failed"]
 
@@ -45,6 +46,7 @@ class RunRecord(BaseModel):
     verification_bundle: VerificationBundle = Field(default_factory=VerificationBundle)
     conflict_report: ConflictReport = Field(default_factory=ConflictReport)
     product_review: ProductReview = Field(default_factory=ProductReview)
+    workspace_report: PrepareResult = Field(default_factory=PrepareResult)
     edit_result: ExternalEditResult | None = None
     execution_logs: list[str] = Field(default_factory=list)
     token_usage: dict[str, int] = Field(default_factory=dict)

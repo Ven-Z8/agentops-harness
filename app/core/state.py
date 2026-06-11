@@ -6,6 +6,7 @@ from typing import TypedDict
 from app.core.llm import LLMClient
 from app.core.repo_graph.impact import ChangedSubgraph
 from app.core.repo_graph.models import RepoGraph
+from app.core.workspace.base import Workspace
 from app.schemas.conflict import ConflictReport
 from app.schemas.edit import ExternalEditResult
 from app.schemas.evidence import EvidenceReport
@@ -21,6 +22,7 @@ from app.schemas.review import ReviewReport
 from app.schemas.risk import RiskReport
 from app.schemas.test import TestRunSummary
 from app.schemas.verification import VerificationBundle
+from app.schemas.workspace import PrepareResult
 
 
 class AgentOpsGraphState(TypedDict, total=False):
@@ -35,6 +37,9 @@ class AgentOpsGraphState(TypedDict, total=False):
     worker_timeout_seconds: int
     test_timeout_seconds: int | None
     allow_dirty: bool
+    workspace: Workspace
+    workspace_kind: str
+    workspace_report: PrepareResult
     repo_profile: RepoProfile
     memory_report: MemoryReport
     plan: ImplementationPlan

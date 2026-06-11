@@ -1,0 +1,13 @@
+from __future__ import annotations
+
+from typing import Protocol
+
+from app.schemas.test import CommandResult
+from app.schemas.workspace import PrepareResult
+
+
+class Workspace(Protocol):
+    def prepare(self) -> PrepareResult: ...
+    def run(self, argv: list[str], timeout_seconds: int) -> CommandResult: ...
+    def read_changes(self) -> tuple[list[str], str, str]: ...
+    def cleanup(self) -> None: ...

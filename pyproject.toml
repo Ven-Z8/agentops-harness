@@ -41,6 +41,9 @@ packages = ["app"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+markers = [
+    "docker: tests that require a running Docker daemon (skipped automatically when absent)",
+]
 
 [tool.ruff]
 line-length = 100

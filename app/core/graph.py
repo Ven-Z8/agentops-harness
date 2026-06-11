@@ -37,12 +37,42 @@ from app.core.test_runner import TestRunner
 from app.core.workers.claude_worker import ClaudeCodeWorker
 from app.core.workers.codex_worker import CodexWorker
 from app.core.workers.opencode_worker import OpenCodeWorker
+from app.core.workspace.base import Workspace
+from app.core.workspace.docker import DockerWorkspace
+from app.core.workspace.local import LocalWorkspace
 from app.schemas.memory import MemoryReport
 from app.schemas.run import RunRecord
+from app.schemas.test import TestRunSummary
+from app.schemas.workspace import PrepareResult
 
 
 def append_logs(state: AgentOpsGraphState, *entries: str) -> list[str]:
     return [*state.get("execution_logs", []), *entries]
+
+
+def make_workspace(state: AgentOpsGraphState) -> Workspace:
+    """Return the Workspace implementation for this run.
+
+    `--workspace docker` runs validation in an isolated container; the default
+    LocalWorkspace preserves today's host behavior exactly.
+    """
+    if state.get("workspace_kind") == "docker":
+        return DockerWorkspace(state["repo_path"])
+    return LocalWorkspace(state["repo_path"])
+
+
+def prepare_workspace_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
+    logs = append_logs(state, "prepare_workspace:start")
+    ws = make_workspace(state)
+    result = ws.prepare()
+    if not result.ok:
+        logs.append("workspace_blocked")
+    logs.append("prepare_workspace:complete")
+    return {
+        "workspace": ws,
+        "workspace_report": result,
+        "execution_logs": logs,
+    }
 
 
 def scan_repo_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
@@ -114,6 +144,13 @@ def create_plan_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
 
 
 def run_external_worker_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
+    # Task 4: skip the worker when the workspace could not be prepared.
+    if not state.get("workspace_report", PrepareResult()).ok:
+        return {
+            "edit_result": None,
+            "execution_logs": append_logs(state, "worker_skipped:workspace_not_ready"),
+        }
+
     worker_type = state.get("worker_type")
     worker_command = state.get("worker_command")
     timeout = state.get("worker_timeout_seconds") or 300
@@ -162,11 +199,24 @@ def run_external_worker_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
 
 
 def collect_diff_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
+    # Task 3: route through the workspace abstraction when available so that
+    # DockerWorkspace can exec git commands inside the container.  LocalWorkspace
+    # delegates to the same git_utils helpers, so behavior is identical.
+    # Deleted files are not part of the Workspace.read_changes() contract
+    # (they need a separate git-status pass); continue to call git_utils directly
+    # for that one field regardless of workspace kind.
+    ws = state.get("workspace")
     repo_path = state["repo_path"]
+    if ws is not None:
+        changed_files, diff_summary, _diff_body = ws.read_changes()
+    else:
+        changed_files = collect_changed_files(repo_path)
+        diff_summary = collect_diff_summary(repo_path)
+    deleted_files = collect_deleted_files(repo_path)
     return {
-        "changed_files": collect_changed_files(repo_path),
-        "deleted_files": collect_deleted_files(repo_path),
-        "diff_summary": collect_diff_summary(repo_path),
+        "changed_files": changed_files,
+        "deleted_files": deleted_files,
+        "diff_summary": diff_summary,
         "execution_logs": append_logs(state, "collect_diff:start", "collect_diff:complete"),
     }
 
@@ -193,14 +243,31 @@ def run_tests_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
     # run the validation the planner selected (e.g. `uv run pytest` for a uv
     # project) instead of falling back to the hardcoded default.
     commands = state.get("test_commands") or state["plan"].tests_to_run or None
-    runner_kwargs: dict = {"commands": commands}
-    if state.get("test_timeout_seconds"):
-        runner_kwargs["timeout_seconds"] = state["test_timeout_seconds"]
-    test_results = TestRunner().run(state["repo_path"], **runner_kwargs)
+    timeout = state.get("test_timeout_seconds") or 300
+    workspace = state.get("workspace")
+    if state.get("workspace_kind") == "docker" and workspace is not None:
+        # Run validation inside the isolated container (reproducible deps).
+        test_results = _run_tests_in_workspace(workspace, commands, timeout)
+    else:
+        # Local path: unchanged — TestRunner keeps its process-group/timeout semantics.
+        runner_kwargs: dict = {"commands": commands}
+        if state.get("test_timeout_seconds"):
+            runner_kwargs["timeout_seconds"] = state["test_timeout_seconds"]
+        test_results = TestRunner().run(state["repo_path"], **runner_kwargs)
     return {
         "test_results": test_results,
         "execution_logs": append_logs(state, "run_tests:start", "run_tests:complete"),
     }
+
+
+def _run_tests_in_workspace(
+    workspace: Workspace, commands: list[str] | None, timeout: int
+) -> TestRunSummary:
+    import shlex
+
+    selected = commands or ["python -m pytest -q"]
+    results = [workspace.run(shlex.split(command), timeout) for command in selected]
+    return TestRunSummary(commands=results)
 
 
 def review_diff_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
@@ -408,6 +475,7 @@ def build_workflow_graph() -> CompiledStateGraph:
     graph.add_node("scan_repo", scan_repo_node)
     graph.add_node("recall_experience", recall_experience_node)
     graph.add_node("create_plan", create_plan_node)
+    graph.add_node("prepare_workspace", prepare_workspace_node)
     graph.add_node("run_external_worker", run_external_worker_node)
     graph.add_node("collect_diff", collect_diff_node)
     graph.add_node("build_changed_subgraph", build_changed_subgraph_node)
@@ -425,7 +493,8 @@ def build_workflow_graph() -> CompiledStateGraph:
     graph.add_edge(START, "scan_repo")
     graph.add_edge("scan_repo", "recall_experience")
     graph.add_edge("recall_experience", "create_plan")
-    graph.add_edge("create_plan", "run_external_worker")
+    graph.add_edge("create_plan", "prepare_workspace")
+    graph.add_edge("prepare_workspace", "run_external_worker")
     graph.add_edge("run_external_worker", "collect_diff")
     graph.add_edge("collect_diff", "build_changed_subgraph")
     graph.add_edge("build_changed_subgraph", "run_tests")
@@ -454,6 +523,7 @@ def run_harness(
     allow_dirty: bool = False,
     target_goal_id: str | None = None,
     test_timeout_seconds: int | None = None,
+    workspace_kind: str = "local",
 ) -> RunRecord:
     started_at = datetime.now(UTC)
     run_id = uuid4().hex
@@ -471,10 +541,16 @@ def run_harness(
             "allow_dirty": allow_dirty,
             "test_timeout_seconds": test_timeout_seconds,
             "target_goal_id": target_goal_id,
+            "workspace_kind": workspace_kind,
             "execution_logs": [],
         },
         config={"configurable": {"thread_id": run_id}},
     )
+
+    # Tear down any isolated workspace (e.g. Docker container) so nothing leaks.
+    workspace = graph_state.get("workspace")
+    if workspace is not None:
+        workspace.cleanup()
 
     risk_report = graph_state["risk_report"]
     permission_report = graph_state["permission_report"]
@@ -503,6 +579,7 @@ def run_harness(
         evidence_report=graph_state["evidence_report"],
         verification_bundle=graph_state["verification_bundle"],
         conflict_report=graph_state["conflict_report"],
+        workspace_report=graph_state.get("workspace_report") or PrepareResult(),
         product_review=graph_state["product_review"],
         edit_result=edit_result,
         execution_logs=graph_state["execution_logs"],

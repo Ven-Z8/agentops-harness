@@ -27,6 +27,8 @@ def test_langgraph_run_records_node_trace(tmp_path: Path) -> None:
         "recall_experience:miss",
         "create_plan:start",
         "create_plan:complete",
+        "prepare_workspace:start",
+        "prepare_workspace:complete",
         "collect_diff:start",
         "collect_diff:complete",
         "build_changed_subgraph:start",
