@@ -139,7 +139,7 @@ def edit(
     ] = None,
     worker_type: Annotated[
         str | None,
-        typer.Option(help="Built-in worker type: claude, codex, or opencode."),
+        typer.Option(help="Built-in worker type: claude, codex, opencode, or openhands."),
     ] = None,
     storage: Annotated[Path, typer.Option(help="Run history JSONL path.")] = settings.run_storage,
     worker_timeout_seconds: Annotated[
@@ -165,7 +165,7 @@ def edit(
     """Run an explicit external worker, then validate and report its diff.
 
     Use --worker-command for arbitrary CLI workers (Cursor, Codex, etc.) or
-    --worker-type claude/codex/opencode to delegate to a built-in CLI worker.
+    --worker-type claude/codex/opencode/openhands to delegate to a built-in worker.
     Use --sandbox to run the worker inside a full-isolation Docker container so
     denied writes never reach the host filesystem.
     """

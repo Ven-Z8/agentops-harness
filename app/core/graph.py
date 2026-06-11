@@ -38,6 +38,7 @@ from app.core.test_runner import TestRunner
 from app.core.workers.claude_worker import ClaudeCodeWorker
 from app.core.workers.codex_worker import CodexWorker
 from app.core.workers.opencode_worker import OpenCodeWorker
+from app.core.workers.openhands_worker import OpenHandsWorker
 from app.core.workspace.base import Workspace
 from app.core.workspace.docker import DockerWorkspace
 from app.core.workspace.local import LocalWorkspace
@@ -256,6 +257,13 @@ def run_external_worker_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
         )
     elif worker_type == "opencode":
         edit_result = OpenCodeWorker().run(
+            repo_path=state["repo_path"],
+            task=task,
+            timeout_seconds=timeout,
+            allow_dirty=allow_dirty,
+        )
+    elif worker_type == "openhands":
+        edit_result = OpenHandsWorker().run(
             repo_path=state["repo_path"],
             task=task,
             timeout_seconds=timeout,
