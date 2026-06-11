@@ -26,17 +26,18 @@ The inner box above is the **worker harness** — the well-understood anatomy ev
 
 ![The worker harness: the agent loop and the machinery around it](docs/assets/worker-harness-anatomy.png)
 
-**AgentOps does not run this loop.** It does not iterate a model 50–200 times, and it does not edit files — that is the worker's job, invoked inside one node (`run_external_worker`). AgentOps is the layer *above*: it hands the worker a grounded contract, then **governs** what comes back. Concretely:
+**AgentOps does not run the worker's tight inner loop** — it does not iterate a model 50–200 times, and it does not edit files. That is the worker's job, invoked inside one node (`run_external_worker`). AgentOps is the layer *above*: it hands the worker a grounded contract, then **governs** what comes back — including its *own* bounded outer loop (plan → worker → enforce → validate → retry). Concretely:
 
 | Worker-harness part | Who owns it |
 |---|---|
-| The agent loop (prompt → model → edit → test, 50–200×) | **Worker** (Claude Code / Codex / OpenHands) |
+| The agent loop (prompt → model → edit → test, 50–200×) | **Worker** (Claude Code / Codex / OpenHands / OpenCode) |
 | Execution engine (editing files, calling tools) | **Worker** |
 | Feedback ingestion (tests, diffs, logs, errors) | **AgentOps** |
+| Governance — enforce at dispatch (block / revert / sandbox), bounded retry loop | **AgentOps** |
 | Control (permissions, plan-as-contract, timeouts) | **AgentOps** |
 | System/state (repo graph, experiential memory, run history) | **AgentOps** (partial) |
 
-That boundary *is* the product: AgentOps governs the loop instead of reimplementing it.
+That boundary *is* the product: AgentOps governs the loop instead of reimplementing it — it blocks denied edits, reverts what slips through, can run the worker fully sandboxed, and retries on failed validation.
 
 ## Quickstart (no API key — mock provider by default)
 
@@ -93,15 +94,20 @@ flowchart LR
   T[Task + Repo + Goal] --> S[Repo Scanner]
   S --> M[Experience Recall]
   M --> P[Planner]
-  P --> W[Optional External Worker]
+  P --> PW[Prepare Workspace]
+  PW --> GATE[Pre-dispatch Gate]
+  GATE --> W[External Worker]
   W --> D[Diff Collector]
-  D --> CS[Changed Subgraph]
-  CS --> R[Test Runner]
-  R --> V[Reviewer]
+  D --> ENF[Enforce / Revert Denied]
+  ENF --> R[Test Runner]
+  R --> CONV{Converged?}
+  CONV -- retry --> W
+  CONV -- proceed --> CS[Changed Subgraph]
+  CS --> V[Reviewer]
   V --> RG[Risk Guard]
   RG --> PG[Permission Gate]
-  PG --> PR[PR Writer]
-  PR --> QG[Report Quality Guard]
+  PG --> PRw[PR Writer]
+  PRw --> QG[Report Quality Guard]
   QG --> EG[Evidence Guard]
   EG --> PRev[Product Reviewer]
   PRev --> VS[Verification Stack]
@@ -110,10 +116,12 @@ flowchart LR
 ```
 
 ```text
-scan_repo -> recall_experience -> create_plan -> run_external_worker -> collect_diff ->
-build_changed_subgraph -> run_tests -> review_diff -> assess_risk -> classify_permissions ->
-write_report -> check_report_quality -> check_evidence -> build_product_review ->
-assemble_verification -> audit_conflicts
+scan_repo -> recall_experience -> create_plan -> prepare_workspace -> pre_dispatch_gate ->
+run_external_worker -> collect_diff -> enforce_permissions -> run_tests ->
+check_convergence -{retry}-> run_external_worker   (bounded by --max-attempts)
+check_convergence -{proceed}-> build_changed_subgraph -> review_diff -> assess_risk ->
+classify_permissions -> write_report -> check_report_quality -> check_evidence ->
+build_product_review -> assemble_verification -> audit_conflicts
 ```
 
 Every run leaves an inspectable evidence bundle on disk under `.agentops/runs/<run_id>/` — repo graph, plan-as-contract, worker packet, diff, test results, risk/permission/evidence/product-review reports, verification bundle, a replayable trace, and the canonical run record.
@@ -132,7 +140,30 @@ uv run --extra dev agentops edit \
   --worker-command 'cursor-agent --repo {repo_path} --task {task}'
 ```
 
-The target repo must be clean unless `--allow-dirty` is passed, so every changed file is attributable to that worker. Built-in worker types: `--worker-type claude|codex|opencode`.
+The target repo must be clean unless `--allow-dirty` is passed, so every changed file is attributable to that worker. Built-in worker types — all verified end-to-end:
+
+```bash
+--worker-type codex|claude|opencode   # CLI workers (subprocess)
+--worker-type openhands               # a real OpenHands SDK agent loop (uv sync --extra openhands)
+```
+
+The OpenHands worker runs a genuine programmable agent loop (OpenHands SDK 1.28) under the harness — the slide-16 six-step SDK pattern, governed like any other worker.
+
+## Governance: enforced, not just reported
+
+AgentOps doesn't only *audit* the worker — it **enforces**, three ways, and **loops**:
+
+- **Pre-dispatch gate** — if the plan targets a sensitive path (secrets/auth/payment), the worker is **blocked before it runs**.
+- **Revert-on-deny** — a denied change the worker made is **git-reverted** so it never persists (`blocked` = *prevented*, not just labeled).
+- **Sandbox** (`--sandbox`) — the worker runs **inside a throwaway container**; only permitted changes are extracted back. Denied edits **physically never reach your host**.
+- **Bounded retry loop** (`--max-attempts`) — on failed validation the harness re-plans and retries, instead of stopping at one pass.
+
+Run validation in an isolated Docker workspace (no host pollution, fail-fast on a broken env):
+
+```bash
+uv run --extra dev agentops edit --repo /path/to/repo --task "…" \
+  --worker-type codex --workspace docker --sandbox --max-attempts 2
+```
 
 ### Worker packets and workloads
 
@@ -177,7 +208,7 @@ If a provider returns malformed output, the harness falls back to a deterministi
 
 ## Stack
 
-Python · LangGraph · Typer (CLI) · FastAPI (HTTP API) · SQLite + JSONL (run storage) · Pydantic · pytest · MCP stdio server · Anthropic Claude (recommended provider) · OpenRouter (OpenAI-compatible client) · mock provider by default — no paid API key required to run the demo.
+Python 3.12 · LangGraph · Typer (CLI) · FastAPI (HTTP API) · SQLite + JSONL (run storage) · Pydantic · pytest · Docker (isolated workspace / sandbox) · MCP stdio server · OpenHands SDK (optional `openhands` worker) · Anthropic Claude (recommended provider) · OpenRouter (OpenAI-compatible client) · mock provider by default — no paid API key required to run the demo.
 
 ## API
 
