@@ -25,15 +25,33 @@ class TestRunner:
             validate_safe_command(command)
             started = time.perf_counter()
             env = self._subprocess_env(repo_path)
-            completed = subprocess.run(
-                self._resolve_argv(command),
-                cwd=repo_path,
-                capture_output=True,
-                text=True,
-                timeout=timeout_seconds,
-                check=False,
-                env=env,
-            )
+            try:
+                completed = subprocess.run(
+                    self._resolve_argv(command),
+                    cwd=repo_path,
+                    capture_output=True,
+                    text=True,
+                    timeout=timeout_seconds,
+                    check=False,
+                    env=env,
+                )
+            except subprocess.TimeoutExpired as timed_out:
+                # A hung command must be recorded as a failure, not crash the
+                # run — the harness still has to produce usable evidence.
+                duration = time.perf_counter() - started
+                results.append(
+                    CommandResult(
+                        command=command,
+                        exit_code=124,
+                        duration_seconds=round(duration, 3),
+                        stdout=self._decode(timed_out.stdout),
+                        stderr=(
+                            f"Command timed out after {timeout_seconds}s and was "
+                            f"terminated.\n{self._decode(timed_out.stderr)}"
+                        ).strip(),
+                    )
+                )
+                continue
             duration = time.perf_counter() - started
             results.append(
                 CommandResult(
@@ -46,6 +64,13 @@ class TestRunner:
             )
 
         return TestRunSummary(commands=results)
+
+    def _decode(self, value: object) -> str:
+        if value is None:
+            return ""
+        if isinstance(value, bytes):
+            return value.decode("utf-8", errors="replace")
+        return str(value)
 
     def _resolve_argv(self, command: str) -> list[str]:
         """Split command and replace bare 'python'/'python3' with the active interpreter."""

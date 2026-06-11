@@ -174,9 +174,13 @@ def build_changed_subgraph_node(state: AgentOpsGraphState) -> AgentOpsGraphState
 
 
 def run_tests_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
+    # Honor the plan-as-contract: explicit test_commands override, otherwise
+    # run the validation the planner selected (e.g. `uv run pytest` for a uv
+    # project) instead of falling back to the hardcoded default.
+    commands = state.get("test_commands") or state["plan"].tests_to_run or None
     test_results = TestRunner().run(
         state["repo_path"],
-        commands=state.get("test_commands"),
+        commands=commands,
     )
     return {
         "test_results": test_results,
