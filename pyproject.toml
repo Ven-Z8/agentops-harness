@@ -3,7 +3,7 @@ name = "agentops-harness"
 version = "0.1.0"
 description = "Local-first coding-agent orchestration and evaluation harness."
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 dependencies = [
     "pyyaml>=6.0",
     "fastapi>=0.115.0",
@@ -23,6 +23,10 @@ dev = [
     "httpx>=0.27.0",
     "pytest>=8.2.0",
     "ruff>=0.6.0",
+]
+openhands = [
+    "openhands-sdk>=1.28.0",
+    "openhands-tools>=1.28.0",
 ]
 
 [project.scripts]

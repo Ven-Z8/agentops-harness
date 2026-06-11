@@ -2,7 +2,10 @@ from app.core.workers.auth_errors import detect_auth_failure
 
 
 def test_detects_anthropic_401_envelope():
-    out = '{"type":"error","error":{"type":"authentication_error","message":"Invalid authentication credentials"}}'
+    out = (
+        '{"type":"error","error":{"type":"authentication_error",'
+        '"message":"Invalid authentication credentials"}}'
+    )
     msg = detect_auth_failure(out, "")
     assert msg is not None
     assert "credentials" in msg.lower()
