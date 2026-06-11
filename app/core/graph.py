@@ -19,7 +19,12 @@ from app.agents.risk_guard import RiskGuard
 from app.agents.verification_stack import VerificationStack
 from app.core.conflict import ConflictAuditor
 from app.core.edit_runner import ExternalWorkerRunner
-from app.core.git_utils import collect_changed_files, collect_deleted_files, collect_diff_summary
+from app.core.git_utils import (
+    collect_changed_files,
+    collect_deleted_files,
+    collect_diff_body,
+    collect_diff_summary,
+)
 from app.core.goal_model import GoalModelError, load_goal_model
 from app.core.llm import LLMClient
 from app.core.memory import ExperienceMemory
@@ -334,6 +339,7 @@ def build_product_review_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
         plan=state["plan"],
         changed_files=state["changed_files"],
         diff_summary=state["diff_summary"],
+        diff_body=collect_diff_body(state["repo_path"]),
         changed_subgraph=state.get("changed_subgraph"),
         test_results=state["test_results"],
         goal_model=state.get("goal_model"),

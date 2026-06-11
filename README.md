@@ -1,95 +1,146 @@
 # AgentOps Harness
 
-**Flagship portfolio project for agent harness engineering, coding-agent orchestration, safety, evaluation, and developer-productivity AI.**
+**A local-first control harness that wraps any coding agent with planning, validation, governance, and evidence — so a CEO/CTO can govern what gets built, not just generate code.**
 
-AgentOps Harness is a local-first framework for safely orchestrating AI coding agents on real repositories. It enforces a structured workflow — repo analysis, planning, implementation support, testing, review, risk scoring, and PR reporting — so AI-assisted development becomes traceable, measurable, and safer for engineering teams.
+A model answers once and stops. A *coding agent* (Claude Code, Codex, OpenHands) loops — read, edit, run, retry — until a task is done. **A harness is everything around that loop that makes it finish the task.** AgentOps Harness is the *outer* harness: it doesn't run the edit loop itself, it **governs** a swappable worker that does, and hands the human a graded, cited evidence trail.
 
-AI coding agents can generate code. Engineering teams still need the surrounding control plane: structured plans, repeatable validation, review findings, risk gates, run history, and PR-ready reports. That is the layer this project demonstrates.
+## The idea: a harness nests
 
-## Demo
+"Harness" isn't one thing — it's a relationship (*everything around a loop that makes it finish a task*), and it stacks. AgentOps owns the two outer layers; the model is rented in exactly one box.
 
-> _Walkthrough video and screenshots: TBD — to be added before public release._
+![The three-layer harness: You / AgentOps / Worker / Model](docs/assets/three-layer-harness.svg)
 
-```bash
-agentops workload run examples/workloads/request-logging-fastapi.yaml
-# scan -> plan -> execute -> validate
-# risk: low | evidence: captured | report: guarded
-```
+Each layer starts *grounded* by a deterministic, locally-owned graph — and that grounding, not the model, is the moat:
 
-## Stack
+| Layer | Grounded by | What it owns |
+|---|---|---|
+| **Worker** | **repo graph** (structure of the code) | the inner edit loop — swappable: Claude Code · Codex · OpenHands · Cursor |
+| **AgentOps** | the pipeline below | *how* work is done — correctly, safely, with evidence |
+| **CEO** | **intent graph** (structure of the purpose) | *what* is done and *whether it served the goal* |
 
-Python · LangGraph · Typer (CLI) · FastAPI (HTTP API) · SQLite + JSONL (run storage) · Pydantic · pytest · MCP stdio server · Anthropic Claude (recommended provider) · OpenRouter (compatible client) · mock provider by default — no paid API key required to run the demo.
+> Full write-up: [docs/THREE_LAYER_FOUNDATION.md](docs/THREE_LAYER_FOUNDATION.md).
 
-| Metric | Baseline | AgentOps Harness MVP |
-|---|---:|---:|
-| Run trace visibility | Ad hoc chat | Structured run record |
-| Safety checks | Manual review | Deterministic risk score |
-| Demo API keys required | Often yes | No, mock mode by default |
-| Run history | Terminal scrollback | SQLite/JSONL storage |
+### What is a harness? (and what AgentOps does *not* do)
+
+The inner box above is the **worker harness** — the well-understood anatomy every coding agent already ships: an agent loop wrapped by system/state, an execution engine, control, and feedback ingestion.
+
+![The worker harness: the agent loop and the machinery around it](docs/assets/worker-harness-anatomy.png)
+
+**AgentOps does not run this loop.** It does not iterate a model 50–200 times, and it does not edit files — that is the worker's job, invoked inside one node (`run_external_worker`). AgentOps is the layer *above*: it hands the worker a grounded contract, then **governs** what comes back. Concretely:
+
+| Worker-harness part | Who owns it |
+|---|---|
+| The agent loop (prompt → model → edit → test, 50–200×) | **Worker** (Claude Code / Codex / OpenHands) |
+| Execution engine (editing files, calling tools) | **Worker** |
+| Feedback ingestion (tests, diffs, logs, errors) | **AgentOps** |
+| Control (permissions, plan-as-contract, timeouts) | **AgentOps** |
+| System/state (repo graph, experiential memory, run history) | **AgentOps** (partial) |
+
+That boundary *is* the product: AgentOps governs the loop instead of reimplementing it.
+
+## Quickstart (no API key — mock provider by default)
 
 ```bash
 uv sync --extra dev
 uv run --extra dev agentops scan --repo examples/sample_fastapi_app
-uv run --extra dev agentops run --repo examples/sample_fastapi_app --task "Add request logging middleware"
+uv run --extra dev agentops run  --repo examples/sample_fastapi_app --task "Add request logging middleware"
 ```
 
-## Architecture
+## CEO layer: intent graph + Product Reviewer
+
+The CEO/CTO authors a deterministic **intent graph** — `agentops.goals.yaml` at the repo root — that states what the product *is*, what it is *not*, and the goals with discrete, checkable success signals:
+
+```yaml
+north_star: A local control harness that wraps any coding worker with governance.
+not_this:
+  - A hosted SaaS that stores your code off your machine.
+goals:
+  - id: G1
+    statement: Ground every worker run in deterministic repo + intent structure.
+    priority: now
+    success_when:
+      - Repo graph is built without an LLM call.
+      - Each run targets a stated goal from the intent graph.
+    scope_out:
+      - Token-cost optimization.
+```
+
+Point a run at a goal with `--goal`, and the **Product Reviewer** judges the run against that intent — at the altitude a CTO reviews at, separate from the technical guards:
+
+```bash
+uv run --extra dev agentops run --repo . --goal G1 --task "Add a readiness endpoint"
+```
+
+It emits an advisory, **evidence-cited** verdict across four lenses — every finding cites the goal-model field it is grounded in, and it degrades to `not_evaluated` (never bluffs) when no intent graph exists:
+
+```text
+## Product Review
+Overall verdict: incomplete
+- goal_alignment  — pass    : changes stay within the planned files   (cite: RunRecord.plan)
+- completeness    — concern : 1 of 2 success signals met              (cite: agentops.goals.yaml#G1)
+- value           — pass    : diff scope matches the plan             (cite: RunRecord.plan)
+- prioritization  — concern : working a next-goal while now-goals open (cite: agentops.goals.yaml#G1)
+```
+
+The verdict is written into the report, persisted to `product_review.json`, and left for **you** to act on — the Product Reviewer informs; the human assigns the next goal.
+
+## AgentOps layer: the governed pipeline
+
+Implemented as a LangGraph state machine. Deterministic by default; every stage produces inspectable, typed state.
 
 ```mermaid
 flowchart LR
-  T[Task + Repo] --> S[Repo Scanner]
+  T[Task + Repo + Goal] --> S[Repo Scanner]
   S --> M[Experience Recall]
   M --> P[Planner]
   P --> W[Optional External Worker]
   W --> D[Diff Collector]
-  D --> R[Test Runner]
+  D --> CS[Changed Subgraph]
+  CS --> R[Test Runner]
   R --> V[Reviewer]
   V --> RG[Risk Guard]
   RG --> PG[Permission Gate]
   PG --> PR[PR Writer]
   PR --> QG[Report Quality Guard]
   QG --> EG[Evidence Guard]
-  EG --> VS[Verification Stack]
+  EG --> PRev[Product Reviewer]
+  PRev --> VS[Verification Stack]
   VS --> CA[Conflict Auditor]
-  CA --> H[Run History]
+  CA --> H[Run History + Evidence Bundle]
 ```
-
-The pipeline is implemented as a LangGraph state machine:
 
 ```text
-scan_repo -> recall_experience -> create_plan -> optional_external_worker ->
-collect_diff -> run_tests -> review_diff -> assess_risk -> classify_permissions ->
-write_report -> check_report_quality -> check_evidence -> assemble_verification ->
-audit_conflicts
+scan_repo -> recall_experience -> create_plan -> run_external_worker -> collect_diff ->
+build_changed_subgraph -> run_tests -> review_diff -> assess_risk -> classify_permissions ->
+write_report -> check_report_quality -> check_evidence -> build_product_review ->
+assemble_verification -> audit_conflicts
 ```
 
-## Observe Mode And Edit Mode
+Every run leaves an inspectable evidence bundle on disk under `.agentops/runs/<run_id>/` — repo graph, plan-as-contract, worker packet, diff, test results, risk/permission/evidence/product-review reports, verification bundle, a replayable trace, and the canonical run record.
 
-`agentops run` is observe-only: it plans, reads the current diff, runs validation, reviews risk, and writes a report.
+## Worker layer: observe mode and edit mode
 
-`agentops edit` runs one explicit external worker command first, then validates the resulting diff:
+`agentops run` is **observe-only**: it plans, reads the current diff, validates, reviews, and reports — no edits, no hidden worker, no paid model call by default.
+
+`agentops edit` runs one explicit external worker command first, then validates the diff it leaves behind:
 
 ```bash
 uv run --extra dev agentops edit \
   --repo /path/to/repo \
   --task "Add request logging middleware" \
+  --goal G1 \
   --worker-command 'cursor-agent --repo {repo_path} --task {task}'
 ```
 
-The harness does not pick a hidden worker or make a paid model call by default. The target repo must be clean unless `--allow-dirty` is provided, so changed files can be attributed to the worker.
+The target repo must be clean unless `--allow-dirty` is passed, so every changed file is attributable to that worker. Built-in worker types: `--worker-type claude|codex|opencode`.
 
 ### Worker packets and workloads
 
-Deterministic packets for Cursor/Codex/external CLIs reduce repeated planning chatter:
+Deterministic packets for Cursor/Codex/external CLIs reduce repeated planning chatter — the worker edits instead of re-planning:
 
 ```bash
-uv run --extra dev agentops handoff draft \
-  --repo examples/sample_fastapi_app \
+uv run --extra dev agentops handoff draft --repo examples/sample_fastapi_app \
   --task "Describe the logging middleware work for a worker agent"
-
-uv run --extra dev agentops handoff export \
-  --run-id <persisted-run-id>
-
 uv run --extra dev agentops handoff export --run-id <id> --json
 ```
 
@@ -98,160 +149,103 @@ Workload manifests declare portfolio repos plus optional gates (`max_risk_score`
 ```bash
 uv run --extra dev agentops workload validate examples/workloads/request-logging-fastapi.yaml
 uv run --extra dev agentops workload check \
-  --manifest examples/workloads/request-logging-fastapi.yaml \
-  --run-id <persisted-run-id>
+  --manifest examples/workloads/request-logging-fastapi.yaml --run-id <id>
 ```
 
 ```python
 from pathlib import Path
-
 from app.core.graph import run_harness
 
 record = run_harness(
     repo_path=Path("examples/sample_fastapi_app"),
     task="Add request logging middleware",
     storage_path=Path(".agentops/runs.jsonl"),
+    target_goal_id="G1",
 )
-print(record.risk_report.risk_score)
+print(record.product_review.overall_verdict, record.risk_report.risk_score)
 ```
 
-## Evaluation
+## The guards: usable evidence even when the model misbehaves
 
-Reproduce the current validation suite:
+- **Risk Guard** — deterministic score; destructive changes can block the run.
+- **Permission Gate** — classifies what the run actually touched into `auto`/`ask`/`deny` tiers.
+- **Report Quality Guard** — discards malformed provider reports and regenerates locally.
+- **Evidence Guard** — flags report claims the run record does not support (a file/test/route claimed without git, test, or graph evidence).
+- **Product Reviewer** — judges the run against the CEO's intent graph (above).
 
-```bash
-uv run pytest -q
-uv run ruff check .
-```
+If a provider returns malformed output, the harness falls back to a deterministic local report and records a `provider_fallback` event — the run stays usable even when the model output is not.
+
+## Stack
+
+Python · LangGraph · Typer (CLI) · FastAPI (HTTP API) · SQLite + JSONL (run storage) · Pydantic · pytest · MCP stdio server · Anthropic Claude (recommended provider) · OpenRouter (OpenAI-compatible client) · mock provider by default — no paid API key required to run the demo.
 
 ## API
 
 ```bash
 uv run --extra dev uvicorn app.api:api --reload
-```
-
-```bash
 curl -X POST http://127.0.0.1:8000/runs \
   -H "Content-Type: application/json" \
   -d '{"repo_path":"examples/sample_fastapi_app","task":"Add request logging middleware"}'
 ```
 
-To use edit mode through the API, include `worker_command` in the request body.
+Endpoints: `POST /runs` · `GET /runs` · `GET /runs/{id}` · `GET /runs/{id}/report` · `GET /runs/{id}/logs` · `GET /runs/{id}/handoff?format=markdown|json`. Include `worker_command` in the body to use edit mode.
 
-Useful endpoints:
-
-- `POST /runs`
-- `GET /runs`
-- `GET /runs/{run_id}`
-- `GET /runs/{run_id}/report`
-- `GET /runs/{run_id}/logs`
-- `GET /runs/{run_id}/handoff?format=markdown|json`
-
-## Cursor And Goose
-
-Install Cursor commands/rules into a repository:
-
-```bash
-uv run --extra dev agentops integrations cursor --repo .
-```
-
-Generate a Goose recipe:
-
-```bash
-uv run --extra dev agentops integrations goose --repo .
-```
-
-See [docs/CURSOR_GOOSE_INTEGRATION.md](docs/CURSOR_GOOSE_INTEGRATION.md).
-
-## MCP Server
-
-Run AgentOps Harness as an MCP stdio server:
+## MCP server
 
 ```bash
 uv run --extra dev agentops-mcp
 ```
 
-Exposed tools:
+Exposed tools: `agentops_scan` · `agentops_run` · `agentops_get_report` · `agentops_list_runs`. See [docs/MCP_SERVER.md](docs/MCP_SERVER.md).
 
-- `agentops_scan`
-- `agentops_run`
-- `agentops_get_report`
-- `agentops_list_runs`
+## Cursor and Goose integrations
 
-See [docs/MCP_SERVER.md](docs/MCP_SERVER.md).
+```bash
+uv run --extra dev agentops integrations cursor --repo .
+uv run --extra dev agentops integrations goose --repo .
+```
 
-## Evidence Guard
+See [docs/CURSOR_GOOSE_INTEGRATION.md](docs/CURSOR_GOOSE_INTEGRATION.md).
 
-AgentOps Harness checks generated PR reports against actual run evidence. If a model claims files or tests were added without git evidence, the final report gets an `Evidence Guard` section with unsupported claims.
+## Research grounding: "Code as Agent Harness"
 
-This is the core harness-engine idea: AI output is not trusted until it is grounded against repo state, test output, risk signals, and execution traces.
-
-## Report Quality Guard
-
-If a provider returns malformed output, AgentOps Harness falls back to a deterministic local PR report and appends a `Report Quality Guard` section explaining why. The run stays usable even when the model output is not.
-
-Provider failures are also isolated. If OpenRouter/OpenAI returns malformed structured output during planning or review, the graph records a provider fallback event and continues with deterministic local behavior.
-
-## Research Grounding: "Code as Agent Harness"
-
-The harness implements concepts from the *Code as Agent Harness* paper, mapping
-its four properties (Executable, Inspectable, Stateful, Governed) onto concrete,
-tested components. Each is deterministic and runs in mock mode — no API key needed.
+The harness implements concepts from the *Code as Agent Harness* paper, mapping its four properties — **Executable, Inspectable, Stateful, Governed** — onto concrete, tested components. Each is deterministic and runs in mock mode.
 
 | Paper concept | Component | What it does |
 |---|---|---|
-| §5.2.2 Verification stack | `app/agents/verification_stack.py` | Assembles a layered verification bundle (tests, review, risk, evidence) with explicit scope, appended to every report. |
-| §5.2.5 Multi-tier permissions | `app/agents/permission_gate.py` | Classifies each change/command into `auto`/`ask`/`deny` tiers; secret edits and destructive commands are denied, dependency and sensitive-folder changes need approval. |
-| §4.3.2 Convergence benchmark | `app/core/benchmark.py` | Types each run by which of the six convergence kinds it reached, and flags **implicit convergence** — completing without verifying — the paper's "most significant gap." |
-| §3.2.3 Experiential memory | `app/core/memory.py` | Before planning, recalls the most lexically similar past runs and feeds their lessons (implicit gaps, prior blocks, failing tests) into the new plan. |
-| §5.2.3 Conflict policy | `app/core/conflict.py` | Audits the plan, tests, report, evidence, and gates for contradictions (e.g. a report claiming tests pass while they failed) before shipping. |
-| §3.5 Evolution Agent | `app/core/evolution.py` | Reads aggregate run history and proposes structural harness improvements, each citing the run IDs that justify it. |
-
-Run the convergence-typed benchmark and the Evolution Agent:
+| §3.4.2 Plan-as-contract / §5.1.1 oracle adequacy | intent graph + `app/agents/product_reviewer.py` | Judges whether a run served *product intent* (not just whether code is correct), against a CEO-authored goal model, with cited findings. |
+| §5.2.2 Verification stack | `app/agents/verification_stack.py` | Layered verification bundle (tests, review, risk, evidence) with explicit scope, appended to every report. |
+| §5.2.5 Multi-tier permissions | `app/agents/permission_gate.py` | Classifies each change/command into `auto`/`ask`/`deny`; secret edits and destructive commands are denied. |
+| §4.3.2 Convergence benchmark | `app/core/benchmark.py` | Types each run by which of six convergence kinds it reached, flagging **implicit convergence** — completing without verifying — the paper's "most significant gap." |
+| §3.2.3 Experiential memory | `app/core/memory.py` | Before planning, recalls similar past runs and feeds their lessons into the new plan. |
+| §5.2.3 Conflict policy | `app/core/conflict.py` | Audits plan, tests, report, evidence, and gates for contradictions before shipping. |
+| §3.5 Evolution Agent | `app/core/evolution.py` | Reads aggregate run history and *proposes* harness improvements, each citing the run IDs that justify it. |
 
 ```bash
 uv run --extra dev python scripts/benchmark.py
 uv run --extra dev python scripts/evolve.py .agentops/runs.jsonl
 ```
 
-## Local Mac App Direction
+## Evaluation
 
-A local-only macOS app should be a SwiftUI shell over the Python harness engine, not a rewrite.
+```bash
+uv run --extra dev python -m pytest -q
+uv run --extra dev ruff check .
+```
 
-The MVP uses deterministic mock agents so the full demo runs without paid API keys.
+## LLM providers
 
-## LLM Providers
-
-`mock` is the default provider. OpenRouter and direct OpenAI are optional and use the same OpenAI-compatible client abstraction.
+`mock` is the default provider. OpenRouter and direct OpenAI are optional and use the same OpenAI-compatible client abstraction. No real `.env` is required for the demo.
 
 ```bash
 AGENTOPS_LLM_PROVIDER=openrouter
 AGENTOPS_OPENROUTER_API_KEY=...
 AGENTOPS_OPENROUTER_MODEL=deepseek/deepseek-v4-flash
+
+uv run --extra dev agentops providers status   # readiness, no network call
+uv run --extra dev agentops providers ping      # real call after exporting credentials
 ```
 
-Check provider readiness without making a network call:
+## Portfolio positioning
 
-```bash
-uv run --extra dev agentops providers status
-```
-
-Make a real provider call after exporting credentials:
-
-```bash
-uv run --extra dev agentops providers ping
-```
-
-```bash
-AGENTOPS_LLM_PROVIDER=openai
-AGENTOPS_OPENAI_API_KEY=...
-AGENTOPS_OPENAI_MODEL=gpt-4o-mini
-```
-
-No real `.env` file is required for the demo. Use `.env.example` as the reference only.
-
-## Portfolio Positioning
-
-This is intended to be the main GitHub showcase repo for an **Agent Harness Specialist** profile. The other portfolio projects can become workloads evaluated by this harness: ContextForge for context engineering, AgentOrchestra for multi-agent systems, EvalEngine for evals, MCPGuard for safety, and Second Brain OS for research/knowledge workflows.
-
-The control-plane strategy: AgentOps Harness plans, delegates to external coding workers, validates the result, and packages portfolio evidence.
+The main showcase repo for an **Agent Harness Specialist** profile. The control-plane strategy: AgentOps Harness holds the CEO's intent, delegates editing to swappable coding workers, validates and governs the result, and packages portfolio evidence. Other portfolio projects (ContextForge, AgentOrchestra, EvalEngine, MCPGuard, Second Brain OS) can become workloads evaluated by this harness.

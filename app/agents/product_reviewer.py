@@ -18,15 +18,35 @@ def _planned_files(plan: ImplementationPlan) -> set[str]:
     return files
 
 
-def _signal_met(signal: str, haystack: str) -> bool:
-    tokens = []
-    for raw in signal.lower().replace("/", " ").split():
-        token = raw.strip(".,;:#<>()[]\"'")
-        if token and token not in _STOPWORDS and len(token) > 2 and any(c.isalnum() for c in token):
-            tokens.append(token)
+def _word_tokens(text: str) -> set[str]:
+    """Alphanumeric words in `text`, splitting on underscores and punctuation.
+
+    This makes code identifiers searchable word-by-word: `test_api_healthz` ->
+    {test, api, healthz}, so a prose signal token like "healthz" or "test"
+    matches the identifier it appears inside.
+    """
+    return set(re.findall(r"[a-z0-9]+", text.lower()))
+
+
+def _signal_met(signal: str, haystack_tokens: set[str]) -> bool:
+    """Heuristic, low-confidence check that a success signal is evidenced.
+
+    Success signals are written in prose ("a /healthz endpoint is added") but the
+    evidence is often code, where prose words like "endpoint" never appear. So a
+    signal counts as met when its DISTINCTIVE tokens (>=5 chars, e.g. "healthz")
+    show up; only when a signal has no distinctive token do we fall back to
+    requiring all of its short tokens. This avoids false-negatives on real work.
+    """
+    tokens = [
+        t for t in _word_tokens(signal)
+        if t not in _STOPWORDS and len(t) > 2
+    ]
     if not tokens:
         return False
-    return all(bool(re.search(r"\b" + re.escape(t) + r"\b", haystack)) for t in tokens)
+    distinctive = [t for t in tokens if len(t) >= 5]
+    if distinctive:
+        return any(t in haystack_tokens for t in distinctive)
+    return all(t in haystack_tokens for t in tokens)
 
 
 class ProductReviewer:
@@ -44,6 +64,7 @@ class ProductReviewer:
         test_results: TestRunSummary,
         goal_model: ProductGoalModel | None,
         target_goal_id: str | None,
+        diff_body: str = "",
     ) -> ProductReview:
         if goal_model is None:
             return self._not_evaluated()
@@ -65,6 +86,7 @@ class ProductReviewer:
         return self._deterministic(
             plan=plan, changed_files=changed_files, diff_summary=diff_summary,
             test_results=test_results, goal_model=goal_model, target_goal_id=target_goal_id,
+            diff_body=diff_body,
         )
 
     def _not_evaluated(self) -> ProductReview:
@@ -88,6 +110,7 @@ class ProductReviewer:
     def _deterministic(
         self, *, plan: ImplementationPlan, changed_files: list[str], diff_summary: str,
         test_results: TestRunSummary, goal_model: ProductGoalModel, target_goal_id: str | None,
+        diff_body: str = "",
     ) -> ProductReview:
         goal = goal_model.goal(target_goal_id) if target_goal_id else None
         gid = goal.id if goal else "model"
@@ -132,13 +155,14 @@ class ProductReviewer:
         findings.append(align)
 
         # completeness
-        haystack = (lowered_paths + " " + diff_summary.lower() + " " +
-                    " ".join(c.command for c in test_results.commands).lower())
+        haystack = (lowered_paths + " " + diff_summary + " " + diff_body
+                    + " " + " ".join(c.command for c in test_results.commands))
+        haystack_tokens = _word_tokens(haystack)
         signals = (
             goal.success_when if goal
             else [s for g in goal_model.goals for s in g.success_when]
         )
-        unmet = [s for s in signals if not _signal_met(s, haystack)]
+        unmet = [s for s in signals if not _signal_met(s, haystack_tokens)]
         complete = ProductFinding(
             lens="completeness",
             verdict="pass" if (not unmet and test_results.passed) else "concern",

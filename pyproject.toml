@@ -29,6 +29,7 @@ dev = [
 agentops = "app.cli:app"
 agentops-mcp = "app.mcp_server:main"
 agentops-vault-mcp = "app.vault_mcp:main"
+agentops-scripted-edit = "app.core.workers.scripted_worker:main"
 
 [build-system]
 requires = ["hatchling"]

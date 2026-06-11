@@ -21,13 +21,18 @@ def _subprocess_env() -> dict[str, str]:
     return env
 
 
-def _build_argv(codex_bin: str, prompt: str) -> list[str]:
-    """Build codex CLI argv.
+CODEX_COMMAND_STR = "codex exec --sandbox workspace-write <prompt>"
 
-    --approval-mode full-auto skips per-edit confirmation prompts.
-    -q suppresses spinner/progress output so stdout is clean for capture.
+
+def _build_argv(codex_bin: str, prompt: str) -> list[str]:
+    """Build codex CLI argv for non-interactive autonomous editing.
+
+    `codex exec` is the non-interactive entrypoint (modern Codex CLI; the old
+    `--approval-mode full-auto -q` flags were removed). `--sandbox
+    workspace-write` lets the agent edit files in the repo it is run in without
+    per-edit confirmation prompts, while still sandboxing shell commands.
     """
-    return [codex_bin, "--approval-mode", "full-auto", "-q", prompt]
+    return [codex_bin, "exec", "--sandbox", "workspace-write", prompt]
 
 
 class CodexWorker:
@@ -71,7 +76,7 @@ class CodexWorker:
 
         prompt = build_worker_prompt(repo_path=repo_path, task=task)
         argv = _build_argv(codex_bin, prompt)
-        command_str = "codex --approval-mode full-auto -q <prompt>"
+        command_str = CODEX_COMMAND_STR
 
         started = time.perf_counter()
         try:

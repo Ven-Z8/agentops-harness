@@ -72,3 +72,16 @@ def collect_diff_summary(repo_path: Path) -> str:
     if stat.stdout.strip():
         return stat.stdout.strip()
     return "No working tree diff detected."
+
+
+def collect_diff_body(repo_path: Path, max_chars: int = 20000) -> str:
+    """Return the working-tree diff body (not just the --stat summary).
+
+    Used to judge whether changes actually satisfy intent — the --stat summary
+    only lists file names, so a claim like "/healthz endpoint added" can only be
+    verified against the diff body. Capped to keep the haystack bounded.
+    """
+    if not is_git_repo(repo_path):
+        return ""
+    body = run_git(repo_path, ["diff"]).stdout
+    return body[:max_chars]
