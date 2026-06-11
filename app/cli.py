@@ -101,6 +101,10 @@ def run(
         str,
         typer.Option("--workspace", help="Execution workspace: local (default) or docker."),
     ] = "local",
+    max_attempts: Annotated[
+        int,
+        typer.Option("--max-attempts", help="Maximum retry attempts for the validation loop."),
+    ] = 2,
 ) -> None:
     """Run the full AgentOps Harness pipeline."""
     record = run_harness(
@@ -110,6 +114,7 @@ def run(
         llm_client=build_runtime_llm_client(settings),
         target_goal_id=goal,
         workspace_kind=workspace,
+        max_attempts=max_attempts,
     )
     console.print(Panel(record.final_report.markdown, title=f"Run {record.run_id}"))
 
@@ -141,6 +146,10 @@ def edit(
     goal: Annotated[
         str | None, typer.Option("--goal", help="Intent-graph goal id this run targets.")
     ] = None,
+    max_attempts: Annotated[
+        int,
+        typer.Option("--max-attempts", help="Maximum retry attempts for the validation loop."),
+    ] = 2,
 ) -> None:
     """Run an explicit external worker, then validate and report its diff.
 
@@ -161,6 +170,7 @@ def edit(
         worker_timeout_seconds=worker_timeout_seconds,
         allow_dirty=allow_dirty,
         target_goal_id=goal,
+        max_attempts=max_attempts,
     )
     console.print(Panel(record.final_report.markdown, title=f"Run {record.run_id}"))
 

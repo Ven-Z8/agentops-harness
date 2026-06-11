@@ -8,6 +8,7 @@ from app.core.repo_graph.models import RepoGraph
 from app.schemas.conflict import ConflictReport
 from app.schemas.edit import ExternalEditResult
 from app.schemas.evidence import EvidenceReport
+from app.schemas.governance import PreDispatchDecision
 from app.schemas.memory import MemoryReport
 from app.schemas.permission import PermissionReport
 from app.schemas.plan import ImplementationPlan
@@ -47,9 +48,12 @@ class RunRecord(BaseModel):
     conflict_report: ConflictReport = Field(default_factory=ConflictReport)
     product_review: ProductReview = Field(default_factory=ProductReview)
     workspace_report: PrepareResult = Field(default_factory=PrepareResult)
+    pre_dispatch: PreDispatchDecision = Field(default_factory=PreDispatchDecision)
     edit_result: ExternalEditResult | None = None
     execution_logs: list[str] = Field(default_factory=list)
     token_usage: dict[str, int] = Field(default_factory=dict)
     status: RunStatus
+    attempts: int = 1
+    converged: bool = True
     started_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     completed_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
