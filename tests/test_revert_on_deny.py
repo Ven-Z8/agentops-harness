@@ -17,14 +17,19 @@ def _repo(p):
 
 
 def test_denied_change_is_reverted(tmp_path):
+    # Revert-on-deny is the SECOND line of defense: it catches a denied file the
+    # worker wrote that the pre-dispatch gate could not predict. The path is embedded
+    # in a shell string (not a standalone token), so the gate passes and the worker
+    # writes secrets.py — which enforce_permissions must then revert.
     repo = tmp_path / "r"
     _repo(repo)
     record = run_harness(
         repo_path=repo,
-        task="add a secrets file",
+        task="write some config",
         storage_path=tmp_path / "runs.db",
-        worker_command="agentops-scripted-edit secrets.py 'leak'",
+        worker_command="sh -c 'echo leak > secrets.py'",
     )
+    assert record.pre_dispatch.blocked is False  # gate did not catch it
     assert "secrets.py" in record.permission_report.enforced_reverts
     assert "secrets.py" not in record.changed_files
     assert not (repo / "secrets.py").exists()

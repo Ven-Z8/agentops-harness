@@ -83,14 +83,24 @@ def prepare_workspace_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
 
 
 def pre_dispatch_gate_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
+    import shlex
+
     from app.core.security import is_sensitive_path
 
+    # Block on either the plan's intended edits OR an explicit worker command that
+    # references a sensitive path — so a denied edit is stopped before the worker runs.
     planned = {f for step in state["plan"].steps for f in step.files_to_edit}
-    denied = sorted(p for p in planned if is_sensitive_path(p))
+    command = state.get("worker_command") or ""
+    try:
+        command_tokens = set(shlex.split(command))
+    except ValueError:
+        command_tokens = set(command.split())
+    denied = sorted({p for p in planned | command_tokens if is_sensitive_path(p)})
+
     decision = PreDispatchDecision(
         blocked=bool(denied),
         denied_paths=denied,
-        reason=f"Plan targets sensitive paths: {denied}" if denied else "",
+        reason=f"Targets sensitive paths before dispatch: {denied}" if denied else "",
     )
     log = "pre_dispatch:blocked" if denied else "pre_dispatch:ok"
     return {"pre_dispatch": decision, "execution_logs": append_logs(state, log)}
