@@ -87,20 +87,30 @@ def pre_dispatch_gate_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
 
     from app.core.security import is_sensitive_path
 
-    # Block on either the plan's intended edits OR an explicit worker command that
-    # references a sensitive path — so a denied edit is stopped before the worker runs.
-    planned = {f for step in state["plan"].steps for f in step.files_to_edit}
+    # Pre-dispatch enforcement only applies when a worker will actually run.
+    # Observe mode (no worker) never blocks — there is nothing to dispatch.
+    has_worker = bool(state.get("worker_command") or state.get("worker_type"))
+    if not has_worker:
+        return {
+            "pre_dispatch": PreDispatchDecision(),
+            "execution_logs": append_logs(state, "pre_dispatch:observe"),
+        }
+
+    # Block on the EXPLICIT worker command targeting a sensitive path — a precise signal.
+    # The planner's files_to_edit is intentionally NOT used: it over-lists (whole test
+    # trees, etc.), so it produces false blocks. For --worker-type workers (which decide
+    # their own edits), post-edit revert-on-deny and the sandbox provide enforcement.
     command = state.get("worker_command") or ""
     try:
         command_tokens = set(shlex.split(command))
     except ValueError:
         command_tokens = set(command.split())
-    denied = sorted({p for p in planned | command_tokens if is_sensitive_path(p)})
+    denied = sorted({p for p in command_tokens if is_sensitive_path(p)})
 
     decision = PreDispatchDecision(
         blocked=bool(denied),
         denied_paths=denied,
-        reason=f"Targets sensitive paths before dispatch: {denied}" if denied else "",
+        reason=f"Worker command targets sensitive paths: {denied}" if denied else "",
     )
     log = "pre_dispatch:blocked" if denied else "pre_dispatch:ok"
     return {"pre_dispatch": decision, "execution_logs": append_logs(state, log)}

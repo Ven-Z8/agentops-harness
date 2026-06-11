@@ -3,13 +3,13 @@ from __future__ import annotations
 
 import json
 import os
-import shutil
 import subprocess
 import time
 from pathlib import Path
 
 from app.core.git_utils import collect_status_lines, is_git_repo
 from app.core.workers.auth_errors import detect_auth_failure
+from app.core.workers.worker_env import find_worker_bin, worker_env
 from app.prompts.workers import build_worker_prompt
 from app.schemas.edit import ExternalEditResult
 
@@ -19,16 +19,16 @@ _CODING_TOOLS = "Read,Edit,Write,Bash,Glob,Grep"
 
 def _find_claude_bin() -> str | None:
     """Return the absolute path to the `claude` CLI, or None if not found."""
-    return shutil.which("claude")
+    return find_worker_bin("claude")
 
 
 def _subprocess_env() -> dict[str, str]:
     """Build env for the claude subprocess.
 
-    CLAUDECODE="" signals that a parent Claude Code session exists, which
-    prevents the child process from hitting the session-lock check.
+    Adds common global-bin dirs to PATH (worker_env). CLAUDECODE="" signals that
+    a parent Claude Code session exists, preventing the session-lock check.
     """
-    env = os.environ.copy()
+    env = worker_env()
     env["CLAUDECODE"] = ""
     return env
 

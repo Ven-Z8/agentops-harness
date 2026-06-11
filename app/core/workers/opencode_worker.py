@@ -2,40 +2,24 @@
 from __future__ import annotations
 
 import os
-import shutil
 import subprocess
 import time
 from pathlib import Path
 
 from app.core.git_utils import collect_status_lines, is_git_repo
 from app.core.workers.auth_errors import detect_auth_failure
+from app.core.workers.worker_env import find_worker_bin, worker_env
 from app.prompts.workers import build_worker_prompt
 from app.schemas.edit import ExternalEditResult
 
 
 def _find_opencode_bin() -> str | None:
-    """Return the absolute path to `opencode`, including Bun's default bin dir."""
-    found = shutil.which("opencode")
-    if found:
-        return found
-    bun_bin = Path.home() / ".bun" / "bin" / "opencode"
-    if bun_bin.exists():
-        return str(bun_bin)
-    return None
+    """Return the absolute path to `opencode` (PATH + common global-bin dirs)."""
+    return find_worker_bin("opencode")
 
 
 def _subprocess_env() -> dict[str, str]:
-    """Build env for the opencode subprocess.
-
-    Bun installs global binaries into ~/.bun/bin by default. GUI-launched apps
-    often miss shell PATH customizations, so make that path explicit here.
-    """
-    env = os.environ.copy()
-    bun_bin = str(Path.home() / ".bun" / "bin")
-    current_path = env.get("PATH", "")
-    if bun_bin not in current_path.split(os.pathsep):
-        env["PATH"] = bun_bin + os.pathsep + current_path
-    return env
+    return worker_env()
 
 
 def _build_argv(opencode_bin: str, repo_path: Path, prompt: str) -> list[str]:

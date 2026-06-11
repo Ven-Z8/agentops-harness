@@ -1,25 +1,23 @@
 """OpenAI Codex CLI worker — delegates tasks to `codex` as a subprocess."""
 from __future__ import annotations
 
-import os
-import shutil
 import subprocess
 import time
 from pathlib import Path
 
 from app.core.git_utils import collect_status_lines, is_git_repo
 from app.core.workers.auth_errors import detect_auth_failure
+from app.core.workers.worker_env import find_worker_bin, worker_env
 from app.prompts.workers import build_worker_prompt
 from app.schemas.edit import ExternalEditResult
 
 
 def _find_codex_bin() -> str | None:
-    return shutil.which("codex")
+    return find_worker_bin("codex")
 
 
 def _subprocess_env() -> dict[str, str]:
-    env = os.environ.copy()
-    return env
+    return worker_env()
 
 
 CODEX_COMMAND_STR = "codex exec --sandbox workspace-write <prompt>"
