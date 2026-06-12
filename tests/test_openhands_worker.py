@@ -85,6 +85,31 @@ def test_missing_sdk_exit_maps_to_setup_missing(tmp_path: Path, monkeypatch):
     assert "OpenHands SDK not installed" in result.stderr
 
 
+def test_config_error_exit_maps_to_configuration_error(tmp_path: Path, monkeypatch):
+    subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
+
+    def fake_run(argv, *args, **kwargs):
+        if argv[:2] == ["git", "rev-parse"]:
+            return SimpleNamespace(returncode=0, stdout=str(tmp_path), stderr="")
+        if argv[:3] == ["git", "status", "--porcelain"]:
+            return SimpleNamespace(returncode=0, stdout="", stderr="")
+        return SimpleNamespace(
+            returncode=6,
+            stdout="",
+            stderr="configuration_error: OPENHANDS_MAX_ITERATIONS must be a positive integer.",
+        )
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    result = OpenHandsWorker().run(repo_path=tmp_path, task="x", timeout_seconds=5)
+
+    assert result.status == "configuration_error"
+    assert result.termination_reason == "configuration_error"
+    # The bad-config case must NOT tell the operator to reinstall the SDK.
+    assert "uv sync --extra openhands" not in result.stderr
+    assert "OPENHANDS_MAX_ITERATIONS" in result.stderr
+
+
 def test_missing_auth_exit_maps_to_auth_missing(tmp_path: Path, monkeypatch):
     subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
 

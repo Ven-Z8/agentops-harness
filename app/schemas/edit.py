@@ -10,6 +10,7 @@ ExternalEditStatus = Literal[
     "timeout",
     "setup_missing",
     "auth_missing",
+    "configuration_error",
 ]
 
 

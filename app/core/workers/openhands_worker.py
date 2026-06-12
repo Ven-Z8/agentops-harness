@@ -223,8 +223,13 @@ def _status_from_exit_code(code: int, stdout: str, stderr: str) -> str:
         return "completed"
     if code == 3 or detect_auth_failure(stdout, stderr):
         return "auth_missing"
-    if code in (4, 6):
+    if code == 4:
         return "setup_missing"
+    if code == 6:
+        # Bad config (e.g. OPENHANDS_MAX_ITERATIONS=bad) is NOT a missing SDK, so it must
+        # not get the "reinstall the SDK" hint. The runner already prints the real cause
+        # to stderr ("configuration_error: ...").
+        return "configuration_error"
     return "failed"
 
 
@@ -290,17 +295,18 @@ def _persist_worker_artifacts(
             ],
         ),
     )
-    result_path = run_dir / "worker_result.json"
     result.artifact_paths = {
         "prompt": str(prompt_path),
         "stdout": str(stdout_path),
         "stderr": str(stderr_path),
         "summary": str(summary_path),
-        "result": str(result_path),
         "events": str(events_path) if events_path else None,
         "scorecard": str(scorecard_path),
     }
-    write_worker_result(run_dir, result)
+    # write_worker_result owns the filename; use its return value rather than
+    # re-deriving the path so the two can never drift apart.
+    result_path = write_worker_result(run_dir, result)
+    result.artifact_paths["result"] = str(result_path)
 
 
 def _existing_event_log_path(run_dir: Path, summary: WorkerLoopSummary) -> Path | None:
@@ -309,13 +315,17 @@ def _existing_event_log_path(run_dir: Path, summary: WorkerLoopSummary) -> Path 
         candidates.append(Path(summary.event_log_path))
     candidates.append(run_dir / "openhands_events.jsonl")
     for path in candidates:
-        if path.exists():
+        # The recorder pre-touches the log even when zero callbacks fire; treat an empty
+        # file as "no events captured" so artifact_paths["events"] is set iff events exist.
+        if path.exists() and path.stat().st_size > 0:
             return path
     return None
 
 
 def _worker_attempted_tests(stdout: str, stderr: str) -> bool | None:
     blob = f"{stdout}\n{stderr}".lower()
-    if any(marker in blob for marker in ("pytest", "unittest", "npm test", "uv run")):
+    # "pytest" already covers "uv run pytest"; a bare "uv run" would false-positive on
+    # "uv run black ." / "uv run pip install", so only the explicit test script counts.
+    if any(marker in blob for marker in ("pytest", "unittest", "npm test", "uv run test")):
         return True
     return None
