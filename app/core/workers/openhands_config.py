@@ -7,7 +7,14 @@ from pydantic import BaseModel, Field
 
 DEFAULT_OPENHANDS_MODEL = "anthropic/claude-sonnet-4-5-20250929"
 DEFAULT_OPENHANDS_TIMEOUT_SECONDS = 300
-OPENHANDS_TOOL_NAMES = ("terminal", "file_editor", "task_tracker", "grep", "glob")
+OPENHANDS_TOOL_NAMES = (
+    "terminal",
+    "file_editor",
+    "task_tracker",
+    "grep",
+    "glob",
+    "task_tool_set",  # 04 sub-agent delegation
+)
 AUTH_ENV_NAMES = ("LLM_API_KEY", "ANTHROPIC_API_KEY", "OPENAI_API_KEY")
 
 

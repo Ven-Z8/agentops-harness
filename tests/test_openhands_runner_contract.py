@@ -150,10 +150,18 @@ def test_runner_configures_sdk_loop_controls_and_event_capture(
     file_editor.FileEditorTool = type("FileEditorTool", (), {"name": "file_editor"})
     task_tracker = ModuleType("openhands.tools.task_tracker")
     task_tracker.TaskTrackerTool = type("TaskTrackerTool", (), {"name": "task_tracker"})
+    task = ModuleType("openhands.tools.task")
+    task.TaskToolSet = type("TaskToolSet", (), {"name": "task_tool_set"})
     glob_mod = ModuleType("openhands.tools.glob")
     grep_mod = ModuleType("openhands.tools.grep")
     preset = ModuleType("openhands.tools.preset")
-    preset.register_builtins_agents = lambda: calls.__setitem__("builtins_registered", True)
+
+    def _register_builtins_agents(*, enable_browser=True):
+        calls["builtins_registered"] = True
+        calls["builtins_enable_browser"] = enable_browser
+        return []
+
+    preset.register_builtins_agents = _register_builtins_agents
     # `from openhands.tools import glob/grep` resolves the submodule attribute on the parent.
     tools_pkg.glob = glob_mod
     tools_pkg.grep = grep_mod
@@ -168,6 +176,7 @@ def test_runner_configures_sdk_loop_controls_and_event_capture(
     monkeypatch.setitem(sys.modules, "openhands.tools.terminal", terminal)
     monkeypatch.setitem(sys.modules, "openhands.tools.file_editor", file_editor)
     monkeypatch.setitem(sys.modules, "openhands.tools.task_tracker", task_tracker)
+    monkeypatch.setitem(sys.modules, "openhands.tools.task", task)
     monkeypatch.setitem(sys.modules, "openhands.tools.glob", glob_mod)
     monkeypatch.setitem(sys.modules, "openhands.tools.grep", grep_mod)
     monkeypatch.setitem(sys.modules, "openhands.tools.preset", preset)
@@ -203,16 +212,25 @@ def test_runner_configures_sdk_loop_controls_and_event_capture(
     assert calls["conversation"]["persistence_dir"] == str(persistence_dir)
     assert calls["conversation"]["stuck_detection"] is True
     assert len(calls["conversation"]["callbacks"]) == 1
-    # Full-component wiring: the agent gets the 5-tool set + condenser + AgentOps
-    # system-prompt suffix + security analyzer, and the sub-agent archetypes register.
+    # Full-component wiring: the agent gets the 6-tool set (incl. the sub-agent delegation
+    # tool) + condenser + AgentOps system-prompt suffix + security analyzer.
     tool_names = [t.get("name") for t in calls["tools"]]
-    assert tool_names == ["terminal", "file_editor", "task_tracker", "grep", "glob"]
+    assert tool_names == [
+        "terminal",
+        "file_editor",
+        "task_tracker",
+        "grep",
+        "glob",
+        "task_tool_set",
+    ]
     assert "condenser" in calls["agent"]
     assert "security_analyzer" in calls["agent"]
     assert calls["agent_context"]["load_project_skills"] is True
     assert "AgentOps Harness" in calls["agent_context"]["system_message_suffix"]
     assert calls["condenser"] == {"llm": calls["agent"]["llm"], "max_size": 80, "keep_first": 4}
+    # 04 sub-agents register, and with browser disabled to honor the no-network constraint.
     assert calls.get("builtins_registered") is True
+    assert calls.get("builtins_enable_browser") is False
     assert events_path.exists()
     assert json.loads(events_path.read_text(encoding="utf-8")) == {
         "event": {"id": "event-1", "mode": "json", "source": "agent"},

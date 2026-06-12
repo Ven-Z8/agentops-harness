@@ -88,7 +88,7 @@ the run directory:
   "agentops_role": "outer_governor",
   "status": "completed",
   "model": "anthropic/claude-sonnet-4-5-20250929",
-  "tools_requested": ["terminal", "file_editor"],
+  "tools_requested": ["terminal", "file_editor", "task_tracker", "grep", "glob", "task_tool_set"],
   "event_log_path": ".agentops/runs/<run_id>/openhands_events.jsonl",
   "observable_event_count": 12,
   "termination_reason": "completed"
@@ -121,9 +121,12 @@ The parent worker maps those to `ExternalEditResult.status`:
 - `timeout`
 - `setup_missing`
 - `auth_missing`
+- `configuration_error`
 
 Missing SDK and missing auth are classified cleanly so CI can run without
-OpenHands installed and without provider keys.
+OpenHands installed and without provider keys. A bad config value (exit `6`,
+e.g. a non-integer `OPENHANDS_MAX_ITERATIONS`) maps to `configuration_error` —
+distinct from `setup_missing`, so the operator is not told to reinstall the SDK.
 
 ## Manual Tests
 
@@ -188,9 +191,19 @@ uv run --extra dev agentops edit \
 
 Expected: pre-dispatch governance blocks the worker before OpenHands runs.
 
+## Sub-agent delegation
+
+The agent is given the OpenHands `task_tool_set` delegation tool plus the built-in
+terminal-only archetypes (`bash-runner`, `code-explorer`, `general-purpose`). It can
+spin up a focused sub-agent for a bounded sub-task and fold the result back into its
+own loop. Archetypes are registered with `enable_browser=False`, so the
+browser-dependent `web-researcher` is skipped and delegated sub-agents inherit only
+terminal/file tools — the no-browser/network constraint holds through delegation.
+
 ## Limitations
 
-- This integration does not add browser tools or network tools to OpenHands.
+- This integration does not add browser tools or network tools to OpenHands,
+  including to delegated sub-agents.
 - Event capture is limited to events surfaced through OpenHands SDK callbacks.
 - AgentOps does not use OpenHands as a replacement for governance.
 - AgentOps still performs final validation after every worker run.
