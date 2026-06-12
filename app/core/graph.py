@@ -62,6 +62,11 @@ def make_workspace(state: AgentOpsGraphState) -> Workspace:
     ``isolation="full"`` the DockerWorkspace is configured for full-isolation mode
     (no bind-mount; worker runs inside; extract_permitted controls what lands on host).
     """
+    # The OpenHands worker runs its agent loop in its OWN DockerWorkspace, so the harness
+    # uses a local workspace (host validation) even under --sandbox — openhands provides the
+    # isolation itself, and its edits reflect to the host where the harness validates/governs.
+    if state.get("worker_type") == "openhands":
+        return LocalWorkspace(state["repo_path"])
     if state.get("workspace_kind") == "docker":
         isolation = state.get("isolation") or "validation"
         return DockerWorkspace(state["repo_path"], isolation=isolation)
@@ -83,14 +88,38 @@ def prepare_workspace_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
 
 
 def pre_dispatch_gate_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
+    import shlex
+
     from app.core.security import is_sensitive_path
 
-    planned = {f for step in state["plan"].steps for f in step.files_to_edit}
-    denied = sorted(p for p in planned if is_sensitive_path(p))
+    # Pre-dispatch enforcement only applies when a worker will actually run.
+    # Observe mode (no worker) never blocks — there is nothing to dispatch.
+    has_worker = bool(state.get("worker_command") or state.get("worker_type"))
+    if not has_worker:
+        return {
+            "pre_dispatch": PreDispatchDecision(),
+            "execution_logs": append_logs(state, "pre_dispatch:observe"),
+        }
+
+    # Block on the EXPLICIT worker command targeting a sensitive path — a precise signal.
+    # The planner's files_to_edit is intentionally NOT used: it over-lists (whole test
+    # trees, etc.), so it produces false blocks. For --worker-type workers (which decide
+    # their own edits), post-edit revert-on-deny and the sandbox provide enforcement.
+    command = state.get("worker_command") or ""
+    try:
+        command_tokens = set(shlex.split(command))
+    except ValueError:
+        command_tokens = set(command.split())
+    # Only scan tokens that actually look like file paths (contain "/" or "."), so a bare
+    # subcommand/flag value like `auth` or `payment` doesn't false-positive against the
+    # sensitive-folder names while genuine path arguments (app/auth/x.py, secrets.py) still do.
+    path_like = {t for t in command_tokens if "/" in t or "." in t}
+    denied = sorted({p for p in path_like if is_sensitive_path(p)})
+
     decision = PreDispatchDecision(
         blocked=bool(denied),
         denied_paths=denied,
-        reason=f"Plan targets sensitive paths: {denied}" if denied else "",
+        reason=f"Worker command targets sensitive paths: {denied}" if denied else "",
     )
     log = "pre_dispatch:blocked" if denied else "pre_dispatch:ok"
     return {"pre_dispatch": decision, "execution_logs": append_logs(state, log)}
@@ -169,6 +198,36 @@ def run_external_worker_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
 
     # Increment attempt counter (starts at 0 in initial state, so first run → 1).
     attempts = state.get("attempts", 0) + 1
+
+    # Sandbox (full isolation) runs the worker INSIDE the container, which only
+    # supports an explicit --worker-command for now. The CLI worker types
+    # (codex/claude/opencode) are not installed in the sandbox image yet, so block the
+    # combination explicitly instead of silently running on the host. The OpenHands
+    # worker is EXEMPT: it has its own DockerWorkspace (the agent loop runs in an
+    # OpenHands container), so --sandbox maps to that instead of being blocked.
+    if (
+        (state.get("isolation") or "validation") == "full"
+        and state.get("worker_type")
+        and state.get("worker_type") != "openhands"
+        and not state.get("worker_command")
+    ):
+        wt = state.get("worker_type")
+        return {
+            "attempts": attempts,
+            "edit_result": ExternalEditResult(
+                status="blocked",
+                command=f"--worker-type {wt} --sandbox",
+                stderr=(
+                    "Sandbox mode (--sandbox) runs the worker inside the container and "
+                    f"currently supports --worker-command only; the built-in '{wt}' worker "
+                    "is not installed in the sandbox image yet. Use --worker-command for "
+                    "sandboxed runs, or drop --sandbox to run the worker on the host with "
+                    "isolated validation (--workspace docker)."
+                ),
+            ),
+            "sandbox_blocked": [],
+            "execution_logs": append_logs(state, "worker_blocked:sandbox_worker_type_unsupported"),
+        }
 
     # Skip when workspace could not be prepared.
     if not state.get("workspace_report", PrepareResult()).ok:
@@ -263,11 +322,14 @@ def run_external_worker_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
             allow_dirty=allow_dirty,
         )
     elif worker_type == "openhands":
+        # --sandbox runs the OpenHands agent loop inside its own DockerWorkspace.
+        oh_workspace = "docker" if (state.get("isolation") or "validation") == "full" else "local"
         edit_result = OpenHandsWorker().run(
             repo_path=state["repo_path"],
             task=task,
             timeout_seconds=timeout,
             allow_dirty=allow_dirty,
+            workspace=oh_workspace,
         )
     elif worker_command:
         edit_result = ExternalWorkerRunner().run(
@@ -441,11 +503,12 @@ def check_convergence_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
     max_attempts = state.get("max_attempts", 2)
 
     # converged = tests passed (regardless of attempt count).
-    # The router uses attempts < max_attempts to decide retry vs proceed.
+    # The router uses _is_retriable_failure + attempts to decide retry vs proceed,
+    # so env/infra failures (can't run, no tests, timeout) don't trigger pointless retries.
     converged = passed
 
     retry_feedback = ""
-    if not converged and attempts < max_attempts:
+    if _is_retriable_failure(state) and attempts < max_attempts:
         # Collect truncated stderr from failed commands.
         failed_outputs: list[str] = []
         if test_results is not None:
@@ -673,12 +736,32 @@ def audit_conflicts_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
     }
 
 
+def _is_retriable_failure(state: AgentOpsGraphState) -> bool:
+    """A failure is worth a worker retry only when tests genuinely RAN and FAILED.
+
+    A test command exit code of 1 means tests executed and failed — the worker can
+    fix that. Environment/infra failures are NOT the worker's fault and retrying is
+    pointless: exit 2 (can't run / collection error), 5 (no tests collected),
+    124 (timeout), 127 (command not found). Treat those as non-retriable.
+    """
+    # A blocked worker (sandbox-incompatible, auth missing, dirty repo, pre-dispatch) will
+    # not unblock on retry — never loop on it, regardless of test outcomes.
+    edit_result = state.get("edit_result")
+    if edit_result is not None and edit_result.status == "blocked":
+        return False
+    test_results = state.get("test_results")
+    if test_results is None or test_results.passed:
+        return False
+    return any(cmd.exit_code == 1 for cmd in test_results.commands)
+
+
 def _route_convergence(state: AgentOpsGraphState) -> str:
     """Router for check_convergence conditional edge."""
-    conv = state.get("converged", True)
+    if state.get("edit_result") is None:
+        return "proceed"
     attempts = state.get("attempts", 1)
     max_attempts = state.get("max_attempts", 2)
-    if not conv and attempts < max_attempts:
+    if _is_retriable_failure(state) and attempts < max_attempts:
         return "retry"
     return "proceed"
 
@@ -799,8 +882,22 @@ def run_harness(
         status = "blocked"
     else:
         status = "completed"
-    if status == "completed" and edit_result is not None and edit_result.status != "completed":
-        status = "failed"
+    if status == "completed" and edit_result is not None:
+        # A blocked worker (sandbox-incompatible, auth missing, dirty repo, ...) makes the
+        # run blocked, not failed — distinguish the two instead of collapsing both.
+        if edit_result.status == "blocked":
+            status = "blocked"
+        elif edit_result.status != "completed":
+            status = "failed"
+    # A worker was requested but never ran (e.g. workspace not ready) — don't report a
+    # bare "completed" with no edits; surface that the worker was blocked.
+    if (
+        status == "completed"
+        and edit_result is None
+        and (worker_type or worker_command)
+        and not graph_state["workspace_report"].ok
+    ):
+        status = "blocked"
     record = RunRecord(
         run_id=run_id,
         task=task,

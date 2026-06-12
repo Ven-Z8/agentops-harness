@@ -29,7 +29,7 @@ def test_langgraph_run_records_node_trace(tmp_path: Path) -> None:
         "create_plan:complete",
         "prepare_workspace:start",
         "prepare_workspace:complete",
-        "pre_dispatch:ok",
+        "pre_dispatch:observe",
         "collect_diff:start",
         "collect_diff:complete",
         "enforce_permissions:skip",

@@ -43,6 +43,34 @@ def is_worktree_clean(repo_path: Path) -> bool:
     return not collect_status_lines(repo_path)
 
 
+_NOISE_DIR_PARTS = {
+    "__pycache__",
+    ".pytest_cache",
+    ".ruff_cache",
+    ".mypy_cache",
+    ".venv",
+    "node_modules",
+}
+_NOISE_SUFFIXES = (".pyc", ".pyo")
+_NOISE_NAMES = {".DS_Store"}
+
+
+def is_ephemeral_path(path: str) -> bool:
+    """True for build/cache artifacts that should not be attributed to a worker."""
+    posix = path.replace("\\", "/").rstrip("/")
+    parts = posix.split("/")
+    name = parts[-1] if parts else posix
+    if _NOISE_DIR_PARTS.intersection(parts):
+        return True
+    # An `*.egg-info` component anywhere covers the dir AND every file nested inside it
+    # (PKG-INFO, SOURCES.txt, ...), not just the directory entry.
+    if any(part.endswith(".egg-info") for part in parts):
+        return True
+    if name in _NOISE_NAMES:
+        return True
+    return name.endswith(_NOISE_SUFFIXES)
+
+
 def collect_changed_files(repo_path: Path) -> list[str]:
     if not is_git_repo(repo_path):
         return []
@@ -52,6 +80,8 @@ def collect_changed_files(repo_path: Path) -> list[str]:
         path = line[3:]
         if " -> " in path:
             path = path.split(" -> ", maxsplit=1)[1]
+        if is_ephemeral_path(path):
+            continue
         changed.append(path)
     return sorted(set(changed))
 
