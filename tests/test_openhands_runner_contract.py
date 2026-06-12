@@ -23,71 +23,14 @@ def _summary_from_stdout(stdout: str) -> dict:
     raise AssertionError(f"summary line missing from stdout: {stdout}")
 
 
-def test_runner_returns_usage_error_if_repo_path_missing() -> None:
-    completed = subprocess.run(
-        [sys.executable, "-m", "app.core.workers.openhands_runner"],
-        input="Do work",
-        capture_output=True,
-        text=True,
-        timeout=30,
-        check=False,
-    )
+def _install_fake_openhands(monkeypatch, calls: dict, *, register_raises: bool = False) -> None:
+    """Install a fake OpenHands SDK module tree into sys.modules and mark it available.
 
-    assert completed.returncode == 2
-    assert "usage:" in completed.stderr
-
-
-def test_runner_returns_usage_error_if_stdin_task_missing() -> None:
-    completed = _run_runner(task="")
-
-    assert completed.returncode == 2
-    assert "task prompt" in completed.stderr
-
-
-def test_runner_returns_sdk_missing_before_auth_when_openhands_not_installed(monkeypatch) -> None:
-    monkeypatch.setattr(
-        "app.core.workers.openhands_runner.openhands_sdk_available",
-        lambda: False,
-    )
-
-    from app.core.workers.openhands_runner import main
-
-    monkeypatch.setattr(sys, "argv", ["openhands_runner", "."])
-    monkeypatch.setattr(sys, "stdin", type("FakeStdin", (), {"read": lambda self: "Do work"})())
-
-    assert main() == 4
-
-
-def test_runner_returns_auth_error_when_sdk_present_but_no_key(monkeypatch) -> None:
-    monkeypatch.setattr(
-        "app.core.workers.openhands_runner.openhands_sdk_available",
-        lambda: True,
-    )
-    monkeypatch.delenv("LLM_API_KEY", raising=False)
-    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
-    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
-
-    from app.core.workers.openhands_runner import main
-
-    monkeypatch.setattr(sys, "argv", ["openhands_runner", "."])
-    monkeypatch.setattr(sys, "stdin", type("FakeStdin", (), {"read": lambda self: "Do work"})())
-
-    assert main() == 3
-
-
-def test_runner_returns_config_error_for_malformed_env(monkeypatch) -> None:
-    monkeypatch.setenv("OPENHANDS_MAX_ITERATIONS", "bad")
-
-    completed = _run_runner(task="Do work", env={"OPENHANDS_MAX_ITERATIONS": "bad"})
-
-    assert completed.returncode == 6
-    assert "OPENHANDS_MAX_ITERATIONS" in completed.stderr
-
-
-def test_runner_configures_sdk_loop_controls_and_event_capture(
-    monkeypatch, tmp_path, capsys
-) -> None:
-    calls: dict[str, object] = {}
+    The fakes record their constructor kwargs into ``calls`` so tests can assert how the
+    runner wires the agent loop. With ``register_raises=True``, ``register_builtins_agents``
+    raises — exercising the runner's contract that every failure still emits a
+    ``OPENHANDS_WORKER_SUMMARY_JSON`` line and a clean exit code, never an uncaught crash.
+    """
 
     class FakeEvent:
         def model_dump(self, *, mode: str):
@@ -157,6 +100,8 @@ def test_runner_configures_sdk_loop_controls_and_event_capture(
     preset = ModuleType("openhands.tools.preset")
 
     def _register_builtins_agents(*, enable_browser=True):
+        if register_raises:
+            raise RuntimeError("broken preset: archetype config missing")
         calls["builtins_registered"] = True
         calls["builtins_enable_browser"] = enable_browser
         return []
@@ -166,26 +111,99 @@ def test_runner_configures_sdk_loop_controls_and_event_capture(
     tools_pkg.glob = glob_mod
     tools_pkg.grep = grep_mod
 
-    monkeypatch.setitem(sys.modules, "openhands", ModuleType("openhands"))
-    monkeypatch.setitem(sys.modules, "openhands.sdk", sdk)
-    monkeypatch.setitem(sys.modules, "openhands.sdk.context", sdk_context)
-    monkeypatch.setitem(sys.modules, "openhands.sdk.context.condenser", sdk_condenser)
-    monkeypatch.setitem(sys.modules, "openhands.sdk.security", sdk_security)
-    monkeypatch.setitem(sys.modules, "openhands.sdk.security.llm_analyzer", sdk_security_analyzer)
-    monkeypatch.setitem(sys.modules, "openhands.tools", tools_pkg)
-    monkeypatch.setitem(sys.modules, "openhands.tools.terminal", terminal)
-    monkeypatch.setitem(sys.modules, "openhands.tools.file_editor", file_editor)
-    monkeypatch.setitem(sys.modules, "openhands.tools.task_tracker", task_tracker)
-    monkeypatch.setitem(sys.modules, "openhands.tools.task", task)
-    monkeypatch.setitem(sys.modules, "openhands.tools.glob", glob_mod)
-    monkeypatch.setitem(sys.modules, "openhands.tools.grep", grep_mod)
-    monkeypatch.setitem(sys.modules, "openhands.tools.preset", preset)
+    fake_modules = {
+        "openhands": ModuleType("openhands"),
+        "openhands.sdk": sdk,
+        "openhands.sdk.context": sdk_context,
+        "openhands.sdk.context.condenser": sdk_condenser,
+        "openhands.sdk.security": sdk_security,
+        "openhands.sdk.security.llm_analyzer": sdk_security_analyzer,
+        "openhands.tools": tools_pkg,
+        "openhands.tools.terminal": terminal,
+        "openhands.tools.file_editor": file_editor,
+        "openhands.tools.task_tracker": task_tracker,
+        "openhands.tools.task": task,
+        "openhands.tools.glob": glob_mod,
+        "openhands.tools.grep": grep_mod,
+        "openhands.tools.preset": preset,
+    }
+    for name, mod in fake_modules.items():
+        monkeypatch.setitem(sys.modules, name, mod)
+
     monkeypatch.setattr(
         "app.core.workers.openhands_runner.openhands_sdk_available",
         lambda: True,
     )
     monkeypatch.setenv("LLM_API_KEY", "test-key")
     monkeypatch.setenv("OPENHANDS_MODEL", "test/model")
+
+
+def test_runner_returns_usage_error_if_repo_path_missing() -> None:
+    completed = subprocess.run(
+        [sys.executable, "-m", "app.core.workers.openhands_runner"],
+        input="Do work",
+        capture_output=True,
+        text=True,
+        timeout=30,
+        check=False,
+    )
+
+    assert completed.returncode == 2
+    assert "usage:" in completed.stderr
+
+
+def test_runner_returns_usage_error_if_stdin_task_missing() -> None:
+    completed = _run_runner(task="")
+
+    assert completed.returncode == 2
+    assert "task prompt" in completed.stderr
+
+
+def test_runner_returns_sdk_missing_before_auth_when_openhands_not_installed(monkeypatch) -> None:
+    monkeypatch.setattr(
+        "app.core.workers.openhands_runner.openhands_sdk_available",
+        lambda: False,
+    )
+
+    from app.core.workers.openhands_runner import main
+
+    monkeypatch.setattr(sys, "argv", ["openhands_runner", "."])
+    monkeypatch.setattr(sys, "stdin", type("FakeStdin", (), {"read": lambda self: "Do work"})())
+
+    assert main() == 4
+
+
+def test_runner_returns_auth_error_when_sdk_present_but_no_key(monkeypatch) -> None:
+    monkeypatch.setattr(
+        "app.core.workers.openhands_runner.openhands_sdk_available",
+        lambda: True,
+    )
+    monkeypatch.delenv("LLM_API_KEY", raising=False)
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+
+    from app.core.workers.openhands_runner import main
+
+    monkeypatch.setattr(sys, "argv", ["openhands_runner", "."])
+    monkeypatch.setattr(sys, "stdin", type("FakeStdin", (), {"read": lambda self: "Do work"})())
+
+    assert main() == 3
+
+
+def test_runner_returns_config_error_for_malformed_env(monkeypatch) -> None:
+    monkeypatch.setenv("OPENHANDS_MAX_ITERATIONS", "bad")
+
+    completed = _run_runner(task="Do work", env={"OPENHANDS_MAX_ITERATIONS": "bad"})
+
+    assert completed.returncode == 6
+    assert "OPENHANDS_MAX_ITERATIONS" in completed.stderr
+
+
+def test_runner_configures_sdk_loop_controls_and_event_capture(
+    monkeypatch, tmp_path, capsys
+) -> None:
+    calls: dict[str, object] = {}
+    _install_fake_openhands(monkeypatch, calls)
     monkeypatch.setenv("OPENHANDS_MAX_ITERATIONS", "7")
     events_path = tmp_path / "openhands_events.jsonl"
     persistence_dir = tmp_path / "openhands_state"
@@ -238,3 +256,27 @@ def test_runner_configures_sdk_loop_controls_and_event_capture(
     }
     assert summary["event_log_path"] == str(events_path)
     assert summary["observable_event_count"] == 1
+
+
+def test_runner_surfaces_summary_when_archetype_registration_fails(
+    monkeypatch, tmp_path, capsys
+) -> None:
+    """A failure inside register_builtins_agents must still emit a summary + EXIT_RUN_ERROR.
+
+    Regression for the case where archetype registration ran outside the guarded try block,
+    so a broken preset / SDK mismatch would crash main() with no observable outcome.
+    """
+    calls: dict[str, object] = {}
+    _install_fake_openhands(monkeypatch, calls, register_raises=True)
+
+    from app.core.workers.openhands_runner import main
+
+    monkeypatch.setattr(sys, "argv", ["openhands_runner", str(tmp_path)])
+    monkeypatch.setattr(sys, "stdin", type("FakeStdin", (), {"read": lambda self: "task"})())
+
+    assert main() == 1  # EXIT_RUN_ERROR — caught and surfaced, not an uncaught crash
+    summary = _summary_from_stdout(capsys.readouterr().out)
+    assert summary["status"] == "failed"
+    assert summary["termination_reason"] == "run_error"
+    # The agent loop never started because registration failed first.
+    assert "conversation" not in calls

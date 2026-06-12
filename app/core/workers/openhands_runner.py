@@ -197,14 +197,15 @@ def main() -> int:
         )
         return EXIT_SDK_MISSING
 
-    # 04 sub-agents — register the built-in archetypes so the agent can delegate focused
-    # sub-tasks. enable_browser=False keeps us to the terminal-only archetypes
-    # (bash-runner, code-explorer, general-purpose) and skips web-researcher, honoring the
-    # harness's no-browser/network constraint — sub-agents inherit only terminal/file tools.
-    register_builtins_agents(enable_browser=False)
-
     workspace = None
     try:
+        # 04 sub-agents — register the built-in archetypes so the agent can delegate focused
+        # sub-tasks. enable_browser=False keeps us to the terminal-only archetypes
+        # (bash-runner, code-explorer, general-purpose) and skips web-researcher, honoring the
+        # harness's no-browser/network constraint — sub-agents inherit only terminal/file tools.
+        # Inside the try so a registration failure still emits a summary + EXIT_RUN_ERROR
+        # instead of crashing main() with no observable outcome.
+        register_builtins_agents(enable_browser=False)
         llm = LLM(model=model, api_key=api_key)
         # 02 context management.
         condenser = LLMSummarizingCondenser(llm=llm, max_size=80, keep_first=4)
