@@ -179,6 +179,7 @@ def main() -> int:
         from openhands.tools import grep as _grep  # noqa: F401 (registers retrieval)
         from openhands.tools.file_editor import FileEditorTool
         from openhands.tools.preset import register_builtins_agents
+        from openhands.tools.task import TaskToolSet  # 04 sub-agent delegation tool
         from openhands.tools.task_tracker import TaskTrackerTool
         from openhands.tools.terminal import TerminalTool
     except ImportError as exc:
@@ -196,12 +197,15 @@ def main() -> int:
         )
         return EXIT_SDK_MISSING
 
-    # 04 sub-agents — register the built-in archetypes (code-explorer, general-purpose,
-    # web-researcher, bash-runner) so the agent can delegate focused sub-tasks.
-    register_builtins_agents()
-
     workspace = None
     try:
+        # 04 sub-agents — register the built-in archetypes so the agent can delegate focused
+        # sub-tasks. enable_browser=False keeps us to the terminal-only archetypes
+        # (bash-runner, code-explorer, general-purpose) and skips web-researcher, honoring the
+        # harness's no-browser/network constraint — sub-agents inherit only terminal/file tools.
+        # Inside the try so a registration failure still emits a summary + EXIT_RUN_ERROR
+        # instead of crashing main() with no observable outcome.
+        register_builtins_agents(enable_browser=False)
         llm = LLM(model=model, api_key=api_key)
         # 02 context management.
         condenser = LLMSummarizingCondenser(llm=llm, max_size=80, keep_first=4)
@@ -210,7 +214,8 @@ def main() -> int:
             system_message_suffix=HARNESS_SYSTEM_SUFFIX,
             load_project_skills=True,
         )
-        # 05 primitives + retrieval; 09 security analyzer assesses each action's risk.
+        # 05 primitives + retrieval; 04 delegation (task_tool_set spawns sub-agents from the
+        # registered archetypes); 09 security analyzer assesses each action's risk.
         agent = Agent(
             llm=llm,
             tools=[
@@ -219,6 +224,7 @@ def main() -> int:
                 Tool(name=TaskTrackerTool.name),
                 Tool(name="grep"),
                 Tool(name="glob"),
+                Tool(name=TaskToolSet.name),
             ],
             condenser=condenser,
             agent_context=agent_context,
