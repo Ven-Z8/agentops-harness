@@ -24,6 +24,13 @@ def test_ephemeral_path_detection():
     assert not is_ephemeral_path("tests/test_x.py")
 
 
+def test_egg_info_directory_and_nested_files_filtered():
+    assert is_ephemeral_path("pkg.egg-info")              # the dir entry
+    assert is_ephemeral_path("pkg.egg-info/PKG-INFO")     # files nested inside
+    assert is_ephemeral_path("src/mylib.egg-info/SOURCES.txt")
+    assert not is_ephemeral_path("app/pkg_info.py")       # not an egg-info path
+
+
 def test_pre_dispatch_blocks_worker_command_targeting_secret(tmp_path):
     repo = tmp_path / "r"
     _repo(repo)

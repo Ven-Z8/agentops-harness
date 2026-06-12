@@ -62,9 +62,13 @@ def is_ephemeral_path(path: str) -> bool:
     name = parts[-1] if parts else posix
     if _NOISE_DIR_PARTS.intersection(parts):
         return True
+    # An `*.egg-info` component anywhere covers the dir AND every file nested inside it
+    # (PKG-INFO, SOURCES.txt, ...), not just the directory entry.
+    if any(part.endswith(".egg-info") for part in parts):
+        return True
     if name in _NOISE_NAMES:
         return True
-    return name.endswith(_NOISE_SUFFIXES) or name.endswith(".egg-info")
+    return name.endswith(_NOISE_SUFFIXES)
 
 
 def collect_changed_files(repo_path: Path) -> list[str]:

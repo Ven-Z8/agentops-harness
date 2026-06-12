@@ -34,6 +34,28 @@ def test_blocks_when_worker_command_targets_sensitive_path():
     assert "secrets.py" in decision.denied_paths
 
 
+def test_bare_subcommand_token_does_not_false_block():
+    # 'auth' is a subcommand here, not a path — it must not trip the sensitive-folder match.
+    state = {
+        "plan": _plan(["README.md"]),
+        "worker_command": "my-worker auth update feature.py",
+        "execution_logs": [],
+    }
+    decision: PreDispatchDecision = pre_dispatch_gate_node(state)["pre_dispatch"]
+    assert decision.blocked is False
+
+
+def test_real_sensitive_path_in_command_still_blocks():
+    state = {
+        "plan": _plan(["README.md"]),
+        "worker_command": "edit app/auth/login.py",
+        "execution_logs": [],
+    }
+    decision: PreDispatchDecision = pre_dispatch_gate_node(state)["pre_dispatch"]
+    assert decision.blocked is True
+    assert "app/auth/login.py" in decision.denied_paths
+
+
 def test_worker_type_alone_is_not_pre_blocked():
     # A --worker-type worker decides its own edits; pre-dispatch can't predict them.
     # It is not blocked here (post-edit revert / sandbox handle enforcement).

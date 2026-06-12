@@ -110,7 +110,11 @@ def pre_dispatch_gate_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
         command_tokens = set(shlex.split(command))
     except ValueError:
         command_tokens = set(command.split())
-    denied = sorted({p for p in command_tokens if is_sensitive_path(p)})
+    # Only scan tokens that actually look like file paths (contain "/" or "."), so a bare
+    # subcommand/flag value like `auth` or `payment` doesn't false-positive against the
+    # sensitive-folder names while genuine path arguments (app/auth/x.py, secrets.py) still do.
+    path_like = {t for t in command_tokens if "/" in t or "." in t}
+    denied = sorted({p for p in path_like if is_sensitive_path(p)})
 
     decision = PreDispatchDecision(
         blocked=bool(denied),
@@ -740,6 +744,11 @@ def _is_retriable_failure(state: AgentOpsGraphState) -> bool:
     pointless: exit 2 (can't run / collection error), 5 (no tests collected),
     124 (timeout), 127 (command not found). Treat those as non-retriable.
     """
+    # A blocked worker (sandbox-incompatible, auth missing, dirty repo, pre-dispatch) will
+    # not unblock on retry — never loop on it, regardless of test outcomes.
+    edit_result = state.get("edit_result")
+    if edit_result is not None and edit_result.status == "blocked":
+        return False
     test_results = state.get("test_results")
     if test_results is None or test_results.passed:
         return False
@@ -873,8 +882,13 @@ def run_harness(
         status = "blocked"
     else:
         status = "completed"
-    if status == "completed" and edit_result is not None and edit_result.status != "completed":
-        status = "failed"
+    if status == "completed" and edit_result is not None:
+        # A blocked worker (sandbox-incompatible, auth missing, dirty repo, ...) makes the
+        # run blocked, not failed — distinguish the two instead of collapsing both.
+        if edit_result.status == "blocked":
+            status = "blocked"
+        elif edit_result.status != "completed":
+            status = "failed"
     # A worker was requested but never ran (e.g. workspace not ready) — don't report a
     # bare "completed" with no edits; surface that the worker was blocked.
     if (
