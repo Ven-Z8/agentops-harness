@@ -9,6 +9,7 @@ in place; the harness reads the diff (step 6) via its existing collect_diff node
 
 from __future__ import annotations
 
+import os
 import subprocess
 import sys
 import time
@@ -31,6 +32,7 @@ class OpenHandsWorker:
         task: str,
         timeout_seconds: int = 300,
         allow_dirty: bool = False,
+        workspace: str = "local",
     ) -> ExternalEditResult:
         if not is_git_repo(repo_path):
             return ExternalEditResult(
@@ -51,6 +53,10 @@ class OpenHandsWorker:
 
         prompt = build_worker_prompt(repo_path=repo_path, task=task)
         argv = [sys.executable, "-m", "app.core.workers.openhands_runner", str(repo_path)]
+        # Select the OpenHands workspace mode (local in-process loop, or its own Docker
+        # agent-server container) for the runner subprocess.
+        env = os.environ.copy()
+        env["OPENHANDS_WORKSPACE"] = "docker" if workspace == "docker" else "local"
 
         started = time.perf_counter()
         try:
@@ -62,6 +68,7 @@ class OpenHandsWorker:
                 text=True,
                 timeout=timeout_seconds,
                 check=False,
+                env=env,
             )
         except subprocess.TimeoutExpired as exc:
             return ExternalEditResult(

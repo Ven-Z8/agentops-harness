@@ -62,6 +62,11 @@ def make_workspace(state: AgentOpsGraphState) -> Workspace:
     ``isolation="full"`` the DockerWorkspace is configured for full-isolation mode
     (no bind-mount; worker runs inside; extract_permitted controls what lands on host).
     """
+    # The OpenHands worker runs its agent loop in its OWN DockerWorkspace, so the harness
+    # uses a local workspace (host validation) even under --sandbox — openhands provides the
+    # isolation itself, and its edits reflect to the host where the harness validates/governs.
+    if state.get("worker_type") == "openhands":
+        return LocalWorkspace(state["repo_path"])
     if state.get("workspace_kind") == "docker":
         isolation = state.get("isolation") or "validation"
         return DockerWorkspace(state["repo_path"], isolation=isolation)
@@ -191,14 +196,15 @@ def run_external_worker_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
     attempts = state.get("attempts", 0) + 1
 
     # Sandbox (full isolation) runs the worker INSIDE the container, which only
-    # supports an explicit --worker-command for now. The built-in worker types
-    # (codex/claude/opencode/openhands) are not installed in the sandbox image yet,
-    # so block the combination explicitly instead of silently running on the host
-    # (which would not be sandboxed) or producing no edits. Checked first, so the
-    # invalid combination is reported regardless of workspace preparation.
+    # supports an explicit --worker-command for now. The CLI worker types
+    # (codex/claude/opencode) are not installed in the sandbox image yet, so block the
+    # combination explicitly instead of silently running on the host. The OpenHands
+    # worker is EXEMPT: it has its own DockerWorkspace (the agent loop runs in an
+    # OpenHands container), so --sandbox maps to that instead of being blocked.
     if (
         (state.get("isolation") or "validation") == "full"
         and state.get("worker_type")
+        and state.get("worker_type") != "openhands"
         and not state.get("worker_command")
     ):
         wt = state.get("worker_type")
@@ -312,11 +318,14 @@ def run_external_worker_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
             allow_dirty=allow_dirty,
         )
     elif worker_type == "openhands":
+        # --sandbox runs the OpenHands agent loop inside its own DockerWorkspace.
+        oh_workspace = "docker" if (state.get("isolation") or "validation") == "full" else "local"
         edit_result = OpenHandsWorker().run(
             repo_path=state["repo_path"],
             task=task,
             timeout_seconds=timeout,
             allow_dirty=allow_dirty,
+            workspace=oh_workspace,
         )
     elif worker_command:
         edit_result = ExternalWorkerRunner().run(
