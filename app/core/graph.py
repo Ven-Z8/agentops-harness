@@ -268,6 +268,11 @@ def run_external_worker_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
             task=task,
             timeout_seconds=timeout,
             allow_dirty=allow_dirty,
+            run_dir=artifact_dir_for_run(state["storage_path"], state["run_id"]),
+            run_id=state["run_id"],
+            plan=state.get("plan"),
+            repo_profile=state.get("repo_profile"),
+            tests_to_run=state.get("test_commands"),
         )
     elif worker_command:
         edit_result = ExternalWorkerRunner().run(
@@ -799,7 +804,13 @@ def run_harness(
         status = "blocked"
     else:
         status = "completed"
-    if status == "completed" and edit_result is not None and edit_result.status != "completed":
+    if (
+        status == "completed"
+        and edit_result is not None
+        and edit_result.status in {"blocked", "setup_missing", "auth_missing"}
+    ):
+        status = "blocked"
+    elif status == "completed" and edit_result is not None and edit_result.status != "completed":
         status = "failed"
     record = RunRecord(
         run_id=run_id,

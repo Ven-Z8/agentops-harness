@@ -149,6 +149,8 @@ The target repo must be clean unless `--allow-dirty` is passed, so every changed
 
 The OpenHands worker runs a genuine programmable agent loop (OpenHands SDK 1.28) under the harness — the slide-16 six-step SDK pattern, governed like any other worker.
 
+OpenHands-specific setup, artifact, and manual test details live in [docs/OPENHANDS_INNER_WORKER.md](docs/OPENHANDS_INNER_WORKER.md).
+
 ## Governance: enforced, not just reported
 
 AgentOps doesn't only *audit* the worker — it **enforces**, three ways, and **loops**:
