@@ -99,10 +99,19 @@ def test_pr_writer_prompt_includes_report_inputs() -> None:
 def test_worker_prompt_is_shared_by_external_workers() -> None:
     prompt = build_worker_prompt(repo_path=Path("/repo"), task="Add logging")
 
-    assert "coding agent" in prompt
+    assert prompt.startswith("# Worker Packet")
+    assert "coding worker" in prompt
     assert "/repo" in prompt
-    assert "Task: Add logging" in prompt
-    assert "run tests" in prompt
+    assert "## Task\nAdd logging" in prompt
+    assert "## Plan as Contract" in prompt
+    assert "## Repo Context" in prompt
+    assert "## Constraints" in prompt
+    assert "## Forbidden Actions" in prompt
+    assert "## Permission Tier" in prompt
+    assert "## Verification Obligations" in prompt
+    assert "## Definition of Done" in prompt
+    assert "## Reporting Rules" in prompt
+    assert "Do not claim tests passed unless you actually ran them" in prompt
 
 
 def test_format_edit_summary_handles_observe_and_external_worker_modes() -> None:

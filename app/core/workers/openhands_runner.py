@@ -1,37 +1,37 @@
-"""Subprocess entry point that runs one full-capability OpenHands SDK agent loop.
+"""Subprocess entry point for the OpenHands inner-loop worker.
 
-Kept as a separate process so the heavy `openhands` import is lazy and the run is
-timeout-bounded by the parent worker (the same subprocess pattern the CLI workers use).
-
-Wires the worker-harness anatomy (harness-project slides 6-17) onto the real OpenHands
-SDK 1.28 — we ADOPT these, we do not build them:
-  01 while loop ............ Conversation.run()
-  02 context management .... LLMSummarizingCondenser (condenser)
-  03 tools & skills ........ Terminal/FileEditor/TaskTracker tools + AgentContext.skills
-  05 built-in primitives ... Terminal + FileEditor tools
-  06 session persistence ... Conversation(persistence_dir, conversation_id)
-  07 system-prompt assembly  AgentContext.system_message_suffix  <- the AgentOps bridge
-  09 permissions & safety .. OpenHands security analyzer + NeverConfirm (autonomous)
-
-Workspace mode (env OPENHANDS_WORKSPACE):
-  - "local" (default): the agent loop runs in-process, editing the repo on the host.
-  - "docker": the agent loop runs INSIDE an OpenHands agent-server container, with the
-    repo bind-mounted (mount_dir) so edits land on the host repo. Realizes slide 16.
-
-Task prompt on stdin (avoids arg-length limits). argv: <repo_path> [model].
-Exit codes: 0 ok · 2 usage · 3 auth missing · 4 sdk not installed · 1 run error.
+The parent AgentOps worker owns repo attribution, timeout, artifact persistence,
+and post-worker governance. This subprocess owns only SDK setup and the
+OpenHands conversation loop. Keeping the SDK import here makes OpenHands an
+optional dependency for normal AgentOps runs and tests.
 """
 
 from __future__ import annotations
 
 import contextlib
+import json
 import os
 import sys
-import tempfile
-import uuid
+import time
+from pathlib import Path
+from typing import Any
 
-DEFAULT_MODEL = "anthropic/claude-sonnet-4-5-20250929"
+from app.core.workers.openhands_config import (
+    OPENHANDS_TOOL_NAMES,
+    load_openhands_config,
+    openhands_sdk_available,
+)
+from app.schemas.worker_loop import WorkerLoopSummary
 
+EXIT_RUN_ERROR = 1
+EXIT_USAGE_ERROR = 2
+EXIT_AUTH_MISSING = 3
+EXIT_SDK_MISSING = 4
+EXIT_CONFIGURATION_ERROR = 6
+SUMMARY_PREFIX = "OPENHANDS_WORKER_SUMMARY_JSON="
+
+# Injected as the agent's system-prompt suffix — the AgentOps-harness constraints
+# (the bridge between the outer governor and the inner OpenHands loop).
 HARNESS_SYSTEM_SUFFIX = (
     "\n\nYou are running as a worker inside the AgentOps Harness. Constraints:\n"
     "- Make the smallest controlled change that satisfies the task; do not refactor "
@@ -42,21 +42,131 @@ HARNESS_SYSTEM_SUFFIX = (
 )
 
 
+class _OpenHandsEventRecorder:
+    def __init__(self, event_log_path: str | None) -> None:
+        self.event_log_path = event_log_path
+        self.observable_event_count = 0
+        self.write_error: str | None = None
+        if event_log_path:
+            path = Path(event_log_path)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.touch(exist_ok=True)
+
+    def __call__(self, event: Any) -> None:
+        self.observable_event_count += 1
+        if not self.event_log_path:
+            return
+        payload = {
+            "event_type": event.__class__.__name__,
+            "event": _serialize_event(event),
+        }
+        try:
+            with Path(self.event_log_path).open("a", encoding="utf-8") as handle:
+                handle.write(json.dumps(payload, sort_keys=True, default=str) + "\n")
+        except OSError as exc:
+            self.write_error = str(exc)
+
+
+def _serialize_event(event: Any) -> dict[str, Any] | str:
+    if hasattr(event, "model_dump"):
+        return event.model_dump(mode="json")
+    if hasattr(event, "dict"):
+        return event.dict()
+    return repr(event)
+
+
+def _emit_summary(summary: WorkerLoopSummary) -> None:
+    print(SUMMARY_PREFIX + json.dumps(summary.model_dump(mode="json"), sort_keys=True))
+
+
+def _summary(
+    *,
+    status: str,
+    model: str | None,
+    started: float,
+    exit_code: int | None = None,
+    event_log_path: str | None = None,
+    observable_event_count: int = 0,
+    termination_reason: str | None = None,
+    setup_error: str | None = None,
+    notes: list[str] | None = None,
+) -> WorkerLoopSummary:
+    return WorkerLoopSummary(
+        model=model,
+        status=status,
+        exit_code=exit_code,
+        duration_seconds=round(time.perf_counter() - started, 3),
+        tools_requested=list(OPENHANDS_TOOL_NAMES),
+        event_log_path=event_log_path,
+        observable_event_count=observable_event_count,
+        termination_reason=termination_reason,
+        setup_error=setup_error,
+        notes=notes
+        or ["Inner tool trajectory may be partially observable depending on SDK support."],
+    )
+
+
 def main() -> int:
+    started = time.perf_counter()
     if len(sys.argv) < 2:
         print("usage: openhands_runner <repo_path> [model]  (task on stdin)", file=sys.stderr)
-        return 2
-    repo_path = os.path.abspath(sys.argv[1])
-    model = sys.argv[2] if len(sys.argv) > 2 else os.getenv("OPENHANDS_MODEL", DEFAULT_MODEL)
+        return EXIT_USAGE_ERROR
+    repo_path = sys.argv[1]
     task = sys.stdin.read().strip()
     if not task:
         print("usage: task prompt must be provided on stdin", file=sys.stderr)
-        return 2
+        return EXIT_USAGE_ERROR
 
-    api_key = os.getenv("LLM_API_KEY") or os.getenv("ANTHROPIC_API_KEY")
-    if not api_key:
-        print("authentication_error: set ANTHROPIC_API_KEY or LLM_API_KEY", file=sys.stderr)
-        return 3
+    config = load_openhands_config()
+    model = sys.argv[2] if len(sys.argv) > 2 else config.model
+    if config.config_error:
+        print(f"configuration_error: {config.config_error}", file=sys.stderr)
+        _emit_summary(
+            _summary(
+                status="failed",
+                model=model,
+                started=started,
+                exit_code=EXIT_CONFIGURATION_ERROR,
+                termination_reason="configuration_error",
+                setup_error=config.config_error,
+            )
+        )
+        return EXIT_CONFIGURATION_ERROR
+
+    if not openhands_sdk_available():
+        message = "OpenHands SDK not installed. Install with: uv sync --extra openhands"
+        print(f"setup_missing: {message}", file=sys.stderr)
+        _emit_summary(
+            _summary(
+                status="setup_missing",
+                model=model,
+                started=started,
+                exit_code=EXIT_SDK_MISSING,
+                termination_reason="sdk_missing",
+                setup_error=message,
+            )
+        )
+        return EXIT_SDK_MISSING
+
+    if config.missing_auth:
+        message = "set LLM_API_KEY, ANTHROPIC_API_KEY, or OPENAI_API_KEY"
+        print(f"authentication_error: {message}", file=sys.stderr)
+        _emit_summary(
+            _summary(
+                status="auth_missing",
+                model=model,
+                started=started,
+                exit_code=EXIT_AUTH_MISSING,
+                termination_reason="auth_missing",
+                setup_error=message,
+            )
+        )
+        return EXIT_AUTH_MISSING
+
+    api_key = os.getenv(config.api_key_env or "")
+    event_recorder = _OpenHandsEventRecorder(os.getenv("OPENHANDS_EVENTS_PATH"))
+    persistence_dir = os.getenv("OPENHANDS_PERSISTENCE_DIR") or None
+    workspace_mode = os.getenv("OPENHANDS_WORKSPACE", "local").lower()
 
     try:
         from openhands.sdk import LLM, Agent, Conversation, Tool
@@ -65,7 +175,6 @@ def main() -> int:
         from openhands.sdk.security.llm_analyzer import LLMSecurityAnalyzer
 
         # Importing the tool modules registers them so Tool(name=...) resolves at runtime.
-        from openhands.tools import delegate as _delegate  # noqa: F401 (registers sub-agents)
         from openhands.tools import glob as _glob  # noqa: F401 (registers retrieval)
         from openhands.tools import grep as _grep  # noqa: F401 (registers retrieval)
         from openhands.tools.file_editor import FileEditorTool
@@ -73,37 +182,35 @@ def main() -> int:
         from openhands.tools.task_tracker import TaskTrackerTool
         from openhands.tools.terminal import TerminalTool
     except ImportError as exc:
-        print(f"openhands sdk not installed: {exc}", file=sys.stderr)
-        return 4
+        message = f"OpenHands SDK not installed or incomplete: {exc}"
+        print(f"setup_missing: {message}", file=sys.stderr)
+        _emit_summary(
+            _summary(
+                status="setup_missing",
+                model=model,
+                started=started,
+                exit_code=EXIT_SDK_MISSING,
+                termination_reason="sdk_missing",
+                setup_error=message,
+            )
+        )
+        return EXIT_SDK_MISSING
 
     # 04 sub-agents — register the built-in archetypes (code-explorer, general-purpose,
-    # web-researcher, bash-runner) so the `delegate` tool can spawn focused sub-agents.
+    # web-researcher, bash-runner) so the agent can delegate focused sub-tasks.
     register_builtins_agents()
-
-    workspace_mode = os.getenv("OPENHANDS_WORKSPACE", "local").lower()
 
     workspace = None
     try:
         llm = LLM(model=model, api_key=api_key)
-
-        # 02 context management — summarize older history, keep recent + first turns verbatim.
+        # 02 context management.
         condenser = LLMSummarizingCondenser(llm=llm, max_size=80, keep_first=4)
-
-        # 03/07 skills + system-prompt assembly — the AgentOps constraints are injected
-        # here; load any skills/microagents the project ships.
+        # 03/07 skills + system-prompt assembly (the AgentOps constraints bridge).
         agent_context = AgentContext(
             system_message_suffix=HARNESS_SYSTEM_SUFFIX,
             load_project_skills=True,
         )
-
-        # Full inner-loop toolset:
-        #   05 primitives ... terminal, file_editor
-        #   working memory .. task_tracker
-        #   retrieval ....... grep, glob (agentic search beats one-shot RAG, slide 17)
-        # 04 sub-agents: the archetypes (code-explorer/general-purpose/web-researcher/
-        #   bash-runner) are registered above; the `delegate` tool that spawns them needs an
-        #   explicit register_tool(DelegateExecutor(...)) hookup — tracked as a follow-up.
-        # 09 permissions/safety: an LLM security analyzer assesses each action's risk.
+        # 05 primitives + retrieval; 09 security analyzer assesses each action's risk.
         agent = Agent(
             llm=llm,
             tools=[
@@ -117,59 +224,82 @@ def main() -> int:
             agent_context=agent_context,
             security_analyzer=LLMSecurityAnalyzer(),
         )
-
-        # 01 while loop + workspace selection.
-        if workspace_mode == "docker":
-            from openhands.workspace import DockerWorkspace
-
-            # The agent's repo lives at /workspace/project (Conversation default). Bind-mount
-            # the host repo THERE (not /workspace) so the agent edits the real files and the
-            # changes reflect straight back to the host — bidirectional, no extraction needed.
-            workspace = DockerWorkspace(
-                working_dir="/workspace",
-                volumes=[f"{repo_path}:/workspace/project"],
-                forward_env=["ANTHROPIC_API_KEY", "LLM_API_KEY", "OPENHANDS_MODEL"],
-            )
-            ws_arg = workspace
-        else:
-            ws_arg = repo_path
-
-        # 06 session persistence — replayable event log per run. A docker workspace uses a
-        # RemoteConversation that persists inside the container, so persistence_dir must NOT
-        # be set there; it is only valid for the in-process LocalConversation.
-        # 08 lifecycle hooks — a callback observes every event (audit/observability);
-        # stuck-detection breaks pathological no-progress loops.
-        def _audit(event: object) -> None:
-            print(f"[oh-event] {type(event).__name__}", file=sys.stderr)
-
-        conv_kwargs: dict = {
+        notes = [
+            "OpenHands SDK controls the inner prompt-model-tool-observe loop.",
+            "Observable SDK events are captured through Conversation callbacks.",
+        ]
+        conversation_kwargs: dict[str, Any] = {
             "agent": agent,
-            "workspace": ws_arg,
-            "conversation_id": uuid.uuid4(),
-            "callbacks": [_audit],
-            "stuck_detection": True,
+            "callbacks": [event_recorder],
+            "stuck_detection": True,  # 08 hooks: break no-progress loops
         }
         if workspace_mode == "docker":
-            # The host repo is bind-mounted at /workspace/project, so the agent's edits
-            # reflect straight back to the host — no extraction step required.
-            conversation = Conversation(**conv_kwargs)
-            conversation.send_message(task)
-            conversation.run()
+            # The agent's repo lives at /workspace/project; bind-mount the host repo THERE
+            # so edits reflect back to the host (bidirectional, no extraction needed).
+            from openhands.workspace import DockerWorkspace
+
+            workspace = DockerWorkspace(
+                working_dir="/workspace",
+                volumes=[f"{os.path.abspath(repo_path)}:/workspace/project"],
+                forward_env=[
+                    "ANTHROPIC_API_KEY",
+                    "LLM_API_KEY",
+                    "OPENAI_API_KEY",
+                    "OPENHANDS_MODEL",
+                ],
+            )
+            conversation_kwargs["workspace"] = workspace
+            notes.append("OpenHands agent loop runs inside an isolated Docker container.")
+            # RemoteConversation (docker) persists in-container; persistence_dir is forbidden.
         else:
-            with tempfile.TemporaryDirectory(prefix="agentops-oh-") as persist:
-                conversation = Conversation(persistence_dir=persist, **conv_kwargs)
-                conversation.send_message(task)
-                conversation.run()
+            conversation_kwargs["workspace"] = str(repo_path)
+            if persistence_dir:
+                conversation_kwargs["persistence_dir"] = persistence_dir
+                notes.append("OpenHands conversation persistence directory was configured.")
+        if config.max_iterations is not None:
+            conversation_kwargs["max_iteration_per_run"] = config.max_iterations
+        conversation = Conversation(**conversation_kwargs)
+        conversation.send_message(task)
+        conversation.run()
     except Exception as exc:  # surface as a worker failure, not a crash
         print(f"openhands run error: {exc}", file=sys.stderr)
-        return 1
+        notes = ["OpenHands SDK run failed before completion."]
+        if event_recorder.write_error:
+            notes.append(f"OpenHands event log write failed: {event_recorder.write_error}")
+        _emit_summary(
+            _summary(
+                status="failed",
+                model=model,
+                started=started,
+                exit_code=EXIT_RUN_ERROR,
+                event_log_path=event_recorder.event_log_path,
+                observable_event_count=event_recorder.observable_event_count,
+                termination_reason="run_error",
+                notes=notes,
+            )
+        )
+        return EXIT_RUN_ERROR
     finally:
         # Clean up the docker workspace container if one was started.
         if workspace is not None:
             with contextlib.suppress(Exception):
                 workspace.close()
 
-    print(f"openhands run complete (workspace={workspace_mode})")
+    if event_recorder.write_error:
+        notes.append(f"OpenHands event log write failed: {event_recorder.write_error}")
+    _emit_summary(
+        _summary(
+            status="completed",
+            model=model,
+            started=started,
+            exit_code=0,
+            event_log_path=event_recorder.event_log_path,
+            observable_event_count=event_recorder.observable_event_count,
+            termination_reason="completed",
+            notes=notes,
+        )
+    )
+    print("openhands run complete")
     return 0
 
 

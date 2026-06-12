@@ -1,0 +1,8 @@
+name: OpenHands Request Logging
+repo: examples/sample_fastapi_app
+task: Add structured HTTP request logging middleware with accompanying pytest coverage.
+worker_type: openhands
+expected:
+  max_risk_score: 65
+  required_commands:
+    - python -m pytest -q
