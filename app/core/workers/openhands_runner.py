@@ -24,6 +24,7 @@ Exit codes: 0 ok · 2 usage · 3 auth missing · 4 sdk not installed · 1 run er
 
 from __future__ import annotations
 
+import contextlib
 import os
 import sys
 import tempfile
@@ -165,10 +166,8 @@ def main() -> int:
     finally:
         # Clean up the docker workspace container if one was started.
         if workspace is not None:
-            try:
+            with contextlib.suppress(Exception):
                 workspace.close()
-            except Exception:
-                pass
 
     print(f"openhands run complete (workspace={workspace_mode})")
     return 0
