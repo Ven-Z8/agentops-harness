@@ -61,12 +61,23 @@ def main() -> int:
         from openhands.sdk import LLM, Agent, Conversation, Tool
         from openhands.sdk.context import AgentContext
         from openhands.sdk.context.condenser import LLMSummarizingCondenser
+        from openhands.sdk.security.llm_analyzer import LLMSecurityAnalyzer
+
+        # Importing the tool modules registers them so Tool(name=...) resolves at runtime.
+        from openhands.tools import delegate as _delegate  # noqa: F401 (registers sub-agents)
+        from openhands.tools import glob as _glob  # noqa: F401 (registers retrieval)
+        from openhands.tools import grep as _grep  # noqa: F401 (registers retrieval)
         from openhands.tools.file_editor import FileEditorTool
+        from openhands.tools.preset import register_builtins_agents
         from openhands.tools.task_tracker import TaskTrackerTool
         from openhands.tools.terminal import TerminalTool
     except ImportError as exc:
         print(f"openhands sdk not installed: {exc}", file=sys.stderr)
         return 4
+
+    # 04 sub-agents — register the built-in archetypes (code-explorer, general-purpose,
+    # web-researcher, bash-runner) so the `delegate` tool can spawn focused sub-agents.
+    register_builtins_agents()
 
     workspace_mode = os.getenv("OPENHANDS_WORKSPACE", "local").lower()
 
@@ -84,16 +95,26 @@ def main() -> int:
             load_project_skills=True,
         )
 
-        # 03/05 tools — terminal (bash/grep), file editor (read/write/edit), task tracker.
+        # Full inner-loop toolset:
+        #   05 primitives ... terminal, file_editor
+        #   working memory .. task_tracker
+        #   retrieval ....... grep, glob (agentic search beats one-shot RAG, slide 17)
+        # 04 sub-agents: the archetypes (code-explorer/general-purpose/web-researcher/
+        #   bash-runner) are registered above; the `delegate` tool that spawns them needs an
+        #   explicit register_tool(DelegateExecutor(...)) hookup — tracked as a follow-up.
+        # 09 permissions/safety: an LLM security analyzer assesses each action's risk.
         agent = Agent(
             llm=llm,
             tools=[
                 Tool(name=TerminalTool.name),
                 Tool(name=FileEditorTool.name),
                 Tool(name=TaskTrackerTool.name),
+                Tool(name="grep"),
+                Tool(name="glob"),
             ],
             condenser=condenser,
             agent_context=agent_context,
+            security_analyzer=LLMSecurityAnalyzer(),
         )
 
         # 01 while loop + workspace selection.
@@ -115,10 +136,17 @@ def main() -> int:
         # 06 session persistence — replayable event log per run. A docker workspace uses a
         # RemoteConversation that persists inside the container, so persistence_dir must NOT
         # be set there; it is only valid for the in-process LocalConversation.
+        # 08 lifecycle hooks — a callback observes every event (audit/observability);
+        # stuck-detection breaks pathological no-progress loops.
+        def _audit(event: object) -> None:
+            print(f"[oh-event] {type(event).__name__}", file=sys.stderr)
+
         conv_kwargs: dict = {
             "agent": agent,
             "workspace": ws_arg,
             "conversation_id": uuid.uuid4(),
+            "callbacks": [_audit],
+            "stuck_detection": True,
         }
         if workspace_mode == "docker":
             # The host repo is bind-mounted at /workspace/project, so the agent's edits
