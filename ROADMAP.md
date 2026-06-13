@@ -18,11 +18,11 @@ The inner loop is **locked** (all 9 worker-harness components wired + verified l
 
 Declare the inner loop locked and make the repo communicate it.
 
-- [x] Audit slide-04 architecture + 9 components against merged code (this session)
-- [ ] README: slide-04 visible, **inner loop** section, 9-component coverage table, inner/outer boundary
-- [ ] README: *Where this is going* — domain capability packs + migration finale
-- [ ] ROADMAP.md (this file)
-- [ ] Lock-in artifact: slide-04 → code matrix (workspace-artifacts)
+- [x] Audit the harness architecture + 9 components against merged code (this session)
+- [x] README: agent-loop + nine-components slides visible, **inner loop** section, 9-component coverage table, inner/outer boundary
+- [x] README: *Where this is going* — domain capability packs + migration finale
+- [x] ROADMAP.md (this file)
+- [ ] Lock-in artifact: architecture → code matrix (workspace-artifacts)
 
 ## M2 — Outer evidence fidelity: route-impact · due Jun 14
 

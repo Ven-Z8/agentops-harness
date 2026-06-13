@@ -43,11 +43,11 @@ That boundary *is* the product: AgentOps governs the loop instead of reimplement
 
 A coding agent is a **loop**: it reads what it knows, decides an action, runs it, folds the feedback back into the next prompt, and repeats — 50–200 iterations — until the task converges or it hits the iteration cap.
 
-![The agent loop turns state into progress](docs/reference/code-as-agent-harness/figs/harness-project/slide-05.png)
+![The agent loop turns state into progress](docs/assets/agent-loop.png)
 
 Around that loop, **nine components show up in every serious harness**. We **adopt** them via the OpenHands SDK rather than rebuild them — AgentOps' job is to *equip and govern* the loop, not re-run it.
 
-![Nine components show up in every serious harness](docs/reference/code-as-agent-harness/figs/harness-project/slide-08.png)
+![Nine components show up in every serious harness](docs/assets/nine-components.png)
 
 For the `openhands` worker, all nine are wired and **verified live** on a real repo (`nl2sql-viz`: a simple baseline *and* a 26-iteration, 3-file feature, both producing test-passing changes):
 
