@@ -93,7 +93,7 @@ class ChangedSubgraphBuilder:
         # them, otherwise the Evidence Guard false-flags the new route as an ungrounded claim.
         if repo_path is not None:
             impacted_routes.extend(
-                self._routes_added_by_change(Path(repo_path), normalized_changed)
+                self._routes_added_by_change(repo_path, normalized_changed)
             )
 
         for path in normalized_deleted:
@@ -155,7 +155,9 @@ class ChangedSubgraphBuilder:
                 continue
             try:
                 result = parser.parse(repo_path, path)
-            except (OSError, SyntaxError, ValueError):
+            except (OSError, ValueError):
+                # PythonParser.parse swallows SyntaxError itself; OSError (unreadable file)
+                # and ValueError (e.g. null bytes in source) can still propagate.
                 continue
             for route in result.routes:
                 # node_id matches the graph builder's scheme so _unique_routes dedups any
