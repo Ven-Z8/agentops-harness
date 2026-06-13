@@ -5,6 +5,7 @@ from pathlib import Path
 from pydantic import BaseModel, Field
 
 from app.core.repo_graph.models import RepoGraph, RepoGraphEdge, RepoGraphNode
+from app.core.repo_graph.python_parser import PythonParser
 from app.core.repo_graph.query import RepoGraphQuery
 
 
@@ -54,6 +55,7 @@ class ChangedSubgraphBuilder:
         changed_files: list[str],
         deleted_files: list[str],
         fallback_validation: list[str],
+        repo_path: Path | None = None,
     ) -> ChangedSubgraph:
         query = RepoGraphQuery(graph)
         nodes_by_id = {node.id: node for node in graph.nodes}
@@ -85,6 +87,14 @@ class ChangedSubgraphBuilder:
             for risk in self._risks_for_file(file_node, edge_index, nodes_by_id):
                 risk_notes.append(_risk_note(risk))
                 impacted_nodes.append(_impact_node(risk, "risk_attached_to_changed_file"))
+
+        # The repo graph is built from the PRE-edit snapshot, so routes a worker ADDS in
+        # its diff are absent from it. Re-parse the changed files' current content to surface
+        # them, otherwise the Evidence Guard false-flags the new route as an ungrounded claim.
+        if repo_path is not None:
+            impacted_routes.extend(
+                self._routes_added_by_change(Path(repo_path), normalized_changed)
+            )
 
         for path in normalized_deleted:
             risk_notes.append(f"Deleted file requires review: {path}")
@@ -134,6 +144,31 @@ class ChangedSubgraphBuilder:
             for edge in edge_index.outgoing(defined_node.id, "exposes_route")
             if edge.target in nodes_by_id
         ]
+
+    def _routes_added_by_change(
+        self, repo_path: Path, changed_files: list[str]
+    ) -> list[ImpactedRoute]:
+        parser = PythonParser()
+        added: list[ImpactedRoute] = []
+        for path in changed_files:
+            if not path.endswith(".py"):
+                continue
+            try:
+                result = parser.parse(repo_path, path)
+            except (OSError, SyntaxError, ValueError):
+                continue
+            for route in result.routes:
+                # node_id matches the graph builder's scheme so _unique_routes dedups any
+                # route the pre-edit graph already exposed; only genuinely-new ones survive.
+                added.append(
+                    ImpactedRoute(
+                        method=route.method,
+                        path=route.path,
+                        source_file=path,
+                        node_id=f"route:python:{route.method}:{route.path}",
+                    )
+                )
+        return added
 
     def _imports_for_file(
         self,

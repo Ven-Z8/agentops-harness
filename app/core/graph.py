@@ -442,6 +442,7 @@ def build_changed_subgraph_node(state: AgentOpsGraphState) -> AgentOpsGraphState
         changed_files=state["changed_files"],
         deleted_files=state["deleted_files"],
         fallback_validation=state["plan"].tests_to_run,
+        repo_path=state["repo_path"],
     )
     return {
         "changed_subgraph": changed_subgraph,
