@@ -39,6 +39,28 @@ The inner box above is the **worker harness** — the well-understood anatomy ev
 
 That boundary *is* the product: AgentOps governs the loop instead of reimplementing it — it blocks denied edits, reverts what slips through, can run the worker fully sandboxed, and retries on failed validation.
 
+### The inner loop, locked — the nine worker-harness components
+
+The worker harness is one architecture: an agent loop, wrapped by the system/state that builds its prompt, an execution engine that turns decisions into actions, control that keeps it safe, and feedback ingestion that trims the noise. We **adopt** this via the OpenHands SDK rather than rebuild it — AgentOps' job is to *equip and govern* the loop, not re-run it.
+
+![One architecture: the harness around the loop](docs/reference/code-as-agent-harness/figs/harness-project/slide-04.png)
+
+For the `openhands` worker, all nine worker-harness components are wired and **verified live** on a real repo (`nl2sql-viz`: a simple baseline *and* a 26-iteration, 3-file feature, both producing test-passing changes):
+
+| # | Component | Wired via the OpenHands SDK |
+|---|---|---|
+| 1 | Iteration / while loop | `Conversation.run()` — the real prompt → model → action → feedback loop |
+| 2 | Context management | `LLMSummarizingCondenser(max_size=80, keep_first=4)` |
+| 3 | Skills + tools | `AgentContext(load_project_skills=True)` + 6 tools: `terminal`, `file_editor`, `task_tracker`, `grep`, `glob`, `task_tool_set` |
+| 4 | Sub-agents / delegation | `register_builtins_agents(enable_browser=False)` + the `task_tool_set` delegation tool |
+| 5 | Built-in skills | tests run **inline** via `terminal`; git-commit / open-PR / diff are **deliberately AgentOps' job**, not the worker's |
+| 6 | Session persistence | `persistence_dir` + an append-only observable event log |
+| 7 | System-prompt assembly | `AgentContext(system_message_suffix=…)` — the AgentOps-constraints bridge — plus project-skill / ancestor-dir loading |
+| 8 | Lifecycle hooks | post-tool observability via `callbacks` + `stuck_detection`; pre-action gate via `LLMSecurityAnalyzer` |
+| 9 | Permissions | `LLMSecurityAnalyzer` inside the loop + AgentOps enforcement outside it |
+
+The loop runs inside the `run_external_worker` node and streams an observable event log (`openhands_events.jsonl`); AgentOps reads that trail — never the model's self-report — as ground truth.
+
 ## Quickstart (no API key — mock provider by default)
 
 ```bash
@@ -276,6 +298,12 @@ AGENTOPS_OPENROUTER_MODEL=deepseek/deepseek-v4-flash
 uv run --extra dev agentops providers status   # readiness, no network call
 uv run --extra dev agentops providers ping      # real call after exporting credentials
 ```
+
+## Where this is going: domain capability packs
+
+The inner loop is locked and **generic**. The next arc makes the outer loop *equip* it: AgentOps assembles a **domain capability pack** — `{ manifest, skills/*.md, tools, hooks }` — and loads it into the inner OpenHands loop **per repo/task**, through the same `AgentContext` / tool-registry / hook seams the worker already exposes. Same harness, swap the pack, new competence — this is the paper's fifth lever (*agentic harness engineering*) made concrete: the outer loop stops only *grading* the inner loop and starts *improving* it.
+
+The first target domain is **codebase migration** — a real migration on a real repo, driven by a hand-authored migration pack (terminal/file-only, no browser/network), governed end-to-end and rendered transparently from the run artifacts. Build order and dates: [ROADMAP.md](ROADMAP.md).
 
 ## Portfolio positioning
 
