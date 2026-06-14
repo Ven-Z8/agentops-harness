@@ -35,6 +35,7 @@ class AgentOpsGraphState(TypedDict, total=False):
     llm_client: LLMClient | None
     worker_command: str | None
     worker_type: str | None
+    pack: str | None
     worker_timeout_seconds: int
     test_timeout_seconds: int | None
     allow_dirty: bool

@@ -8,7 +8,7 @@ The inner loop is **locked** (all 9 worker-harness components wired + verified l
 |---|---|---|---|
 | M1 | Inner loop locked + README + north-star | Jun 13 | active |
 | M2 | Outer evidence fidelity: route-impact | Jun 14 | done |
-| M3 | Capability-pack loader (outer → inner) | Jun 16 | active |
+| M3 | Capability-pack loader (outer → inner) | Jun 16 | done |
 | M4 | Migration domain pack | Jun 17 | open |
 | M5 | Final migration demo on a good repo | Jun 18 | open |
 
@@ -37,11 +37,11 @@ So migration diffs get graded correctly. `changed_subgraph.impacted_routes` is b
 
 The key new architectural piece. The outer loop assembles a pack and injects it into the inner OpenHands loop through existing seams.
 
-- [ ] Define the pack format: `manifest` (domain, version, tool/skill/hook list) + `skills/*.md` + `tools` + `hooks`
-- [ ] Outer-loop selector: choose a pack by repo profile / task / `--pack` flag
-- [ ] Loader: skills → `AgentContext`, tools → `Tool` registry, hooks → `callbacks` / pre-tool gate
-- [ ] Guardrail: pack tools stay terminal/file-only (no browser/network)
-- [ ] Tests: a trivial pack loads end-to-end and its tool/skill appears in the agent
+- [x] Define the pack format: `manifest.yaml` (name, domain, version, skills/tools/hooks) + `skills/*.md` + `hooks.py` (`app/schemas/pack.py`; shipped `packs/example/`)
+- [x] Outer-loop selector: `--pack` flag → `select_pack` (path or built-in name); auto-by-profile is a stubbed future hook (lands with M4)
+- [x] Loader: skills → `AgentContext` system suffix, tools → `Tool` name list, hooks → `callbacks` (`app/core/packs/loader.py`; injected in `openhands_runner`)
+- [x] Guardrail: pack tools must be in the terminal/file-only allowlist — `PackError` otherwise
+- [x] Tests: `tests/test_capability_pack.py` — trivial pack loads end-to-end; `assemble_agent_inputs` proves skill/tools/hooks reach the agent
 
 ## M4 — Migration domain pack · due Jun 17
 

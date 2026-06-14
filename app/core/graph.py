@@ -31,6 +31,7 @@ from app.core.git_utils import (
 from app.core.goal_model import GoalModelError, load_goal_model
 from app.core.llm import LLMClient
 from app.core.memory import ExperienceMemory
+from app.core.packs import select_pack
 from app.core.repo_graph import RepoGraphBuilder
 from app.core.repo_graph.impact import ChangedSubgraphBuilder, render_changed_subgraph_markdown
 from app.core.run_artifacts import RunArtifactWriter, append_artifact_links, artifact_dir_for_run
@@ -326,6 +327,12 @@ def run_external_worker_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
     elif worker_type == "openhands":
         # --sandbox runs the OpenHands agent loop inside its own DockerWorkspace.
         oh_workspace = "docker" if (state.get("isolation") or "validation") == "full" else "local"
+        # Outer loop equips the inner loop: select a capability pack for this run.
+        pack_dir = select_pack(
+            state.get("pack"),
+            repo_profile=state.get("repo_profile"),
+            task=task,
+        )
         edit_result = OpenHandsWorker().run(
             repo_path=state["repo_path"],
             task=task,
@@ -337,6 +344,7 @@ def run_external_worker_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
             plan=state.get("plan"),
             repo_profile=state.get("repo_profile"),
             tests_to_run=state.get("test_commands"),
+            pack_path=str(pack_dir) if pack_dir else None,
         )
     elif worker_command:
         edit_result = ExternalWorkerRunner().run(
@@ -887,6 +895,7 @@ def run_harness(
     workspace_kind: str = "local",
     isolation: str = "validation",
     max_attempts: int = 1,
+    pack: str | None = None,
 ) -> RunRecord:
     started_at = datetime.now(UTC)
     run_id = uuid4().hex
@@ -906,6 +915,7 @@ def run_harness(
             "target_goal_id": target_goal_id,
             "workspace_kind": workspace_kind,
             "isolation": isolation,
+            "pack": pack,
             "execution_logs": [],
             # Retry loop seeds
             "attempts": 0,
