@@ -117,6 +117,24 @@ def test_evidence_guard_accepts_worker_added_route(tmp_path: Path) -> None:
     assert route_flags == []
 
 
+def test_changed_file_missing_on_disk_is_skipped(tmp_path: Path) -> None:
+    # A denied/reverted/sandbox-blocked change leaves a path in changed_files that
+    # no longer exists on disk; the builder must skip it, not raise FileNotFoundError.
+    repo = _write_app(tmp_path, _TWO_ROUTES)
+    graph = RepoGraph(repo_path=str(repo), nodes=[_route_node("GET", "/existing")])
+
+    subgraph = ChangedSubgraphBuilder().build(
+        graph,
+        changed_files=["app/main.py", "app/reverted_secrets.py"],
+        deleted_files=[],
+        fallback_validation=[],
+        repo_path=repo,
+    )
+
+    # main.py is parsed normally; the missing file simply contributes nothing.
+    assert ("GET", "/health") in _keys(subgraph)
+
+
 def test_parse_diff_added_ranges_maps_files_to_post_edit_lines() -> None:
     from app.core.graph import _parse_diff_added_ranges
 

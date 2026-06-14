@@ -164,6 +164,12 @@ class ChangedSubgraphBuilder:
         ``route_added_by_diff`` — present now but absent from the pre-edit graph.
         ``route_touched_by_diff`` — already existed, but its definition is inside a
         changed line range. Untouched existing routes are scoped out.
+
+        Known limitation: ``is_touched`` compares against ``PythonRoute.line``, which
+        is the ``def`` line, not the ``@app.get(...)`` decorator line above it. A
+        change that edits *only* the decorator of a pre-existing route (e.g. renaming
+        its path) without touching the ``def`` line is not flagged as touched. New
+        routes are unaffected — they are caught by ``is_added``.
         """
         pre_keys = {
             (
@@ -178,6 +184,11 @@ class ChangedSubgraphBuilder:
         nodes: list[ImpactedNode] = []
         for relative in changed_files:
             if not relative.endswith(".py"):
+                continue
+            # A changed file may not exist on disk now: a denied edit reverted, a
+            # sandbox-blocked write, or a path that was renamed/removed. Skip it
+            # rather than letting the parser raise FileNotFoundError.
+            if not (repo_path / relative).is_file():
                 continue
             line_range = (changed_line_ranges or {}).get(relative)
             for route in parser.parse(repo_path, relative).routes:

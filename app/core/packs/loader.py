@@ -85,12 +85,23 @@ def pack_system_suffix(pack: CapabilityPack) -> str:
 
 
 def resolve_tool_names(pack: CapabilityPack, default: list[str]) -> list[str]:
-    """Tool names the agent should expose: the pack's subset, or the default set."""
+    """Tool names the agent should expose: the pack's subset, or the default set.
+
+    A pack tool that passes the guardrail but is not in the runner's ``default``
+    set (typo, or a tool this runner does not expose) is a misconfiguration — it
+    raises rather than being silently dropped, so the pack author can diagnose it.
+    """
     if not pack.manifest.tools:
         return list(default)
     _enforce_tool_allowlist(pack.manifest.tools)
-    allowed_default = set(default)
-    return [name for name in pack.manifest.tools if name in allowed_default]
+    available = set(default)
+    unavailable = [name for name in pack.manifest.tools if name not in available]
+    if unavailable:
+        raise PackError(
+            f"Pack tools not available in the runner's tool set: {unavailable}. "
+            f"Available: {sorted(available)}."
+        )
+    return list(pack.manifest.tools)
 
 
 def load_hook_callables(pack: CapabilityPack) -> list[Callable]:
