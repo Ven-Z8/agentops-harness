@@ -196,8 +196,13 @@ class CockpitReader:
             return []
         events = []
         for i, line in enumerate(path.read_text(encoding="utf-8").splitlines()):
-            if line.strip():
-                events.append(_normalize_inner_event(i, json.loads(line)))
+            if not line.strip():
+                continue
+            try:
+                payload = json.loads(line)
+            except json.JSONDecodeError:
+                continue  # skip a partially-written line while the worker appends
+            events.append(_normalize_inner_event(i, payload))
         return events
 
     # ── internals ───────────────────────────────────────────────────────
@@ -212,8 +217,12 @@ class CockpitReader:
             return []
         out = []
         for line in trace.read_text(encoding="utf-8").splitlines():
-            if line.strip():
+            if not line.strip():
+                continue
+            try:
                 out.append(json.loads(line))
+            except json.JSONDecodeError:
+                continue  # skip a partially-written line
         return out
 
 

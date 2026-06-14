@@ -16,6 +16,7 @@ from pathlib import Path
 from fastapi import APIRouter, FastAPI, HTTPException
 from fastapi.responses import FileResponse, PlainTextResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.background import BackgroundTask
 
 from app.cockpit.artifacts import CockpitReader, _normalize_inner_event
 from app.core.run_artifacts import artifact_dir_for_run, export_artifact_bundle
@@ -49,7 +50,13 @@ def build_router(reader: CockpitReader) -> APIRouter:
             raise HTTPException(status_code=404, detail=f"No artifacts for run: {run_id}")
         out = Path(tempfile.gettempdir()) / f"agentops-run-{run_id}.zip"
         export_artifact_bundle(run_dir, out)
-        return FileResponse(out, media_type="application/zip", filename=f"run-{run_id[:8]}.zip")
+        # Delete the temp zip once the response is sent so they don't accumulate.
+        return FileResponse(
+            out,
+            media_type="application/zip",
+            filename=f"run-{run_id[:8]}.zip",
+            background=BackgroundTask(out.unlink, missing_ok=True),
+        )
 
     @router.get("/runs/{run_id}/artifacts/{name}", response_model=None)
     def get_artifact(run_id: str, name: str) -> PlainTextResponse:
@@ -103,35 +110,44 @@ async def _sse_governance(reader: CockpitReader, run_id: str) -> AsyncIterator[s
 
 
 async def _sse_worker(reader: CockpitReader, run_id: str) -> AsyncIterator[str]:
-    """Inner loop: tail the live openhands event log, else replay normalized events."""
+    """Inner loop: follow the openhands event log — backlog first, then live appends."""
     yield _sse_message("open", {"run_id": run_id})
     live_path = reader.live_event_path(run_id)
-    inner = reader.inner_events(run_id)
-    # A live, still-growing event log → follow it. A finished run → replay what's there.
-    if live_path.exists() and not inner:
+    if live_path.exists():
         async for message in _tail_live(live_path):
             yield message
-    else:
-        for event in inner:
-            yield _sse_message("event", event)
-            await asyncio.sleep(_REPLAY_GAP)
     yield _sse_message("done", {"run_id": run_id})
 
 
 async def _tail_live(path: Path) -> AsyncIterator[str]:
-    """Follow an in-flight openhands event log, emitting each appended line."""
+    """Emit the existing events, then follow the file for ones appended live.
+
+    Handles both a finished run (emit the backlog, then idle out) and an in-flight
+    run (emit the backlog, then keep streaming as the worker appends). Reads
+    off-thread so the event loop is never blocked, and only consumes complete,
+    newline-terminated lines so a partially-written trailing line is left for the
+    next pass instead of raising a JSON error.
+    """
     offset = 0
     idle = 0
     index = 0
     while idle < _TAIL_IDLE_LIMIT:
-        text = path.read_text(encoding="utf-8")
-        if len(text) > offset:
-            for line in text[offset:].splitlines():
-                if line.strip():
-                    yield _sse_message("event", _normalize_inner_event(index, json.loads(line)))
-                    index += 1
-            offset = len(text)
-            idle = 0
-        else:
+        text = await asyncio.to_thread(path.read_text, encoding="utf-8")
+        last_newline = text.rfind("\n", offset)
+        if last_newline < offset:
             idle += 1
-        await asyncio.sleep(0.1)
+            await asyncio.sleep(0.1)
+            continue
+        complete = text[offset : last_newline + 1]
+        offset = last_newline + 1
+        idle = 0
+        for line in complete.splitlines():
+            if not line.strip():
+                continue
+            try:
+                event = _normalize_inner_event(index, json.loads(line))
+            except json.JSONDecodeError:
+                continue
+            yield _sse_message("event", event)
+            index += 1
+            await asyncio.sleep(_REPLAY_GAP)

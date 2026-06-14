@@ -4,6 +4,7 @@ from fastapi.testclient import TestClient
 
 from app.api import create_api
 from app.cockpit.artifacts import CockpitReader
+from app.core.run_artifacts import artifact_dir_for_run
 from app.core.storage import RunStorage
 from tests.helpers_runrecord import minimal_run_record
 
@@ -51,6 +52,50 @@ def test_reader_summary_stats_and_phases(tmp_path: Path) -> None:
         "tests": "done",
         "review": "done",
     }
+
+
+def test_inner_events_skips_partial_json_line(tmp_path: Path) -> None:
+    # A mid-write trailing line must be skipped, not raise (the cockpit polls the
+    # file while the worker appends to it).
+    storage = tmp_path / "runs.jsonl"
+    run_dir = artifact_dir_for_run(storage, "r1")
+    run_dir.mkdir(parents=True)
+    (run_dir / "openhands_events.jsonl").write_text(
+        '{"event_type": "ActionEvent", "event": {"tool_name": "terminal"}}\n'
+        '{"event_type": "Obs", "event": {"observ',  # partial, malformed
+        encoding="utf-8",
+    )
+    events = CockpitReader(storage).inner_events("r1")
+    assert len(events) == 1
+
+
+def test_cockpit_worker_stream_emits_existing_inner_events(tmp_path: Path, monkeypatch) -> None:
+    # Regression: the worker stream must emit events that already exist in the log
+    # (the prior logic skipped the tail path once any event was present).
+    monkeypatch.setattr("app.api.settings.llm_provider", "mock")
+    storage = tmp_path / "runs.db"
+    client = TestClient(create_api(storage_path=storage))
+    run_id = client.post(
+        "/runs",
+        json={"repo_path": "examples/sample_fastapi_app", "task": "Inner stream"},
+    ).json()["run_id"]
+    run_dir = artifact_dir_for_run(storage, run_id)
+    (run_dir / "openhands_events.jsonl").write_text(
+        '{"event_type": "ActionEvent", "event": {"tool_name": "terminal", '
+        '"action": {"command": "pytest -q"}}}\n'
+        '{"event_type": "ObservationEvent", "event": {"observation": {"content": "ok"}}}\n',
+        encoding="utf-8",
+    )
+
+    seen = 0
+    with client.stream("GET", f"/cockpit/api/runs/{run_id}/worker/stream") as resp:
+        assert resp.status_code == 200
+        for line in resp.iter_lines():
+            if line == "event: event":
+                seen += 1
+            if seen == 2:
+                break
+    assert seen == 2
 
 
 def test_reader_worker_view_absent_for_observe_runs(tmp_path: Path) -> None:
