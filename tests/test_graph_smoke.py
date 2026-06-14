@@ -82,13 +82,14 @@ def test_run_harness_maps_changed_file_to_impacted_graph(tmp_path: Path) -> None
     worker_path.write_text(
         "from pathlib import Path\n"
         "path = Path('app/main.py')\n"
-        "path.write_text(path.read_text() + '\\n# impact smoke\\n')\n"
-        "print('updated app/main.py')\n"
+        "addition = '\\n\\n@app.get(\"/smoke\")\\ndef smoke():\\n    return {\"smoke\": True}\\n'\n"
+        "path.write_text(path.read_text() + addition)\n"
+        "print('added /smoke route to app/main.py')\n"
     )
 
     result = run_harness(
         repo_path=repo,
-        task="Touch FastAPI app entrypoint",
+        task="Add a /smoke endpoint to the FastAPI app",
         storage_path=storage_path,
         worker_command=f"python {worker_path}",
     )
@@ -96,16 +97,15 @@ def test_run_harness_maps_changed_file_to_impacted_graph(tmp_path: Path) -> None
     assert result.status == "completed"
     assert "app/main.py" in result.changed_files
     assert "app/main.py" in result.changed_subgraph.changed_files
-    assert {route.path for route in result.changed_subgraph.impacted_routes} == {
-        "/health",
-        "/version",
-    }
+    # M2: the worker-added route is detected; the untouched /health and /version
+    # routes are scoped out (no longer over-included just because the file changed).
+    assert {route.path for route in result.changed_subgraph.impacted_routes} == {"/smoke"}
     assert "tests/test_health.py" in result.changed_subgraph.related_tests
     commands = [item.command for item in result.changed_subgraph.recommended_validation]
     assert "uv run pytest tests/test_health.py tests/test_version.py -q" in commands
     assert "uv run ruff check ." in commands
     assert "## Impacted Area" in result.final_report.markdown
-    assert "GET /health" in result.final_report.markdown
+    assert "GET /smoke" in result.final_report.markdown
 
     artifact_dir = storage_path.parent / "runs" / result.run_id
     impacted_graph = artifact_dir / "impacted_graph.json"

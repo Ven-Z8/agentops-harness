@@ -5,6 +5,7 @@ from pathlib import Path
 from pydantic import BaseModel, Field
 
 from app.core.repo_graph.models import RepoGraph, RepoGraphEdge, RepoGraphNode
+from app.core.repo_graph.python_parser import PythonParser
 from app.core.repo_graph.query import RepoGraphQuery
 
 
@@ -54,6 +55,8 @@ class ChangedSubgraphBuilder:
         changed_files: list[str],
         deleted_files: list[str],
         fallback_validation: list[str],
+        repo_path: Path | None = None,
+        changed_line_ranges: dict[str, set[int]] | None = None,
     ) -> ChangedSubgraph:
         query = RepoGraphQuery(graph)
         nodes_by_id = {node.id: node for node in graph.nodes}
@@ -61,6 +64,11 @@ class ChangedSubgraphBuilder:
 
         normalized_changed = _unique(_normalize_path(path) for path in changed_files)
         normalized_deleted = _unique(_normalize_path(path) for path in deleted_files)
+
+        # When the post-edit repo is available, routes come from re-parsing the
+        # changed files (so worker-added routes are detected and untouched ones
+        # are scoped out). Otherwise fall back to the pre-edit graph walk.
+        use_post_edit_routes = repo_path is not None
 
         impacted_nodes: list[ImpactedNode] = []
         impacted_routes: list[ImpactedRoute] = []
@@ -74,6 +82,8 @@ class ChangedSubgraphBuilder:
 
             for defined_node in self._defined_nodes(file_node, edge_index, nodes_by_id):
                 impacted_nodes.append(_impact_node(defined_node, "defined_by_changed_file"))
+                if use_post_edit_routes:
+                    continue
                 for route in self._routes_exposed_by(defined_node, edge_index, nodes_by_id):
                     impacted_routes.append(_impact_route(route))
                     impacted_nodes.append(_impact_node(route, "route_exposed_by_changed_file"))
@@ -85,6 +95,13 @@ class ChangedSubgraphBuilder:
             for risk in self._risks_for_file(file_node, edge_index, nodes_by_id):
                 risk_notes.append(_risk_note(risk))
                 impacted_nodes.append(_impact_node(risk, "risk_attached_to_changed_file"))
+
+        if use_post_edit_routes:
+            post_routes, post_nodes = self._routes_from_post_edit(
+                repo_path, normalized_changed, graph, changed_line_ranges
+            )
+            impacted_routes.extend(post_routes)
+            impacted_nodes.extend(post_nodes)
 
         for path in normalized_deleted:
             risk_notes.append(f"Deleted file requires review: {path}")
@@ -134,6 +151,61 @@ class ChangedSubgraphBuilder:
             for edge in edge_index.outgoing(defined_node.id, "exposes_route")
             if edge.target in nodes_by_id
         ]
+
+    def _routes_from_post_edit(
+        self,
+        repo_path: Path,
+        changed_files: list[str],
+        graph: RepoGraph,
+        changed_line_ranges: dict[str, set[int]] | None,
+    ) -> tuple[list[ImpactedRoute], list[ImpactedNode]]:
+        """Re-parse changed files post-edit; include routes added or diff-touched.
+
+        ``route_added_by_diff`` — present now but absent from the pre-edit graph.
+        ``route_touched_by_diff`` — already existed, but its definition is inside a
+        changed line range. Untouched existing routes are scoped out.
+        """
+        pre_keys = {
+            (
+                str(node.metadata.get("method", "")).upper(),
+                str(node.metadata.get("path", node.name)),
+            )
+            for node in graph.nodes
+            if node.type == "route"
+        }
+        parser = PythonParser()
+        routes: list[ImpactedRoute] = []
+        nodes: list[ImpactedNode] = []
+        for relative in changed_files:
+            if not relative.endswith(".py"):
+                continue
+            line_range = (changed_line_ranges or {}).get(relative)
+            for route in parser.parse(repo_path, relative).routes:
+                key = (route.method.upper(), route.path)
+                is_added = key not in pre_keys
+                is_touched = line_range is None or route.line in line_range
+                if not (is_added or is_touched):
+                    continue
+                node_id = f"route:python:{route.method}:{route.path}"
+                routes.append(
+                    ImpactedRoute(
+                        method=route.method,
+                        path=route.path,
+                        source_file=relative,
+                        node_id=node_id,
+                    )
+                )
+                nodes.append(
+                    ImpactedNode(
+                        id=node_id,
+                        type="route",
+                        name=f"{route.method} {route.path}",
+                        path=relative,
+                        reason="route_added_by_diff" if is_added else "route_touched_by_diff",
+                        metadata={"method": route.method, "path": route.path, "line": route.line},
+                    )
+                )
+        return routes, nodes
 
     def _imports_for_file(
         self,

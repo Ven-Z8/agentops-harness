@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from datetime import UTC, datetime
 from pathlib import Path
 from uuid import uuid4
@@ -24,6 +25,7 @@ from app.core.git_utils import (
     collect_deleted_files,
     collect_diff_body,
     collect_diff_summary,
+    is_git_repo,
     run_git,
 )
 from app.core.goal_model import GoalModelError, load_goal_model
@@ -436,12 +438,57 @@ def enforce_permissions_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
     }
 
 
+_DIFF_HUNK = re.compile(r"@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@")
+
+
+def _diff_added_line_ranges(repo_path: Path, changed_files: list[str]) -> dict[str, set[int]]:
+    """Post-edit line numbers added/changed per file, parsed from ``git diff -U0``.
+
+    Best-effort: tries the worker's net change vs HEAD, then unstaged, then staged.
+    Returns ``{}`` when no diff is available, in which case route scoping is skipped
+    (added routes are still detected from the post-edit parse).
+    """
+    if not changed_files or not is_git_repo(repo_path):
+        return {}
+    for diff_args in (
+        ["diff", "-U0", "HEAD", "--"],
+        ["diff", "-U0", "--"],
+        ["diff", "-U0", "--cached", "--"],
+    ):
+        result = run_git(repo_path, [*diff_args, *changed_files])
+        ranges = _parse_diff_added_ranges(result.stdout)
+        if ranges:
+            return ranges
+    return {}
+
+
+def _parse_diff_added_ranges(diff_text: str) -> dict[str, set[int]]:
+    ranges: dict[str, set[int]] = {}
+    current: str | None = None
+    for line in diff_text.splitlines():
+        if line.startswith("+++ b/"):
+            target = line[6:].strip()
+            current = None if target == "/dev/null" else target
+        elif line.startswith("+++ "):
+            current = None
+        elif current and line.startswith("@@"):
+            match = _DIFF_HUNK.match(line)
+            if match:
+                start = int(match.group(1))
+                count = int(match.group(2)) if match.group(2) else 1
+                ranges.setdefault(current, set()).update(range(start, start + count))
+    return ranges
+
+
 def build_changed_subgraph_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
+    repo_path = state["repo_path"]
     changed_subgraph = ChangedSubgraphBuilder().build(
         state["repo_graph"],
         changed_files=state["changed_files"],
         deleted_files=state["deleted_files"],
         fallback_validation=state["plan"].tests_to_run,
+        repo_path=repo_path,
+        changed_line_ranges=_diff_added_line_ranges(repo_path, state["changed_files"]),
     )
     return {
         "changed_subgraph": changed_subgraph,
