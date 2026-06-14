@@ -5,6 +5,7 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel
 
+from app.cockpit import mount_cockpit
 from app.core.config import settings
 from app.core.graph import run_harness
 from app.core.handoff import handoff_document_json, render_handoff_markdown, worker_handoff_from_run
@@ -98,6 +99,7 @@ def create_api(storage_path: Path | None = None, llm_client: LLMClient | None = 
             media_type="text/markdown; charset=utf-8",
         )
 
+    mount_cockpit(api, selected_storage)
     return api
 
 
