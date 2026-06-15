@@ -139,7 +139,11 @@ def edit(
     ] = None,
     worker_type: Annotated[
         str | None,
-        typer.Option(help="Built-in worker type: claude, codex, opencode, or openhands."),
+        typer.Option(
+            help="Built-in worker type: claude, codex, opencode, or openhands. "
+            "Defaults to openhands (the inner loop) when neither --worker-type nor "
+            "--worker-command is given."
+        ),
     ] = None,
     storage: Annotated[Path, typer.Option(help="Run history JSONL path.")] = settings.run_storage,
     worker_timeout_seconds: Annotated[
@@ -172,17 +176,18 @@ def edit(
         ),
     ] = None,
 ) -> None:
-    """Run an explicit external worker, then validate and report its diff.
+    """Run a coding worker, then validate and report its diff.
 
-    Use --worker-command for arbitrary CLI workers (Cursor, Codex, etc.) or
-    --worker-type claude/codex/opencode/openhands to delegate to a built-in worker.
+    Defaults to the OpenHands inner loop (no worker flag needed). Use
+    --worker-type claude/codex/opencode for another built-in worker, or
+    --worker-command for an arbitrary CLI worker (Cursor, etc.).
     Use --sandbox to run the worker inside a full-isolation Docker container so
     denied writes never reach the host filesystem.
     """
     if worker_command is None and worker_type is None:
-        raise typer.BadParameter(
-            "Provide either --worker-command or --worker-type (e.g. --worker-type claude)."
-        )
+        # The inner loop is OpenHands by default — no worker flag needed. The other
+        # built-in workers (claude/codex/opencode) and --worker-command remain opt-in.
+        worker_type = "openhands"
     workspace_kind = "docker" if sandbox else "local"
     isolation = "full" if sandbox else "validation"
     record = run_harness(

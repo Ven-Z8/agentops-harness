@@ -16,6 +16,11 @@ dependencies = [
     "rich>=13.7.0",
     "typer>=0.12.0",
     "uvicorn[standard]>=0.30.0",
+    # OpenHands is the inner loop — a core dependency, not optional. The harness
+    # always runs the real OpenHands SDK agent loop (no mock/fake SDK).
+    "openhands-sdk>=1.28.0",
+    "openhands-tools>=1.28.0",
+    "openhands-workspace>=1.28.0",
 ]
 
 [project.optional-dependencies]
@@ -24,11 +29,9 @@ dev = [
     "pytest>=8.2.0",
     "ruff>=0.6.0",
 ]
-openhands = [
-    "openhands-sdk>=1.28.0",
-    "openhands-tools>=1.28.0",
-    "openhands-workspace>=1.28.0",
-]
+# Retained as an empty alias so existing `--extra openhands` invocations keep working;
+# the packages themselves are now core dependencies above.
+openhands = []
 
 [project.scripts]
 agentops = "app.cli:app"

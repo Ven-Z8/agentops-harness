@@ -12,7 +12,20 @@ from app.core.llm import (
 )
 
 
-def test_build_llm_client_defaults_to_mock() -> None:
+def test_build_llm_client_defaults_to_mock(monkeypatch: pytest.MonkeyPatch) -> None:
+    # Hermetic: ignore any ambient AGENTOPS_* provider config that may be present in
+    # os.environ (e.g. a developer's personal .env that load_dotenv injects when the
+    # OpenHands SDK / litellm is imported). CI has no such .env; this keeps the
+    # "defaults to mock" contract deterministic on developer machines too.
+    for var in (
+        "AGENTOPS_LLM_PROVIDER",
+        "AGENTOPS_OPENROUTER_API_KEY",
+        "AGENTOPS_OPENROUTER_MODEL",
+        "AGENTOPS_OPENAI_API_KEY",
+        "AGENTOPS_OPENAI_MODEL",
+    ):
+        monkeypatch.delenv(var, raising=False)
+
     client = build_llm_client(Settings(_env_file=None))
 
     assert isinstance(client, MockLLMClient)

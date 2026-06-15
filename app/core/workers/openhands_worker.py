@@ -258,7 +258,7 @@ def _termination_from_exit_code(code: int, stdout: str, stderr: str) -> str:
 
 def _stderr_with_setup_hint(status: str, stdout: str, stderr: str) -> str:
     if status == "setup_missing":
-        hint = "OpenHands SDK not installed. Install with: uv sync --extra openhands."
+        hint = "OpenHands SDK not importable (it is a core dependency). Reinstall with: uv sync."
         return f"{hint}\n{stderr}".strip()
     if status == "auth_missing":
         hint = detect_auth_failure(stdout, stderr) or (
