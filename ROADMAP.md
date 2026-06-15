@@ -4,12 +4,15 @@
 
 The inner loop is **locked** (all 9 worker-harness components wired + verified live on `nl2sql-viz`; PRs #12/#14/#15 merged). These milestones carry that foundation into the outer loop and the migration finale.
 
+**Status — Jun 15:** M1–M3 are **done** and the observability **Cockpit shipped** (#16 docs, #19 M2+M3, #18 Cockpit all merged to `main`). The outer→inner pack mechanism (M3) and the transparency surface (Cockpit) are both in place; the M2 fix was verified **end-to-end** (complex OpenHands run → outer Verification Stack `Accepted: True`, Evidence Guard clean). What remains is the payoff — author the migration pack (M4) and run the governed migration demo (M5) — **gated on the migration repo + domain resources coming from the owner's side.**
+
 | # | Milestone | Due | Status |
 |---|---|---|---|
-| M1 | Inner loop locked + README + north-star | Jun 13 | active |
-| M2 | Outer evidence fidelity: route-impact | Jun 14 | done |
-| M3 | Capability-pack loader (outer → inner) | Jun 16 | done |
-| M4 | Migration domain pack | Jun 17 | open |
+| M1 | Inner loop locked + README + north-star | Jun 13 | ✅ done |
+| M2 | Outer evidence fidelity: route-impact | Jun 14 | ✅ done (#19, verified e2e) |
+| M3 | Capability-pack loader (outer → inner) | Jun 16 | ✅ done (#19) |
+| — | Observability Cockpit (Phase 1 Run Inspector) | Jun 14 | ✅ shipped (#18) |
+| M4 | Migration domain pack | Jun 17 | open — awaiting repo + resources |
 | M5 | Final migration demo on a good repo | Jun 18 | open |
 
 ---
@@ -22,7 +25,7 @@ Declare the inner loop locked and make the repo communicate it.
 - [x] README: agent-loop + nine-components slides visible, **inner loop** section, 9-component coverage table, inner/outer boundary
 - [x] README: *Where this is going* — domain capability packs + migration finale
 - [x] ROADMAP.md (this file)
-- [ ] Lock-in artifact: architecture → code matrix (workspace-artifacts)
+- [x] Lock-in artifact: architecture → code matrix — the README's 9-component coverage table *is* the slide→code matrix (slides `agent-loop.png` / `nine-components.png` → wired-via column)
 
 ## M2 — Outer evidence fidelity: route-impact · due Jun 14
 
@@ -65,5 +68,6 @@ The payoff.
 
 ## Supporting tasks (slot in as time allows, not standalone milestones)
 
-- **Run-artifact retention / GC** — `task_9767cbb9` — keep-last-N / max-age + `agentops prune`; do before the viewer reads many run folders.
-- **Observability viewer** — `agentops-observability-viewer-goal` memory — folds into M5 (the demo needs it to *show* the loop behaving).
+- **Observability Cockpit** — ✅ **Phase 1 (Run Inspector) shipped** (#18): in-repo vanilla-JS + SSE UI at `/cockpit` — run list, 5-phase governance ribbon, guard cards, raw-artifact browser, bundle download, and a **Worker loop** tab streaming the OpenHands `prompt→tool→observation` trajectory. **Still open:** dispatch console (POST a run + watch live), run history/trends, goals/intent-graph view. Folds into M5. (`agentops-observability-viewer-goal` memory.)
+- **Product-Reviewer success-signal fidelity** — surfaced during M2 e2e: the Product Reviewer returned "0 of 2 signals met" even though the endpoint **and** its test were added — it doesn't yet credit M2-recognized routes (`impacted_routes`) or untracked new test files. Same *class* of gap as M2, but for the CEO/intent layer. Teach it to read `impacted_routes` + the on-disk test files.
+- **Run-artifact retention / GC** — `task_9767cbb9` — keep-last-N / max-age + `agentops prune`; do before the Cockpit reads many run folders.
