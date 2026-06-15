@@ -53,6 +53,7 @@ class OpenHandsWorker:
         forbidden_paths: list[str] | None = None,
         permission_tier: str = "standard",
         workspace: str = "local",
+        pack_path: str | None = None,
     ) -> ExternalEditResult:
         command = f"{sys.executable} -m app.core.workers.openhands_runner {repo_path}"
         if not is_git_repo(repo_path):
@@ -98,7 +99,7 @@ class OpenHandsWorker:
                 text=True,
                 timeout=timeout_seconds,
                 check=False,
-                env=_runner_env(run_dir, workspace),
+                env=_runner_env(run_dir, workspace, pack_path),
             )
         except subprocess.TimeoutExpired as exc:
             stdout = _coerce_text(exc.stdout or exc.output or "")
@@ -183,7 +184,11 @@ def _coerce_text(value: str | bytes) -> str:
     return value
 
 
-def _runner_env(run_dir: Path | None = None, workspace: str = "local") -> dict[str, str]:
+def _runner_env(
+    run_dir: Path | None = None,
+    workspace: str = "local",
+    pack_path: str | None = None,
+) -> dict[str, str]:
     env = os.environ.copy()
     existing = env.get("PYTHONPATH")
     env["PYTHONPATH"] = (
@@ -192,6 +197,10 @@ def _runner_env(run_dir: Path | None = None, workspace: str = "local") -> dict[s
     # Select the OpenHands workspace mode for the runner (local in-process loop, or its
     # own Docker agent-server container).
     env["OPENHANDS_WORKSPACE"] = "docker" if workspace == "docker" else "local"
+    # The outer loop's selected capability pack, loaded by the runner before it
+    # assembles the agent (skills → system suffix, tools → allowlist, hooks → callbacks).
+    if pack_path:
+        env["OPENHANDS_PACK_PATH"] = pack_path
     if run_dir is not None:
         run_dir.mkdir(parents=True, exist_ok=True)
         events_path = run_dir / "openhands_events.jsonl"

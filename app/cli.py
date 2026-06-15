@@ -161,6 +161,16 @@ def edit(
         int,
         typer.Option("--max-attempts", help="Maximum retry attempts for the validation loop."),
     ] = 2,
+    pack: Annotated[
+        str | None,
+        typer.Option(
+            "--pack",
+            help=(
+                "Capability pack to equip the openhands worker with (a path or a "
+                "built-in pack name, e.g. 'example'). Injects skills/tools/hooks."
+            ),
+        ),
+    ] = None,
 ) -> None:
     """Run an explicit external worker, then validate and report its diff.
 
@@ -188,6 +198,7 @@ def edit(
         workspace_kind=workspace_kind,
         isolation=isolation,
         max_attempts=max_attempts,
+        pack=pack,
     )
     console.print(Panel(record.final_report.markdown, title=f"Run {record.run_id}"))
 

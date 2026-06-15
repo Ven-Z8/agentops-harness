@@ -7,8 +7,8 @@ The inner loop is **locked** (all 9 worker-harness components wired + verified l
 | # | Milestone | Due | Status |
 |---|---|---|---|
 | M1 | Inner loop locked + README + north-star | Jun 13 | active |
-| M2 | Outer evidence fidelity: route-impact | Jun 14 | open |
-| M3 | Capability-pack loader (outer → inner) | Jun 16 | open |
+| M2 | Outer evidence fidelity: route-impact | Jun 14 | done |
+| M3 | Capability-pack loader (outer → inner) | Jun 16 | done |
 | M4 | Migration domain pack | Jun 17 | open |
 | M5 | Final migration demo on a good repo | Jun 18 | open |
 
@@ -28,20 +28,20 @@ Declare the inner loop locked and make the repo communicate it.
 
 So migration diffs get graded correctly. `changed_subgraph.impacted_routes` is built from the **pre-edit** graph, so worker-added routes are flagged as ungrounded by the Evidence Guard (reproduced 2/2 on `nl2sql-viz`).
 
-- [ ] Detect routes **added by the diff**, include them as impacted nodes
-- [ ] Scope impacted_routes to diff-touched routes (stop over-including untouched ones)
-- [ ] Re-run: Evidence Guard no longer false-flags a new route; Verification Stack `Accepted` flips
+- [x] Detect routes **added by the diff**, include them as impacted nodes (`ChangedSubgraphBuilder` re-parses post-edit changed files; `route_added_by_diff`)
+- [x] Scope impacted_routes to diff-touched routes (stop over-including untouched ones) — scoped by `git diff -U0` line ranges
+- [x] Re-run: Evidence Guard no longer false-flags a new route (covered by `tests/test_route_impact.py` + updated `test_graph_smoke`)
 - Tracked: background task `task_f774a6fc`
 
 ## M3 — Capability-pack loader (outer → inner) · due Jun 16
 
 The key new architectural piece. The outer loop assembles a pack and injects it into the inner OpenHands loop through existing seams.
 
-- [ ] Define the pack format: `manifest` (domain, version, tool/skill/hook list) + `skills/*.md` + `tools` + `hooks`
-- [ ] Outer-loop selector: choose a pack by repo profile / task / `--pack` flag
-- [ ] Loader: skills → `AgentContext`, tools → `Tool` registry, hooks → `callbacks` / pre-tool gate
-- [ ] Guardrail: pack tools stay terminal/file-only (no browser/network)
-- [ ] Tests: a trivial pack loads end-to-end and its tool/skill appears in the agent
+- [x] Define the pack format: `manifest.yaml` (name, domain, version, skills/tools/hooks) + `skills/*.md` + `hooks.py` (`app/schemas/pack.py`; shipped `packs/example/`)
+- [x] Outer-loop selector: `--pack` flag → `select_pack` (path or built-in name); auto-by-profile is a stubbed future hook (lands with M4)
+- [x] Loader: skills → `AgentContext` system suffix, tools → `Tool` name list, hooks → `callbacks` (`app/core/packs/loader.py`; injected in `openhands_runner`)
+- [x] Guardrail: pack tools must be in the terminal/file-only allowlist — `PackError` otherwise
+- [x] Tests: `tests/test_capability_pack.py` — trivial pack loads end-to-end; `assemble_agent_inputs` proves skill/tools/hooks reach the agent
 
 ## M4 — Migration domain pack · due Jun 17
 

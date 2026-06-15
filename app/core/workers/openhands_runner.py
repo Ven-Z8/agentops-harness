@@ -16,11 +16,13 @@ import time
 from pathlib import Path
 from typing import Any
 
+from app.core.packs.loader import assemble_agent_inputs, load_pack
 from app.core.workers.openhands_config import (
     OPENHANDS_TOOL_NAMES,
     load_openhands_config,
     openhands_sdk_available,
 )
+from app.schemas.pack import CapabilityPack
 from app.schemas.worker_loop import WorkerLoopSummary
 
 EXIT_RUN_ERROR = 1
@@ -65,6 +67,14 @@ class _OpenHandsEventRecorder:
                 handle.write(json.dumps(payload, sort_keys=True, default=str) + "\n")
         except OSError as exc:
             self.write_error = str(exc)
+
+
+def _load_capability_pack() -> CapabilityPack | None:
+    """Load the outer loop's selected pack, if any, from OPENHANDS_PACK_PATH."""
+    pack_path = os.getenv("OPENHANDS_PACK_PATH")
+    if not pack_path:
+        return None
+    return load_pack(Path(pack_path))
 
 
 def _serialize_event(event: Any) -> dict[str, Any] | str:
@@ -169,6 +179,23 @@ def main() -> int:
     workspace_mode = os.getenv("OPENHANDS_WORKSPACE", "local").lower()
 
     try:
+        pack = _load_capability_pack()
+    except Exception as exc:  # a misconfigured pack is a config error, not a crash
+        message = f"capability pack failed to load: {exc}"
+        print(f"configuration_error: {message}", file=sys.stderr)
+        _emit_summary(
+            _summary(
+                status="failed",
+                model=model,
+                started=started,
+                exit_code=EXIT_CONFIGURATION_ERROR,
+                termination_reason="pack_error",
+                setup_error=message,
+            )
+        )
+        return EXIT_CONFIGURATION_ERROR
+
+    try:
         from openhands.sdk import LLM, Agent, Conversation, Tool
         from openhands.sdk.context import AgentContext
         from openhands.sdk.context.condenser import LLMSummarizingCondenser
@@ -209,23 +236,31 @@ def main() -> int:
         llm = LLM(model=model, api_key=api_key)
         # 02 context management.
         condenser = LLMSummarizingCondenser(llm=llm, max_size=80, keep_first=4)
-        # 03/07 skills + system-prompt assembly (the AgentOps constraints bridge).
+        # 03/07 skills + system-prompt assembly (the AgentOps constraints bridge),
+        # folding in any capability pack the outer loop selected: pack skills extend
+        # the system suffix, pack tools restrict the tool set, pack hooks become callbacks.
+        available_tools = {
+            "terminal": Tool(name=TerminalTool.name),
+            "file_editor": Tool(name=FileEditorTool.name),
+            "task_tracker": Tool(name=TaskTrackerTool.name),
+            "grep": Tool(name="grep"),
+            "glob": Tool(name="glob"),
+            "task_tool_set": Tool(name=TaskToolSet.name),
+        }
+        system_suffix, tool_names, pack_hooks = assemble_agent_inputs(
+            pack,
+            base_system_suffix=HARNESS_SYSTEM_SUFFIX,
+            default_tools=list(available_tools),
+        )
         agent_context = AgentContext(
-            system_message_suffix=HARNESS_SYSTEM_SUFFIX,
+            system_message_suffix=system_suffix,
             load_project_skills=True,
         )
         # 05 primitives + retrieval; 04 delegation (task_tool_set spawns sub-agents from the
         # registered archetypes); 09 security analyzer assesses each action's risk.
         agent = Agent(
             llm=llm,
-            tools=[
-                Tool(name=TerminalTool.name),
-                Tool(name=FileEditorTool.name),
-                Tool(name=TaskTrackerTool.name),
-                Tool(name="grep"),
-                Tool(name="glob"),
-                Tool(name=TaskToolSet.name),
-            ],
+            tools=[available_tools[name] for name in tool_names if name in available_tools],
             condenser=condenser,
             agent_context=agent_context,
             security_analyzer=LLMSecurityAnalyzer(),
@@ -234,9 +269,12 @@ def main() -> int:
             "OpenHands SDK controls the inner prompt-model-tool-observe loop.",
             "Observable SDK events are captured through Conversation callbacks.",
         ]
+        if pack is not None:
+            notes.append(f"Capability pack loaded: {pack.manifest.name} ({pack.manifest.domain}).")
         conversation_kwargs: dict[str, Any] = {
             "agent": agent,
-            "callbacks": [event_recorder],
+            # 08 hooks: pack-defined callbacks fire alongside the event recorder.
+            "callbacks": [event_recorder, *pack_hooks],
             "stuck_detection": True,  # 08 hooks: break no-progress loops
         }
         if workspace_mode == "docker":

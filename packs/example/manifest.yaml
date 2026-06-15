@@ -1,0 +1,16 @@
+name: example
+domain: demonstration
+version: 0.1.0
+description: >-
+  A minimal example capability pack. It contributes a single skill (a small
+  playbook) and restricts the inner agent to terminal/file-only tools. Use it to
+  verify the outer loop can equip the inner loop end-to-end before authoring a
+  real domain pack.
+skills:
+  - overview.md
+tools:
+  - terminal
+  - file_editor
+  - grep
+  - glob
+hooks: []
