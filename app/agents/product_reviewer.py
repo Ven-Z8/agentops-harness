@@ -78,7 +78,7 @@ class ProductReviewer:
                 build_product_reviewer_prompt(
                     task=task, plan=plan, changed_files=changed_files,
                     diff_summary=diff_summary, goal_model=goal_model,
-                    target_goal_id=target_goal_id,
+                    target_goal_id=target_goal_id, diff_body=diff_body,
                 ),
                 ProductReview,
             )

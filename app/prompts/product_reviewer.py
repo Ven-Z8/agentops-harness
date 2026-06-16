@@ -3,10 +3,29 @@ from __future__ import annotations
 from app.schemas.goal_model import ProductGoalModel
 from app.schemas.plan import ImplementationPlan
 
+# Cap the diff included in the prompt so a large migration diff cannot blow the context
+# window. The upstream diff_body is already bounded; this is a second, prompt-local guard.
+_MAX_DIFF_CHARS = 16000
+
+
+def _diff_block(diff_body: str) -> str:
+    body = diff_body.strip()
+    if not body:
+        return "Actual diff: (no diff body was captured for this run)"
+    if len(body) > _MAX_DIFF_CHARS:
+        body = body[:_MAX_DIFF_CHARS] + "\n... [diff truncated for prompt length]"
+    return (
+        "Actual diff (judge completeness against THESE concrete changes, not just the file "
+        "names or the summary — e.g. confirm the work is actually finished, not merely "
+        "started):\n"
+        f"{body}"
+    )
+
 
 def build_product_reviewer_prompt(
     *, task: str, plan: ImplementationPlan, changed_files: list[str],
     diff_summary: str, goal_model: ProductGoalModel, target_goal_id: str | None,
+    diff_body: str = "",
 ) -> str:
     goal = goal_model.goal(target_goal_id) if target_goal_id else None
     goal_block = (
@@ -37,4 +56,5 @@ Plan summary: {plan.summary}
 Changed files:
 {files}
 Diff summary: {diff_summary}
+{_diff_block(diff_body)}
 """
