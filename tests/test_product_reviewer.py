@@ -111,3 +111,40 @@ def test_completeness_credits_signals_found_only_in_diff_body():
     )
     completeness = next(f for f in review.findings if f.lens == "completeness")
     assert completeness.verdict == "pass", completeness.observation
+
+
+def test_llm_path_includes_diff_body_in_prompt():
+    """With a provider configured, the LLM Product Reviewer must see the actual diff body.
+
+    Regression for the blocker: completeness was graded from changed_files + diff_summary
+    only — the diff body never reached the prompt, so a half-finished migration could be
+    judged 'done' from file names alone (the Cockpit then shows green on a half-done repo).
+    """
+    from app.schemas.product_review import ProductReview
+
+    captured: dict[str, str] = {}
+
+    class CapturingClient:
+        def generate_structured(self, prompt: str, schema):
+            captured["prompt"] = prompt
+            return ProductReview()
+
+    diff_body = (
+        "+SENTINEL_DIFF_MARKER_4242\n"
+        "+@app.get('/healthz')\n+def healthz():\n+    return {'status': 'ok'}\n"
+    )
+    ProductReviewer(llm_client=CapturingClient()).review(
+        task="add healthz",
+        plan=plan(["src/main.py"]),
+        changed_files=["src/main.py"],
+        diff_summary="1 file changed",
+        diff_body=diff_body,
+        changed_subgraph=None,
+        test_results=make_test_results(True),
+        goal_model=model(),
+        target_goal_id="G1",
+    )
+    assert "prompt" in captured, "LLM client was not called"
+    assert "SENTINEL_DIFF_MARKER_4242" in captured["prompt"], (
+        "the diff body did not reach the Product Reviewer prompt"
+    )
