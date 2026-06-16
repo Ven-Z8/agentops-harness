@@ -32,6 +32,7 @@ from app.core.goal_model import GoalModelError, load_goal_model
 from app.core.llm import LLMClient
 from app.core.memory import ExperienceMemory
 from app.core.packs import select_pack
+from app.core.packs.loader import PackError
 from app.core.repo_graph import RepoGraphBuilder
 from app.core.repo_graph.impact import ChangedSubgraphBuilder, render_changed_subgraph_markdown
 from app.core.run_artifacts import RunArtifactWriter, append_artifact_links, artifact_dir_for_run
@@ -327,12 +328,28 @@ def run_external_worker_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
     elif worker_type == "openhands":
         # --sandbox runs the OpenHands agent loop inside its own DockerWorkspace.
         oh_workspace = "docker" if (state.get("isolation") or "validation") == "full" else "local"
-        # Outer loop equips the inner loop: select a capability pack for this run.
-        pack_dir = select_pack(
-            state.get("pack"),
-            repo_profile=state.get("repo_profile"),
-            task=task,
-        )
+        # Outer loop equips the inner loop: select a capability pack for this run. A bad
+        # --pack (the most common authoring mistake) must block the run with a clear message,
+        # not crash graph.invoke() with no record.
+        try:
+            pack_dir = select_pack(
+                state.get("pack"),
+                repo_profile=state.get("repo_profile"),
+                task=task,
+            )
+        except PackError as exc:
+            return {
+                "attempts": attempts,
+                "edit_result": ExternalEditResult(
+                    status="blocked",
+                    command=f"--pack {state.get('pack')!r}",
+                    stderr=f"Capability pack error: {exc}",
+                    termination_reason="pack_error",
+                    worker_type="openhands",
+                ),
+                "sandbox_blocked": [],
+                "execution_logs": append_logs(state, "worker_blocked:pack_error"),
+            }
         edit_result = OpenHandsWorker().run(
             repo_path=state["repo_path"],
             task=task,
