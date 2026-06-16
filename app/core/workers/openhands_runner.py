@@ -116,6 +116,63 @@ def _summary(
     )
 
 
+def build_agent(llm: Any, pack: CapabilityPack | None) -> tuple[Any, list[str], list[Any]]:
+    """Assemble the OpenHands agent — the 9-component wiring + any capability pack.
+
+    Pure construction (no conversation run, no network), extracted so it is unit-testable
+    against the REAL OpenHands SDK without an API call. Returns (agent, tool_names, hooks).
+    Requires the OpenHands SDK to be importable (it is a core dependency).
+    """
+    from openhands.sdk import Agent, Tool
+    from openhands.sdk.context import AgentContext
+    from openhands.sdk.context.condenser import LLMSummarizingCondenser
+
+    # Importing the tool modules registers them so Tool(name=...) resolves at runtime.
+    from openhands.tools import glob as _glob  # noqa: F401 (registers retrieval)
+    from openhands.tools import grep as _grep  # noqa: F401 (registers retrieval)
+    from openhands.tools.file_editor import FileEditorTool
+    from openhands.tools.preset import register_builtins_agents
+    from openhands.tools.task import TaskToolSet  # 04 sub-agent delegation tool
+    from openhands.tools.task_tracker import TaskTrackerTool
+    from openhands.tools.terminal import TerminalTool
+
+    # 04 sub-agents — register the terminal-only archetypes (no web-researcher), honoring the
+    # harness's no-browser/network constraint; sub-agents inherit only terminal/file tools.
+    register_builtins_agents(enable_browser=False)
+    # 02 context management.
+    condenser = LLMSummarizingCondenser(llm=llm, max_size=80, keep_first=4)
+    available_tools = {
+        "terminal": Tool(name=TerminalTool.name),
+        "file_editor": Tool(name=FileEditorTool.name),
+        "task_tracker": Tool(name=TaskTrackerTool.name),
+        "grep": Tool(name="grep"),
+        "glob": Tool(name="glob"),
+        "task_tool_set": Tool(name=TaskToolSet.name),
+    }
+    # 03/07 skills + system-prompt assembly (the AgentOps constraints bridge), folding in any
+    # capability pack: pack skills extend the suffix, pack tools restrict the set, pack hooks
+    # become callbacks.
+    system_suffix, tool_names, pack_hooks = assemble_agent_inputs(
+        pack,
+        base_system_suffix=HARNESS_SYSTEM_SUFFIX,
+        default_tools=list(available_tools),
+    )
+    agent_context = AgentContext(
+        system_message_suffix=system_suffix,
+        load_project_skills=True,
+    )
+    # 05 primitives + retrieval; 04 delegation (task_tool_set spawns sub-agents). NOTE: the
+    # 09 security analyzer is NOT an Agent kwarg in SDK 1.28 (it is silently dropped) — it is
+    # attached to the conversation state in main() via conversation.set_security_analyzer().
+    agent = Agent(
+        llm=llm,
+        tools=[available_tools[name] for name in tool_names if name in available_tools],
+        condenser=condenser,
+        agent_context=agent_context,
+    )
+    return agent, tool_names, pack_hooks
+
+
 def main() -> int:
     started = time.perf_counter()
     if len(sys.argv) < 2:
@@ -144,7 +201,7 @@ def main() -> int:
         return EXIT_CONFIGURATION_ERROR
 
     if not openhands_sdk_available():
-        message = "OpenHands SDK not installed. Install with: uv sync --extra openhands"
+        message = "OpenHands SDK not importable (it is a core dependency). Reinstall with: uv sync"
         print(f"setup_missing: {message}", file=sys.stderr)
         _emit_summary(
             _summary(
@@ -196,19 +253,9 @@ def main() -> int:
         return EXIT_CONFIGURATION_ERROR
 
     try:
-        from openhands.sdk import LLM, Agent, Conversation, Tool
-        from openhands.sdk.context import AgentContext
-        from openhands.sdk.context.condenser import LLMSummarizingCondenser
-        from openhands.sdk.security.llm_analyzer import LLMSecurityAnalyzer
-
-        # Importing the tool modules registers them so Tool(name=...) resolves at runtime.
-        from openhands.tools import glob as _glob  # noqa: F401 (registers retrieval)
-        from openhands.tools import grep as _grep  # noqa: F401 (registers retrieval)
-        from openhands.tools.file_editor import FileEditorTool
-        from openhands.tools.preset import register_builtins_agents
-        from openhands.tools.task import TaskToolSet  # 04 sub-agent delegation tool
-        from openhands.tools.task_tracker import TaskTrackerTool
-        from openhands.tools.terminal import TerminalTool
+        # main() drives the conversation; build_agent (below) imports and validates the full
+        # tool/context/security surface when it constructs the agent.
+        from openhands.sdk import LLM, Conversation
     except ImportError as exc:
         message = f"OpenHands SDK not installed or incomplete: {exc}"
         print(f"setup_missing: {message}", file=sys.stderr)
@@ -226,45 +273,11 @@ def main() -> int:
 
     workspace = None
     try:
-        # 04 sub-agents — register the built-in archetypes so the agent can delegate focused
-        # sub-tasks. enable_browser=False keeps us to the terminal-only archetypes
-        # (bash-runner, code-explorer, general-purpose) and skips web-researcher, honoring the
-        # harness's no-browser/network constraint — sub-agents inherit only terminal/file tools.
-        # Inside the try so a registration failure still emits a summary + EXIT_RUN_ERROR
-        # instead of crashing main() with no observable outcome.
-        register_builtins_agents(enable_browser=False)
         llm = LLM(model=model, api_key=api_key)
-        # 02 context management.
-        condenser = LLMSummarizingCondenser(llm=llm, max_size=80, keep_first=4)
-        # 03/07 skills + system-prompt assembly (the AgentOps constraints bridge),
-        # folding in any capability pack the outer loop selected: pack skills extend
-        # the system suffix, pack tools restrict the tool set, pack hooks become callbacks.
-        available_tools = {
-            "terminal": Tool(name=TerminalTool.name),
-            "file_editor": Tool(name=FileEditorTool.name),
-            "task_tracker": Tool(name=TaskTrackerTool.name),
-            "grep": Tool(name="grep"),
-            "glob": Tool(name="glob"),
-            "task_tool_set": Tool(name=TaskToolSet.name),
-        }
-        system_suffix, tool_names, pack_hooks = assemble_agent_inputs(
-            pack,
-            base_system_suffix=HARNESS_SYSTEM_SUFFIX,
-            default_tools=list(available_tools),
-        )
-        agent_context = AgentContext(
-            system_message_suffix=system_suffix,
-            load_project_skills=True,
-        )
-        # 05 primitives + retrieval; 04 delegation (task_tool_set spawns sub-agents from the
-        # registered archetypes); 09 security analyzer assesses each action's risk.
-        agent = Agent(
-            llm=llm,
-            tools=[available_tools[name] for name in tool_names if name in available_tools],
-            condenser=condenser,
-            agent_context=agent_context,
-            security_analyzer=LLMSecurityAnalyzer(),
-        )
+        # 02-09 component wiring + capability-pack injection. Extracted to build_agent so it is
+        # unit-testable against the real SDK. Kept inside the try so a construction/registration
+        # failure still emits a summary + EXIT_RUN_ERROR instead of crashing main().
+        agent, tool_names, pack_hooks = build_agent(llm, pack)
         notes = [
             "OpenHands SDK controls the inner prompt-model-tool-observe loop.",
             "Observable SDK events are captured through Conversation callbacks.",
@@ -303,6 +316,11 @@ def main() -> int:
         if config.max_iterations is not None:
             conversation_kwargs["max_iteration_per_run"] = config.max_iterations
         conversation = Conversation(**conversation_kwargs)
+        # 09 security/safety — attach the LLM security analyzer to the conversation state (the
+        # SDK-1.28 mechanism; it is NOT an Agent kwarg) so each pending action is risk-assessed.
+        from openhands.sdk.security.llm_analyzer import LLMSecurityAnalyzer
+
+        conversation.set_security_analyzer(LLMSecurityAnalyzer())
         conversation.send_message(task)
         conversation.run()
     except Exception as exc:  # surface as a worker failure, not a crash

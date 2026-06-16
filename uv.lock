@@ -29,6 +29,9 @@ dependencies = [
     { name = "langgraph" },
     { name = "mcp" },
     { name = "openai" },
+    { name = "openhands-sdk" },
+    { name = "openhands-tools" },
+    { name = "openhands-workspace" },
     { name = "pydantic" },
     { name = "pydantic-settings" },
     { name = "pyyaml" },
@@ -43,11 +46,6 @@ dev = [
     { name = "pytest" },
     { name = "ruff" },
 ]
-openhands = [
-    { name = "openhands-sdk" },
-    { name = "openhands-tools" },
-    { name = "openhands-workspace" },
-]
 
 [package.metadata]
 requires-dist = [
@@ -57,9 +55,9 @@ requires-dist = [
     { name = "langgraph", specifier = ">=1.0.0" },
     { name = "mcp", specifier = ">=1.16.0" },
     { name = "openai", specifier = ">=1.99.0" },
-    { name = "openhands-sdk", marker = "extra == 'openhands'", specifier = ">=1.28.0" },
-    { name = "openhands-tools", marker = "extra == 'openhands'", specifier = ">=1.28.0" },
-    { name = "openhands-workspace", marker = "extra == 'openhands'", specifier = ">=1.28.0" },
+    { name = "openhands-sdk", specifier = ">=1.28.0" },
+    { name = "openhands-tools", specifier = ">=1.28.0" },
+    { name = "openhands-workspace", specifier = ">=1.28.0" },
     { name = "pydantic", specifier = ">=2.8.0" },
     { name = "pydantic-settings", specifier = ">=2.4.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.2.0" },
