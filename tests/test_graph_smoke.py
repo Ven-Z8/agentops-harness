@@ -73,6 +73,31 @@ def test_run_harness_produces_report_and_persists_record(tmp_path: Path) -> None
     assert str(artifact_dir) in result.final_report.markdown
 
 
+def test_bad_pack_name_blocks_run_instead_of_crashing(tmp_path: Path) -> None:
+    # A typo'd --pack must NOT crash graph.invoke() with no run record. The most common
+    # authoring mistake should produce a blocked run with a clear message, not a traceback.
+    repo = tmp_path / "sample_fastapi_app"
+    _copy_sample_repo(Path("examples/sample_fastapi_app"), repo)
+    _init_git_repo(repo)
+    storage_path = tmp_path / "runs.jsonl"
+
+    result = run_harness(
+        repo_path=repo,
+        task="x",
+        storage_path=storage_path,
+        worker_type="openhands",
+        pack="definitely-not-a-real-pack-xyz",
+        test_commands=["python -m pytest -q"],
+    )
+
+    assert result.edit_result is not None
+    assert result.edit_result.status == "blocked"
+    assert result.edit_result.termination_reason == "pack_error"
+    assert "pack" in (result.edit_result.stderr or "").lower()
+    # the run was still persisted (no crash)
+    assert storage_path.exists() and result.run_id in storage_path.read_text()
+
+
 def test_run_harness_maps_changed_file_to_impacted_graph(tmp_path: Path) -> None:
     repo = tmp_path / "sample_fastapi_app"
     _copy_sample_repo(Path("examples/sample_fastapi_app"), repo)
