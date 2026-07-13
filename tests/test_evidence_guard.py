@@ -155,6 +155,25 @@ def test_evidence_guard_accepts_explicit_no_test_changes_statement(claim: str) -
 @pytest.mark.parametrize(
     "claim",
     [
+        "We changed the implementation and ran tests to verify the new route.",
+        "We modified app code and used tests for validation.",
+        "Changed app behavior and ran the focused tests to confirm.",
+    ],
+)
+def test_evidence_guard_accepts_validation_mentions_after_app_changes(claim: str) -> None:
+    evidence = EvidenceGuard().check(
+        final_report=FinalReport(title="PR Report", markdown=claim),
+        changed_files=["app/main.py"],
+        test_results=passing_tests(),
+    )
+
+    assert evidence.grounded is True
+    assert evidence.unsupported_claim_count == 0
+
+
+@pytest.mark.parametrize(
+    "claim",
+    [
         "We updated unit and integration tests.",
         "The change modified all four relevant unit tests.",
         "We updated unit and integration tests for the new route.",

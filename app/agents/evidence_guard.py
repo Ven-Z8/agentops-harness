@@ -33,11 +33,46 @@ class EvidenceGuard:
         "tests changed",
         "test changed",
     )
-    TEST_UPDATE_CLAIM = re.compile(
-        r"\b(?:updated|modified|changed)\b\s+"
-        r"(?:(?!(?:no|not|without)\b)[A-Za-z0-9_-]+\s+){0,6}tests?\b"
-        r"(?:\s+(?:for|to|so|that|which)\b[^.;:\n]*)?"
-        r"(?=\s*(?:[.,;:]|$))"
+    TEST_CHANGE_VERB = re.compile(
+        r"\b(?:added|created|updated|modified|changed)\b"
+    )
+    TEST_SUBJECT_CHANGE = re.compile(
+        r"\b(?:new\s+)?tests?(?:\s+files?)?\s+(?:were|was|are|is)\s+"
+        r"(?:added|created|updated|modified|changed)\b"
+    )
+    TEST_OBJECT_TOKEN = re.compile(r"[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*")
+    TEST_OBJECT_MODIFIERS = frozenset(
+        {
+            "a",
+            "additional",
+            "all",
+            "an",
+            "and",
+            "behavioral",
+            "behavioural",
+            "both",
+            "each",
+            "e2e",
+            "endpoint",
+            "every",
+            "existing",
+            "focused",
+            "four",
+            "health",
+            "integration",
+            "new",
+            "our",
+            "regression",
+            "relevant",
+            "smoke",
+            "the",
+            "their",
+            "these",
+            "those",
+            "three",
+            "two",
+            "unit",
+        }
     )
     NEGATED_TEST_CHANGE = re.compile(
         r"\b(?:"
@@ -156,7 +191,10 @@ This report contains claims that are not supported by the run record.
             if any(pattern in claim_text for pattern in self.TEST_CLAIM_PATTERNS):
                 has_test_claim = True
                 break
-            if self.TEST_UPDATE_CLAIM.search(claim_text) is not None:
+            if self.TEST_SUBJECT_CHANGE.search(claim_text) is not None:
+                has_test_claim = True
+                break
+            if self._claims_test_object(claim_text):
                 has_test_claim = True
                 break
         has_changed_tests = any(path.startswith("tests/") for path in changed_file_set)
@@ -175,6 +213,20 @@ This report contains claims that are not supported by the run record.
                 )
             ]
         return []
+
+    @classmethod
+    def _claims_test_object(cls, text: str) -> bool:
+        """Detect when a change verb's direct object is a bounded test noun phrase."""
+        for verb in cls.TEST_CHANGE_VERB.finditer(text):
+            clause = re.split(r"[.;:\n]", text[verb.end() :], maxsplit=1)[0]
+            for token in cls.TEST_OBJECT_TOKEN.findall(clause.lower()):
+                if token in {"test", "tests"}:
+                    return True
+                if token.isdigit() or token in cls.TEST_OBJECT_MODIFIERS:
+                    continue
+                # Another noun or action owns the verb before tests are mentioned.
+                break
+        return False
 
     LINT_EXECUTION_WORDS = (
         "passed",
