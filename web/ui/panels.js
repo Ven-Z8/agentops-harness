@@ -6,7 +6,6 @@ export const ICON = {
   download: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14"/></svg>',
 };
 
-export const PHASE_LABEL = { plan: "plan", worker: "worker", enforce: "enforce", tests: "tests", review: "review" };
 export const RISK_TONE = { low: "t-green", medium: "t-amber", high: "t-red", critical: "t-red" };
 export const TIER_TONE = { auto: "b-green", ask: "b-amber", deny: "b-red" };
 export const SEV_TONE = { info: "b-mut", warning: "b-amber", error: "b-red" };
@@ -69,20 +68,26 @@ export function markSelected(selected) {
   document.querySelectorAll(".run").forEach(b => b.classList.toggle("sel", b.dataset.id === selected));
 }
 
-export function renderInspector(d, { tabs, selectedTab, onSelectTab, onTogglePause }) {
-  const s = d.summary, rec = d.record;
-  const statusTone = s.blocked ? "t-red" : s.status === "completed" ? "t-green" : "t-amber";
-  const statusBg = s.blocked ? "var(--red-bg)" : s.status === "completed" ? "var(--green-bg)" : "var(--amber-bg)";
+export function renderInspector(vm, {
+  detail,
+  tabs,
+  selectedTab,
+  onSelectTab,
+  onTogglePause,
+}) {
+  const run = vm.run;
+  const statusTone = run.blocked ? "t-red" : run.status === "completed" ? "t-green" : "t-amber";
+  const statusBg = run.blocked ? "var(--red-bg)" : run.status === "completed" ? "var(--green-bg)" : "var(--amber-bg)";
   document.getElementById("inspector").innerHTML = `
     <div class="insp-head">
       <div class="insp-head-l">
-        <span class="pill ${statusTone}" style="background:${statusBg}">${esc(s.blocked ? "blocked" : s.status)}</span>
-        <span class="insp-task">${esc(s.task)}</span>
+        <span class="pill ${statusTone}" style="background:${statusBg}">${esc(run.blocked ? "blocked" : run.status)}</span>
+        <span class="insp-task">${esc(run.task)}</span>
       </div>
-      <a class="dl-btn" href="/cockpit/api/runs/${esc(s.run_id)}/bundle.zip" download>${ICON.download}bundle.zip</a>
+      <a class="dl-btn" href="${esc(vm.artifacts.bundleUrl)}" download>${ICON.download}bundle.zip</a>
     </div>
-    <div class="insp-meta">${esc(s.run_id.slice(0, 8))} · ${esc(s.worker)} · ${fmtDur(s.duration_seconds)} · attempt ${s.attempts} · converged ${s.converged} · ${esc(s.repo_path)}</div>
-    <div class="ribbon">${d.phases.map(phaseEl).join("")}</div>
+    <div class="insp-meta">${esc(run.id.slice(0, 8))} · ${esc(run.worker)} · ${fmtDur(run.duration)} · attempt ${run.attempts} · converged ${run.converged} · ${esc(run.repository)}</div>
+    <div class="ribbon">${vm.stages.map(phaseEl).join("")}</div>
     <div class="insp-body">
       <div class="card">
         <div class="card-head">
@@ -91,35 +96,63 @@ export function renderInspector(d, { tabs, selectedTab, onSelectTab, onTogglePau
         </div>
         <div class="traj" id="traj"></div>
       </div>
-      <div class="guards">${guardCards(s, rec)}</div>
+      <div class="guards">${guardCards(vm)}</div>
     </div>
     <div class="deep">
-      <div class="tabs" id="tabs">${tabs.map(t => tabBtn(t, d)).join("")}</div>
+      <div class="tabs" id="tabs">${tabs.map(t => tabBtn(t, detail)).join("")}</div>
       <div class="tabbody" id="tabbody"></div>
     </div>`;
   document.getElementById("pauseBtn").addEventListener("click", onTogglePause);
   document.querySelectorAll("#tabs .tab").forEach(b => b.addEventListener("click", () => onSelectTab(b.dataset.tab)));
   if (!tabs.some(t => t.key === selectedTab)) selectedTab = "plan";
+  renderModelState(vm);
   onSelectTab(selectedTab);
 }
 
-export const phaseEl = p => `<div class="phase ${p.status}"><span class="ph-icon">${phaseGlyph(p.status)}</span>${esc(PHASE_LABEL[p.name] || p.name)}</div>`;
+export function renderModelState(vm) {
+  const inspector = document.getElementById("inspector");
+  if (inspector) inspector.dataset.mode = vm.mode;
+  document.getElementById("trajDot")?.classList.toggle("pulse", vm.pulse);
+}
+
+const STAGE_CLASS = {
+  pass: "done",
+  warn: "active",
+  blocked: "active",
+  unavailable: "skipped",
+};
+
+export const phaseEl = stage => `<div class="phase ${STAGE_CLASS[stage.status] || ""}" data-stage="${esc(stage.id)}" data-status="${esc(stage.status)}"><span class="ph-icon">${phaseGlyph(stage.status)}</span>${esc(stage.label)}</div>`;
 export function phaseGlyph(status) {
-  if (status === "done") return "✓";
-  if (status === "active") return ICON.play;
-  if (status === "skipped") return "–";
+  if (status === "pass") return "✓";
+  if (status === "warn") return ICON.play;
+  if (status === "blocked") return "×";
+  if (status === "unavailable") return "–";
   return "·";
 }
 
-export function guardCards(s, rec) {
-  const counts = tierCounts(rec.permission_report);
-  const ev = rec.evidence_report || {};
+export function guardCards(vm) {
+  const risk = vm.proof.risk;
+  const permissions = vm.proof.permissions;
+  const evidence = vm.proof.evidence;
+  const product = vm.proof.product;
+  const productVerdict = product.verdict || product.overall_verdict || "not_evaluated";
+  const evidenceUnavailable = evidence.available === false;
+  const evidenceFlags = evidence.unsupported_claim_count || 0;
+  const evidenceText = evidenceUnavailable
+    ? "unavailable"
+    : evidenceFlags
+      ? `${evidenceFlags} flag${evidenceFlags === 1 ? "" : "s"}`
+      : evidence.grounded === false
+        ? "not grounded"
+        : "✓ 0 flags · grounded";
+  const counts = tierCounts(permissions);
   return `
     <div class="guard">
       <div class="g-lbl">Risk assessment</div>
-      <div><span class="g-big ${RISK_TONE[s.risk_level] || "t-mut"}">${s.risk_score}</span>
-        <span class="${RISK_TONE[s.risk_level] || "t-mut"}" style="font-size:12px">${esc(s.risk_level)}</span></div>
-      <div class="g-val t-mut" style="margin-top:4px;font-size:12px">${esc((rec.risk_report?.factors || [])[0] || "")}</div>
+      <div><span class="g-big ${RISK_TONE[risk.risk_level] || "t-mut"}">${risk.risk_score}</span>
+        <span class="${RISK_TONE[risk.risk_level] || "t-mut"}" style="font-size:12px">${esc(risk.risk_level)}</span></div>
+      <div class="g-val t-mut" style="margin-top:4px;font-size:12px">${esc((risk.factors || [])[0] || "")}</div>
     </div>
     <div class="guard">
       <div class="g-lbl">Permissions</div>
@@ -127,13 +160,12 @@ export function guardCards(s, rec) {
     </div>
     <div class="guard">
       <div class="g-lbl">Evidence guard</div>
-      <div class="g-val ${ev.unsupported_claim_count ? "t-amber" : "t-green"}">
-        ${ev.unsupported_claim_count ? `${ev.unsupported_claim_count} flag${ev.unsupported_claim_count === 1 ? "" : "s"}` : "✓ 0 flags · grounded"}</div>
+      <div class="g-val ${evidenceUnavailable ? "t-mut" : evidenceFlags || evidence.grounded === false ? "t-amber" : "t-green"}">${evidenceText}</div>
     </div>
     <div class="guard">
       <div class="g-lbl">Product review</div>
-      <div class="g-val"><span class="${VERDICT_TONE[s.product_verdict] || "t-mut"}">${esc(s.product_verdict.replace(/_/g, " "))}</span>
-        <span class="t-mut" style="font-size:12px"> · ${lensSummary(rec.product_review)}</span></div>
+      <div class="g-val"><span class="${VERDICT_TONE[productVerdict] || "t-mut"}">${esc(productVerdict.replace(/_/g, " "))}</span>
+        <span class="t-mut" style="font-size:12px"> · ${lensSummary(product)}</span></div>
     </div>`;
 }
 
@@ -400,11 +432,11 @@ export function tabFiles(d) {
   return `<div class="sec"><div class="sec-h">Run artifact directory — ${files.length} files</div>${rows}</div><pre class="code" id="filePane" style="display:none"></pre>`;
 }
 
-export function renderTab(tabs, key, detail) {
+export function renderTab(tabs, key, viewModel, detail) {
   document.querySelectorAll("#tabs .tab").forEach(b => b.classList.toggle("sel", b.dataset.tab === key));
   const body = document.getElementById("tabbody");
   const tab = tabs.find(t => t.key === key) || tabs[0];
-  body.innerHTML = tab.render(detail);
+  body.innerHTML = tab.render(detail, viewModel);
   return tab;
 }
 

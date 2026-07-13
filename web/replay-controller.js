@@ -1,0 +1,37 @@
+"use strict";
+
+export function createReplayState({ length, intervalMs = 420, reducedMotion = false }) {
+  return {
+    length,
+    intervalMs,
+    reducedMotion,
+    cursor: -1,
+    playing: false,
+    selectedStage: "plan",
+  };
+}
+
+export function reduceReplay(state, action) {
+  switch (action.type) {
+    case "play":
+      return { ...state, playing: state.length > 0 };
+    case "pause":
+      return { ...state, playing: false };
+    case "restart":
+      return { ...state, cursor: -1, playing: false, selectedStage: "plan" };
+    case "tick": {
+      if (!state.playing) return state;
+      const cursor = Math.min(state.cursor + 1, state.length - 1);
+      return { ...state, cursor, playing: cursor < state.length - 1 };
+    }
+    case "select-stage":
+      return {
+        ...state,
+        selectedStage: action.stage,
+        cursor: action.cursor,
+        playing: false,
+      };
+    default:
+      return state;
+  }
+}
