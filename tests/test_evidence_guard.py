@@ -158,6 +158,7 @@ def test_evidence_guard_accepts_explicit_no_test_changes_statement(claim: str) -
         "We changed the implementation and ran tests to verify the new route.",
         "We modified app code and used tests for validation.",
         "Changed app behavior and ran the focused tests to confirm.",
+        "The API changed and all tests pass.",
     ],
 )
 def test_evidence_guard_accepts_validation_mentions_after_app_changes(claim: str) -> None:
@@ -179,6 +180,7 @@ def test_evidence_guard_accepts_validation_mentions_after_app_changes(claim: str
         "We updated unit and integration tests for the new route.",
         "The change modified all four relevant unit tests to cover the migration.",
         "We changed the endpoint tests so they exercise the new response.",
+        "We updated API tests for the new route.",
     ],
 )
 def test_evidence_guard_flags_positive_test_update_claims(claim: str) -> None:

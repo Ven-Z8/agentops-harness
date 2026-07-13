@@ -41,37 +41,36 @@ class EvidenceGuard:
         r"(?:added|created|updated|modified|changed)\b"
     )
     TEST_OBJECT_TOKEN = re.compile(r"[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*")
-    TEST_OBJECT_MODIFIERS = frozenset(
+    TEST_OBJECT_MAX_TOKENS = 8
+    TEST_CLAUSE_STARTERS = frozenset({"and", "but", "so", "then", "yet"})
+    TEST_OBJECT_BARRIERS = frozenset(
         {
-            "a",
-            "additional",
-            "all",
-            "an",
-            "and",
-            "behavioral",
-            "behavioural",
-            "both",
-            "each",
-            "e2e",
-            "endpoint",
-            "every",
-            "existing",
-            "focused",
-            "four",
-            "health",
-            "integration",
-            "new",
-            "our",
-            "regression",
-            "relevant",
-            "smoke",
-            "the",
-            "their",
-            "these",
-            "those",
-            "three",
-            "two",
-            "unit",
+            "about",
+            "checked",
+            "confirm",
+            "confirmed",
+            "execute",
+            "executed",
+            "for",
+            "no",
+            "not",
+            "pass",
+            "passed",
+            "passes",
+            "ran",
+            "run",
+            "that",
+            "to",
+            "use",
+            "used",
+            "using",
+            "verify",
+            "verified",
+            "verifies",
+            "via",
+            "which",
+            "with",
+            "without",
         }
     )
     NEGATED_TEST_CHANGE = re.compile(
@@ -218,14 +217,19 @@ This report contains claims that are not supported by the run record.
     def _claims_test_object(cls, text: str) -> bool:
         """Detect when a change verb's direct object is a bounded test noun phrase."""
         for verb in cls.TEST_CHANGE_VERB.finditer(text):
+            if re.search(r"\b(?:never|not)\s*$", text[: verb.start()]):
+                continue
             clause = re.split(r"[.;:\n]", text[verb.end() :], maxsplit=1)[0]
-            for token in cls.TEST_OBJECT_TOKEN.findall(clause.lower()):
+            tokens = cls.TEST_OBJECT_TOKEN.findall(clause.lower())
+            if not tokens or tokens[0] in cls.TEST_CLAUSE_STARTERS:
+                continue
+            for index, token in enumerate(tokens):
+                if index > cls.TEST_OBJECT_MAX_TOKENS:
+                    break
                 if token in {"test", "tests"}:
                     return True
-                if token.isdigit() or token in cls.TEST_OBJECT_MODIFIERS:
-                    continue
-                # Another noun or action owns the verb before tests are mentioned.
-                break
+                if token in cls.TEST_OBJECT_BARRIERS:
+                    break
         return False
 
     LINT_EXECUTION_WORDS = (
