@@ -1,5 +1,7 @@
 import importlib.util
 
+from app.core.config import Settings
+from app.core.workers import openhands_config
 from app.core.workers.openhands_config import (
     DEFAULT_OPENHANDS_MODEL,
     OPENHANDS_TOOL_NAMES,
@@ -95,3 +97,21 @@ def test_openhands_sdk_available_uses_importlib_spec(monkeypatch) -> None:
     monkeypatch.setattr(importlib.util, "find_spec", fake_find_spec)
 
     assert openhands_sdk_available()
+
+
+def test_live_auth_detects_openrouter_loaded_from_project_settings(monkeypatch) -> None:
+    for name in (
+        "LLM_API_KEY",
+        "ANTHROPIC_API_KEY",
+        "OPENAI_API_KEY",
+        "AGENTOPS_LLM_PROVIDER",
+        "AGENTOPS_OPENROUTER_API_KEY",
+    ):
+        monkeypatch.delenv(name, raising=False)
+    project_settings = Settings(
+        _env_file=None,
+        llm_provider="openrouter",
+        openrouter_api_key="project-env-secret",
+    )
+
+    assert openhands_config.auth_available(project_settings) is True

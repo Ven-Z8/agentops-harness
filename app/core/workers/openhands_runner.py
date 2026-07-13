@@ -327,10 +327,6 @@ def main() -> int:
                 working_dir="/workspace",
                 volumes=[f"{os.path.abspath(repo_path)}:/workspace/project"],
                 forward_env=[
-                    "ANTHROPIC_API_KEY",
-                    "LLM_API_KEY",
-                    "OPENAI_API_KEY",
-                    "AGENTOPS_OPENROUTER_API_KEY",
                     "OPENHANDS_MODEL",
                 ],
             )

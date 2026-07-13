@@ -35,11 +35,13 @@ class EvidenceGuard:
     )
     TEST_UPDATE_CLAIM = re.compile(
         r"\b(?:updated|modified|changed)\b\s+"
-        r"(?:(?!(?:and|but|no)\b)[A-Za-z0-9_-]+\s+){0,3}tests?\b"
+        r"(?:(?!(?:no|not|without)\b)[A-Za-z0-9_-]+\s+){0,6}tests?\b"
+        r"(?=\s*(?:[.,;:]|$))"
     )
     NEGATED_TEST_CHANGE = re.compile(
         r"\b(?:"
-        r"no\s+(?:new\s+)?tests?(?:\s+files?)?\s+(?:were\s+|was\s+)?"
+        r"no\s+(?:(?:additional|new)\s+){0,2}tests?(?:\s+files?)?\s+"
+        r"(?:were\s+|was\s+)?"
         r"(?:added|updated|modified|changed|created)"
         r"|tests?(?:\s+files?)?\s+(?:were|was)\s+not\s+"
         r"(?:added|updated|modified|changed|created)"

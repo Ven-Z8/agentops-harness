@@ -24,8 +24,7 @@ class Planner:
             )
             if repo_graph is not None:
                 grounded_commands = RepoGraphQuery(repo_graph).validation_commands()
-                if grounded_commands:
-                    plan.tests_to_run = grounded_commands
+                plan.tests_to_run = grounded_commands
             return plan
 
         if repo_graph is not None:

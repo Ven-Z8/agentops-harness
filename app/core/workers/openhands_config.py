@@ -5,6 +5,8 @@ import os
 
 from pydantic import BaseModel, Field
 
+from app.core.config import Settings
+
 DEFAULT_OPENHANDS_MODEL = "anthropic/claude-sonnet-4-5-20250929"
 DEFAULT_OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 DEFAULT_OPENROUTER_APP_NAME = "AgentOps Harness"
@@ -54,6 +56,17 @@ def _first_auth_env() -> str | None:
         if os.getenv(name):
             return name
     return None
+
+
+def auth_available(agentops_settings: Settings | None = None) -> bool:
+    """Return whether direct worker auth or selected project OpenRouter auth exists."""
+    if _first_auth_env() is not None:
+        return True
+    return bool(
+        agentops_settings is not None
+        and agentops_settings.llm_provider.strip().lower() == "openrouter"
+        and agentops_settings.openrouter_api_key
+    )
 
 
 def _openrouter_model(model: str) -> str:
