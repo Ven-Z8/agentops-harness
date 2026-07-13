@@ -1,3 +1,5 @@
+import shutil
+import subprocess
 from pathlib import Path
 
 FIXTURE = Path("examples/showcase/fixtures/pydantic-v1-app")
@@ -12,3 +14,39 @@ def test_legacy_fixture_contains_real_v1_migration_seams() -> None:
     assert "orm_mode" in models
     assert ".dict(" in service
     assert ".from_orm(" in service
+
+
+def test_fixture_lock_keeps_canonical_uv_test_run_clean(tmp_path: Path) -> None:
+    lockfile = FIXTURE / "uv.lock"
+    assert lockfile.is_file()
+    assert "pydantic-v1-migration-fixture" in lockfile.read_text(encoding="utf-8")
+
+    repo = tmp_path / "fixture"
+    shutil.copytree(FIXTURE, repo)
+    subprocess.run(["git", "init", "-q"], cwd=repo, check=True)
+    subprocess.run(["git", "add", "."], cwd=repo, check=True)
+    subprocess.run(
+        [
+            "git",
+            "-c",
+            "user.name=AgentOps Showcase",
+            "-c",
+            "user.email=showcase@agentops.local",
+            "commit",
+            "-qm",
+            "fixture baseline",
+        ],
+        cwd=repo,
+        check=True,
+    )
+
+    subprocess.run(["uv", "run", "pytest", "-q"], cwd=repo, check=True)
+
+    status = subprocess.run(
+        ["git", "status", "--porcelain"],
+        cwd=repo,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    assert status.stdout == ""
