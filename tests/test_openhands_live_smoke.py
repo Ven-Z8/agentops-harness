@@ -16,7 +16,15 @@ from pathlib import Path
 
 import pytest
 
-_HAS_KEY = any(os.getenv(k) for k in ("ANTHROPIC_API_KEY", "LLM_API_KEY", "OPENAI_API_KEY"))
+_HAS_KEY = any(
+    os.getenv(k)
+    for k in (
+        "ANTHROPIC_API_KEY",
+        "LLM_API_KEY",
+        "OPENAI_API_KEY",
+        "AGENTOPS_OPENROUTER_API_KEY",
+    )
+)
 
 pytestmark = pytest.mark.skipif(
     not (os.getenv("OPENHANDS_LIVE_TEST") and _HAS_KEY),

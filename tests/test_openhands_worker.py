@@ -8,7 +8,7 @@ import pytest
 from app.core.packs.loader import build_pack_provenance, load_pack, resolve_tool_names
 from app.core.workers.openhands_config import OPENHANDS_TOOL_NAMES
 from app.core.workers.openhands_runner import SUMMARY_PREFIX
-from app.core.workers.openhands_worker import OpenHandsWorker, _summary_from_stdout
+from app.core.workers.openhands_worker import OpenHandsWorker, _runner_env, _summary_from_stdout
 from app.schemas.pack import CapabilityPackProvenance
 from app.schemas.worker_loop import WorkerLoopSummary
 
@@ -88,6 +88,48 @@ def test_allows_dirty_repo_when_requested_and_passes_prompt_on_stdin(tmp_path: P
     assert "agentops-harness" in seen["env"]["PYTHONPATH"]
     assert seen["input"].startswith("# Worker Packet")
     assert "## Task\nAdd logging" in seen["input"]
+
+
+def test_runner_env_exports_selected_agentops_openrouter_settings(monkeypatch) -> None:
+    monkeypatch.setattr("app.core.workers.openhands_worker.settings.llm_provider", "openrouter")
+    monkeypatch.setattr(
+        "app.core.workers.openhands_worker.settings.openrouter_api_key",
+        "provider-secret",
+    )
+    monkeypatch.setattr(
+        "app.core.workers.openhands_worker.settings.openrouter_model",
+        "deepseek/deepseek-v4-flash",
+    )
+    monkeypatch.setattr(
+        "app.core.workers.openhands_worker.settings.openrouter_base_url",
+        "https://router.example/v1",
+    )
+    monkeypatch.setattr(
+        "app.core.workers.openhands_worker.settings.openrouter_site_url",
+        "https://agentops.example",
+    )
+    monkeypatch.setattr(
+        "app.core.workers.openhands_worker.settings.openrouter_app_title",
+        "AgentOps Portfolio",
+    )
+    for name in (
+        "AGENTOPS_LLM_PROVIDER",
+        "AGENTOPS_OPENROUTER_API_KEY",
+        "AGENTOPS_OPENROUTER_MODEL",
+        "AGENTOPS_OPENROUTER_BASE_URL",
+        "AGENTOPS_OPENROUTER_SITE_URL",
+        "AGENTOPS_OPENROUTER_APP_TITLE",
+    ):
+        monkeypatch.delenv(name, raising=False)
+
+    env = _runner_env()
+
+    assert env["AGENTOPS_LLM_PROVIDER"] == "openrouter"
+    assert env["AGENTOPS_OPENROUTER_API_KEY"] == "provider-secret"
+    assert env["AGENTOPS_OPENROUTER_MODEL"] == "deepseek/deepseek-v4-flash"
+    assert env["AGENTOPS_OPENROUTER_BASE_URL"] == "https://router.example/v1"
+    assert env["AGENTOPS_OPENROUTER_SITE_URL"] == "https://agentops.example"
+    assert env["AGENTOPS_OPENROUTER_APP_TITLE"] == "AgentOps Portfolio"
 
 
 def test_runner_exits_2_without_a_task():

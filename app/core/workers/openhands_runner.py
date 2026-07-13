@@ -224,7 +224,10 @@ def main() -> int:
         return EXIT_SDK_MISSING
 
     if config.missing_auth:
-        message = "set LLM_API_KEY, ANTHROPIC_API_KEY, or OPENAI_API_KEY"
+        message = (
+            "set LLM_API_KEY, ANTHROPIC_API_KEY, OPENAI_API_KEY, or configure "
+            "AGENTOPS_OPENROUTER_API_KEY"
+        )
         print(f"authentication_error: {message}", file=sys.stderr)
         _emit_summary(
             _summary(
@@ -287,7 +290,14 @@ def main() -> int:
 
     workspace = None
     try:
-        llm = LLM(model=model, api_key=api_key)
+        llm_kwargs = {"model": model, "api_key": api_key}
+        if config.base_url is not None:
+            llm_kwargs["base_url"] = config.base_url
+        if config.openrouter_site_url is not None:
+            llm_kwargs["openrouter_site_url"] = config.openrouter_site_url
+        if config.openrouter_app_name is not None:
+            llm_kwargs["openrouter_app_name"] = config.openrouter_app_name
+        llm = LLM(**llm_kwargs)
         # 02-09 component wiring + capability-pack injection. Extracted to build_agent so it is
         # unit-testable against the real SDK. Kept inside the try so a construction/registration
         # failure still emits a summary + EXIT_RUN_ERROR instead of crashing main().
@@ -320,6 +330,7 @@ def main() -> int:
                     "ANTHROPIC_API_KEY",
                     "LLM_API_KEY",
                     "OPENAI_API_KEY",
+                    "AGENTOPS_OPENROUTER_API_KEY",
                     "OPENHANDS_MODEL",
                 ],
             )

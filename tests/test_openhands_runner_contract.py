@@ -84,6 +84,8 @@ def test_runner_returns_auth_error_when_sdk_present_but_no_key(monkeypatch) -> N
     monkeypatch.delenv("LLM_API_KEY", raising=False)
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.delenv("AGENTOPS_LLM_PROVIDER", raising=False)
+    monkeypatch.delenv("AGENTOPS_OPENROUTER_API_KEY", raising=False)
 
     from app.core.workers.openhands_runner import main
 
@@ -159,3 +161,42 @@ def test_runner_surfaces_summary_when_archetype_registration_fails(monkeypatch, 
 
     assert main() == 1  # EXIT_RUN_ERROR — caught and surfaced
     # (summary is printed to stdout; the run did not crash)
+
+
+def test_runner_passes_openrouter_transport_metadata_to_llm(monkeypatch, tmp_path) -> None:
+    captured = {}
+
+    def fake_llm(**kwargs):
+        captured.update(kwargs)
+        return object()
+
+    def stop_after_llm(*_args, **_kwargs):
+        raise RuntimeError("stop after llm construction")
+
+    monkeypatch.setattr("app.core.workers.openhands_runner.openhands_sdk_available", lambda: True)
+    monkeypatch.setattr("openhands.sdk.LLM", fake_llm)
+    monkeypatch.setattr("app.core.workers.openhands_runner.build_agent", stop_after_llm)
+    monkeypatch.delenv("OPENHANDS_MODEL", raising=False)
+    monkeypatch.delenv("LLM_API_KEY", raising=False)
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.setenv("AGENTOPS_LLM_PROVIDER", "openrouter")
+    monkeypatch.setenv("AGENTOPS_OPENROUTER_API_KEY", "openrouter-secret")
+    monkeypatch.setenv("AGENTOPS_OPENROUTER_MODEL", "deepseek/deepseek-v4-flash")
+    monkeypatch.setenv("AGENTOPS_OPENROUTER_BASE_URL", "https://router.example/v1")
+    monkeypatch.setenv("AGENTOPS_OPENROUTER_SITE_URL", "https://agentops.example")
+    monkeypatch.setenv("AGENTOPS_OPENROUTER_APP_TITLE", "AgentOps Portfolio")
+
+    from app.core.workers.openhands_runner import main
+
+    monkeypatch.setattr(sys, "argv", ["openhands_runner", str(tmp_path)])
+    monkeypatch.setattr(sys, "stdin", type("FakeStdin", (), {"read": lambda self: "task"})())
+
+    assert main() == 1
+    assert captured == {
+        "model": "openrouter/deepseek/deepseek-v4-flash",
+        "api_key": "openrouter-secret",
+        "base_url": "https://router.example/v1",
+        "openrouter_site_url": "https://agentops.example",
+        "openrouter_app_name": "AgentOps Portfolio",
+    }

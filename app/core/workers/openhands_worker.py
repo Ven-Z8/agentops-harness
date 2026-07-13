@@ -17,6 +17,7 @@ import time
 from pathlib import Path
 from typing import Any
 
+from app.core.config import settings
 from app.core.git_utils import collect_status_lines, is_git_repo
 from app.core.packs.loader import build_pack_provenance, load_pack, resolve_tool_names
 from app.core.workers.auth_errors import detect_auth_failure
@@ -204,6 +205,18 @@ def _runner_env(
     pack_path: str | None = None,
 ) -> dict[str, str]:
     env = os.environ.copy()
+    if settings.llm_provider.strip().lower() == "openrouter" and settings.openrouter_api_key:
+        openrouter_values = {
+            "AGENTOPS_LLM_PROVIDER": "openrouter",
+            "AGENTOPS_OPENROUTER_API_KEY": settings.openrouter_api_key,
+            "AGENTOPS_OPENROUTER_MODEL": settings.openrouter_model,
+            "AGENTOPS_OPENROUTER_BASE_URL": settings.openrouter_base_url,
+            "AGENTOPS_OPENROUTER_SITE_URL": settings.openrouter_site_url,
+            "AGENTOPS_OPENROUTER_APP_TITLE": settings.openrouter_app_title,
+        }
+        for name, value in openrouter_values.items():
+            if value is not None:
+                env.setdefault(name, value)
     existing = env.get("PYTHONPATH")
     env["PYTHONPATH"] = (
         str(HARNESS_ROOT) if not existing else f"{HARNESS_ROOT}{os.pathsep}{existing}"
@@ -284,7 +297,7 @@ def _stderr_with_setup_hint(status: str, stdout: str, stderr: str) -> str:
     if status == "auth_missing":
         hint = detect_auth_failure(stdout, stderr) or (
             "OpenHands authentication missing. Set LLM_API_KEY, ANTHROPIC_API_KEY, "
-            "or OPENAI_API_KEY and retry."
+            "OPENAI_API_KEY, or configure AGENTOPS_OPENROUTER_API_KEY and retry."
         )
         return f"{hint}\n{stderr}".strip()
     return stderr
