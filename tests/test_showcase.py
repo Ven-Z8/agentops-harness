@@ -8,7 +8,7 @@ import yaml
 from fastapi.testclient import TestClient
 
 from app.api import create_api
-from app.core.run_artifacts import artifact_dir_for_run
+from app.core.run_artifacts import artifact_dir_for_run, artifact_root_for_storage
 from app.core.showcase import ShowcaseError, import_showcase, load_showcase_fixture
 from app.core.storage import RunStorage
 from app.schemas.pack import CapabilityPackProvenance
@@ -67,6 +67,18 @@ def write_showcase_fixture(root: Path) -> Path:
     return root
 
 
+def set_showcase_run_id(fixture: Path, run_id: str) -> None:
+    manifest_path = fixture / "manifest.yaml"
+    manifest = yaml.safe_load(manifest_path.read_text(encoding="utf-8"))
+    manifest["run_id"] = run_id
+    manifest_path.write_text(yaml.safe_dump(manifest, sort_keys=False), encoding="utf-8")
+
+    record_path = fixture / "run_record.json"
+    record = json.loads(record_path.read_text(encoding="utf-8"))
+    record["run_id"] = run_id
+    record_path.write_text(json.dumps(record), encoding="utf-8")
+
+
 def test_import_showcase_is_idempotent_and_preserves_other_runs(tmp_path: Path) -> None:
     fixture = write_showcase_fixture(tmp_path / "fixture")
     storage = tmp_path / ".agentops" / "showcase.db"
@@ -91,6 +103,60 @@ def test_import_showcase_is_idempotent_and_preserves_other_runs(tmp_path: Path) 
     assert not (imported_artifacts / "stale.txt").exists()
     assert (imported_artifacts / "final_report.md").read_text(encoding="utf-8") == "# Updated\n"
     assert (other_artifacts / "keep.txt").read_text(encoding="utf-8") == "keep\n"
+
+
+def test_import_showcase_rejects_absolute_run_id_before_mutation(tmp_path: Path) -> None:
+    fixture = write_showcase_fixture(tmp_path / "fixture")
+    outside = tmp_path / "outside-absolute"
+    outside.mkdir()
+    sentinel = outside / "sentinel.txt"
+    sentinel.write_text("keep\n", encoding="utf-8")
+    set_showcase_run_id(fixture, str(outside))
+    storage = tmp_path / ".agentops" / "showcase.db"
+
+    with pytest.raises(ShowcaseError, match=re.escape(str(outside))):
+        import_showcase(fixture, storage)
+
+    assert not storage.exists()
+    assert sentinel.read_text(encoding="utf-8") == "keep\n"
+
+
+def test_import_showcase_rejects_traversal_run_id_before_mutation(tmp_path: Path) -> None:
+    fixture = write_showcase_fixture(tmp_path / "fixture")
+    storage = tmp_path / ".agentops" / "showcase.db"
+    outside = storage.parent / "outside-traversal"
+    outside.mkdir(parents=True)
+    sentinel = outside / "sentinel.txt"
+    sentinel.write_text("keep\n", encoding="utf-8")
+    unsafe_run_id = "../outside-traversal"
+    set_showcase_run_id(fixture, unsafe_run_id)
+
+    with pytest.raises(ShowcaseError, match=re.escape(unsafe_run_id)):
+        import_showcase(fixture, storage)
+
+    assert not storage.exists()
+    assert sentinel.read_text(encoding="utf-8") == "keep\n"
+
+
+def test_import_showcase_rejects_destination_symlink_before_mutation(tmp_path: Path) -> None:
+    fixture = write_showcase_fixture(tmp_path / "fixture")
+    storage = tmp_path / ".agentops" / "showcase.db"
+    outside = tmp_path / "outside-symlink"
+    outside.mkdir()
+    sentinel = outside / "sentinel.txt"
+    sentinel.write_text("keep\n", encoding="utf-8")
+    artifacts_root = artifact_root_for_storage(storage)
+    artifacts_root.mkdir(parents=True)
+    artifact_dir_for_run(storage, "showcase-governed-migration").symlink_to(
+        outside,
+        target_is_directory=True,
+    )
+
+    with pytest.raises(ShowcaseError, match="showcase-governed-migration"):
+        import_showcase(fixture, storage)
+
+    assert not storage.exists()
+    assert sentinel.read_text(encoding="utf-8") == "keep\n"
 
 
 def test_imported_showcase_uses_normal_cockpit_routes(

@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import shutil
 from dataclasses import dataclass
-from pathlib import Path
+from pathlib import Path, PurePosixPath, PureWindowsPath
 
 import yaml
 
-from app.core.run_artifacts import artifact_dir_for_run
+from app.core.run_artifacts import artifact_dir_for_run, artifact_root_for_storage
 from app.core.storage import RunStorage
 from app.schemas.run import RunRecord
 from app.schemas.showcase import ShowcaseManifest
@@ -50,6 +50,14 @@ def load_showcase_fixture(root: Path) -> ShowcaseFixture:
         raise ShowcaseError(
             f"Manifest run_id {manifest.run_id!r} does not match record {record.run_id!r}"
         )
+    run_id_paths = (PurePosixPath(record.run_id), PureWindowsPath(record.run_id))
+    if record.run_id in {".", ".."} or any(
+        path.is_absolute() or len(path.parts) != 1 or path.name != record.run_id
+        for path in run_id_paths
+    ):
+        raise ShowcaseError(
+            f"Showcase run_id must be a safe single path component: {record.run_id!r}"
+        )
     if record.capability_pack != manifest.pack:
         raise ShowcaseError("Manifest pack does not match RunRecord capability_pack")
 
@@ -72,8 +80,15 @@ def load_showcase_fixture(root: Path) -> ShowcaseFixture:
 
 def import_showcase(root: Path, storage_path: Path) -> RunRecord:
     fixture = load_showcase_fixture(root)
+    artifact_root = artifact_root_for_storage(storage_path).resolve()
+    destination = artifact_dir_for_run(storage_path, fixture.record.run_id).resolve()
+    if destination.parent != artifact_root:
+        raise ShowcaseError(
+            f"Unsafe showcase artifact destination for run_id {fixture.record.run_id!r}: "
+            f"{destination} is not a direct child of {artifact_root}"
+        )
+
     RunStorage(storage_path).save(fixture.record)
-    destination = artifact_dir_for_run(storage_path, fixture.record.run_id)
     if destination.exists():
         shutil.rmtree(destination)
     destination.parent.mkdir(parents=True, exist_ok=True)
