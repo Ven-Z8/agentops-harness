@@ -177,3 +177,15 @@ def test_shipped_example_pack_loads_and_is_terminal_file_only() -> None:
         "glob",
     ]
     assert "example pack" in pack_system_suffix(pack).lower()
+
+
+def test_pydantic_v2_pack_is_bounded_and_inspectable() -> None:
+    pack = load_pack(discover_pack("pydantic-v2"))
+    tools = resolve_tool_names(pack, BUILTIN_DEFAULT_TOOLS)
+
+    assert pack.manifest.name == "pydantic-v2"
+    assert pack.manifest.domain == "python-migration"
+    assert pack.manifest.version == "1.0.0"
+    assert pack.manifest.skills == ["migration-playbook.md"]
+    assert tools == ["terminal", "file_editor", "grep", "glob"]
+    assert pack.manifest.hooks == []
