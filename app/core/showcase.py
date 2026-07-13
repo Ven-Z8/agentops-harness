@@ -80,12 +80,19 @@ def load_showcase_fixture(root: Path) -> ShowcaseFixture:
 
 def import_showcase(root: Path, storage_path: Path) -> RunRecord:
     fixture = load_showcase_fixture(root)
+    destination = artifact_dir_for_run(storage_path, fixture.record.run_id)
+    if destination.is_symlink():
+        raise ShowcaseError(
+            f"Showcase artifact destination must not be a symbolic link for run_id "
+            f"{fixture.record.run_id!r}: {destination}"
+        )
+
     artifact_root = artifact_root_for_storage(storage_path).resolve()
-    destination = artifact_dir_for_run(storage_path, fixture.record.run_id).resolve()
-    if destination.parent != artifact_root:
+    resolved_destination = destination.resolve()
+    if resolved_destination.parent != artifact_root:
         raise ShowcaseError(
             f"Unsafe showcase artifact destination for run_id {fixture.record.run_id!r}: "
-            f"{destination} is not a direct child of {artifact_root}"
+            f"{resolved_destination} is not a direct child of {artifact_root}"
         )
 
     RunStorage(storage_path).save(fixture.record)

@@ -159,6 +159,28 @@ def test_import_showcase_rejects_destination_symlink_before_mutation(tmp_path: P
     assert sentinel.read_text(encoding="utf-8") == "keep\n"
 
 
+def test_import_showcase_rejects_sibling_destination_symlink_before_mutation(
+    tmp_path: Path,
+) -> None:
+    fixture = write_showcase_fixture(tmp_path / "fixture")
+    storage = tmp_path / ".agentops" / "showcase.db"
+    artifacts_root = artifact_root_for_storage(storage)
+    sibling = artifacts_root / "other-run"
+    sibling.mkdir(parents=True)
+    sentinel = sibling / "sentinel.txt"
+    sentinel.write_text("keep\n", encoding="utf-8")
+    destination = artifact_dir_for_run(storage, "showcase-governed-migration")
+    destination.symlink_to(sibling, target_is_directory=True)
+
+    with pytest.raises(ShowcaseError, match="symbolic link"):
+        import_showcase(fixture, storage)
+
+    assert not storage.exists()
+    assert destination.is_symlink()
+    assert sibling.is_dir()
+    assert sentinel.read_text(encoding="utf-8") == "keep\n"
+
+
 def test_imported_showcase_uses_normal_cockpit_routes(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
