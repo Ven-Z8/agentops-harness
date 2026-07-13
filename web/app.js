@@ -2,7 +2,13 @@
 
 import { CockpitDataClient } from "./data-client.js";
 import { missionFromLocation } from "./mission-config.js";
-import { createReplayState, reduceReplay } from "./replay-controller.js";
+import {
+  createLatestRequestGate,
+  mergeEvidenceEvents,
+  streamShouldClose,
+  updateChannelErrors,
+} from "./app-state.js";
+import { createReplayController, createReplayState } from "./replay-controller.js";
 import { buildCockpitViewModel, STAGE_IDS } from "./run-model.js";
 import * as panels from "./ui/panels.js";
 
@@ -13,8 +19,10 @@ const state = {
   runs: [], selected: null, detail: null, viewModel: null, tab: "plan", wfilter: "all",
   mission: missionFromLocation(), mode: "replay", errors: {}, selectedEvent: null,
   replay: createReplayState({ length: 0 }),
-  trajectoryEvents: null, trajectoryIndex: 0, workerEvents: null,
+  trajectoryEvents: [], workerEvents: [],
 };
+let replayController = null;
+const runDetailRequests = createLatestRequestGate();
 
 if (state.mission?.initialStage) {
   state.tab = state.mission.initialStage;
@@ -45,7 +53,13 @@ const TAB_STAGES = Object.freeze({
 });
 const TERMINAL_STATUSES = new Set(["completed", "blocked", "failed"]);
 
-window.addEventListener("beforeunload", () => client.closeStreams(), { once: true });
+window.addEventListener("beforeunload", () => {
+  stopReplayTimer();
+  client.closeStreams();
+}, { once: true });
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden && state.replay.playing) pauseReplay();
+});
 init();
 
 async function init() {
@@ -68,14 +82,19 @@ async function loadRuns() {
 }
 
 async function selectRun(runId) {
+  const request = runDetailRequests.begin();
+  stopReplayTimer();
   state.selected = runId;
   panels.markSelected(state.selected);
   client.closeStreams();
   const inspector = document.getElementById("inspector");
   inspector.innerHTML = '<div class="empty">Loading run…</div>';
   try {
-    setDetail(await client.runDetail(runId));
+    const detail = await client.runDetail(runId);
+    if (!runDetailRequests.isCurrent(request)) return;
+    setDetail(detail);
   } catch (error) {
+    if (!runDetailRequests.isCurrent(request)) return;
     inspector.innerHTML = `<div class="empty">Failed to load: ${panels.esc(error.message)}</div>`;
     return;
   }
@@ -117,58 +136,58 @@ function streamTrajectory(runId) {
   const host = document.getElementById("traj");
   if (!host) return;
   host.innerHTML = "";
-  state.trajectoryIndex = 0;
-  if (isReplayMode()) {
-    state.trajectoryEvents = null;
-    transitionReplay({ type: "restart" });
-    transitionReplay({ type: "play" });
-  } else {
-    state.trajectoryEvents = [];
-  }
+  state.viewModel.telemetry.governance.forEach(event => panels.appendEvent(host, event));
+  if (isReplayMode()) playReplay({ restart: true });
   host.streamSource = client.openStream(
     `/cockpit/api/runs/${encodeURIComponent(runId)}/stream`,
     {
       open: () => updateConnection("trajectory", "open"),
       event: event => {
         const streamedEvent = JSON.parse(event.data);
-        if (isReplayMode()) {
-          const viewModel = tickReplay();
-          const recordedEvent = viewModel.telemetry.governance[state.trajectoryIndex];
-          state.trajectoryIndex += 1;
-          panels.appendEvent(host, recordedEvent || streamedEvent);
-        } else {
-          state.trajectoryEvents.push(streamedEvent);
-          const viewModel = rebuildViewModel();
-          panels.appendEvent(host, viewModel.telemetry.governance.at(-1));
-        }
+        const evidenceCount = state.viewModel.telemetry.governance.length;
+        state.trajectoryEvents.push(streamedEvent);
+        const viewModel = rebuildViewModel();
+        viewModel.telemetry.governance.slice(evidenceCount).forEach(
+          evidence => panels.appendEvent(host, evidence),
+        );
       },
       done: () => {
-        if (isReplayMode()) transitionReplay({ type: "pause" });
         updateConnection("trajectory", "done");
-        finishTrajectory(host);
+        if (streamShouldClose("done")) {
+          finishTrajectory(host, { keepReplayControls: isReplayMode() });
+        }
       },
       error: () => {
-        if (isReplayMode()) transitionReplay({ type: "pause" });
         updateConnection("trajectory", "error");
-        finishTrajectory(host);
+        if (streamShouldClose("error")) {
+          finishTrajectory(host, { keepReplayControls: isReplayMode() });
+        }
       },
     },
   );
 }
 
-function finishTrajectory(host = document.getElementById("traj")) {
+function finishTrajectory(
+  host = document.getElementById("traj"),
+  { keepReplayControls = false } = {},
+) {
   closeHostStream(host);
   document.getElementById("trajDot")?.classList.remove("pulse");
   const button = document.getElementById("pauseBtn");
-  if (button) button.style.display = "none";
+  if (button) button.style.display = keepReplayControls ? "" : "none";
+  if (keepReplayControls) renderReplayControls();
 }
 
 function togglePause() {
+  if (isReplayMode()) {
+    if (state.replay.playing) pauseReplay();
+    else playReplay({ restart: state.replay.cursor >= state.replay.length - 1 });
+    return;
+  }
   const host = document.getElementById("traj");
   const button = document.getElementById("pauseBtn");
   if (host?.streamSource) {
     closeHostStream(host);
-    if (isReplayMode()) transitionReplay({ type: "pause" });
     document.getElementById("trajDot")?.classList.remove("pulse");
     if (button) button.innerHTML = `${panels.ICON.play}<span>resume</span>`;
   } else if (state.selected) {
@@ -193,7 +212,10 @@ function streamWorker(runId) {
   const host = document.getElementById("wtraj");
   if (!host) return;
   host.innerHTML = "";
-  state.workerEvents = [];
+  state.viewModel.telemetry.worker.forEach(event => {
+    host.insertAdjacentHTML("beforeend", panels.ievRow(event));
+    panels.applyFilterToRow(host.lastElementChild, state.wfilter);
+  });
   const stop = () => {
     closeHostStream(host);
     document.getElementById("wDot")?.classList.remove("pulse");
@@ -201,21 +223,28 @@ function streamWorker(runId) {
   host.streamSource = client.openStream(
     `/cockpit/api/runs/${encodeURIComponent(runId)}/worker/stream`,
     {
-      open: () => updateConnection("worker", "open"),
+      open: () => {
+        updateConnection("worker", "open");
+        document.getElementById("wDot")?.classList.add("pulse");
+      },
       event: event => {
+        const evidenceCount = state.viewModel.telemetry.worker.length;
         state.workerEvents.push(JSON.parse(event.data));
         const viewModel = rebuildViewModel();
-        host.insertAdjacentHTML("beforeend", panels.ievRow(viewModel.telemetry.worker.at(-1)));
-        panels.applyFilterToRow(host.lastElementChild, state.wfilter);
+        viewModel.telemetry.worker.slice(evidenceCount).forEach(evidence => {
+          host.insertAdjacentHTML("beforeend", panels.ievRow(evidence));
+          panels.applyFilterToRow(host.lastElementChild, state.wfilter);
+        });
         host.scrollTop = host.scrollHeight;
       },
       done: () => {
         updateConnection("worker", "done");
-        stop();
+        if (streamShouldClose("done")) stop();
       },
       error: () => {
         updateConnection("worker", "error");
-        stop();
+        document.getElementById("wDot")?.classList.remove("pulse");
+        if (streamShouldClose("error")) stop();
       },
     },
   );
@@ -250,36 +279,47 @@ function modeForDetail(detail) {
 }
 
 function projectedDetail() {
-  const worker = state.workerEvents === null
-    ? state.detail.worker
-    : {
-        ...state.detail.worker,
-        events: state.workerEvents,
-        count: state.workerEvents.length,
-      };
+  const governance = mergeEvidenceEvents(
+    state.detail.trajectory || [],
+    state.trajectoryEvents,
+  );
+  const workerEvents = mergeEvidenceEvents(
+    state.detail.worker?.events || [],
+    state.workerEvents,
+  );
+  const worker = {
+    ...state.detail.worker,
+    events: workerEvents,
+    count: workerEvents.length,
+  };
   return {
     ...state.detail,
-    trajectory: state.trajectoryEvents ?? state.detail.trajectory,
+    trajectory: governance,
     worker,
   };
 }
 
 function setDetail(detail) {
+  stopReplayTimer();
   state.detail = detail;
   state.mode = modeForDetail(detail);
   state.errors = {};
   state.selectedEvent = null;
-  state.trajectoryEvents = null;
-  state.trajectoryIndex = 0;
-  state.workerEvents = null;
+  state.trajectoryEvents = [];
+  state.workerEvents = [];
   const length = (detail.trajectory?.length || 0) + (detail.worker?.events?.length || 0);
-  state.replay = {
+  const initialReplay = {
     ...createReplayState({
       length,
       reducedMotion: window.matchMedia?.("(prefers-reduced-motion: reduce)").matches || false,
     }),
     selectedStage: state.mission?.initialStage || "plan",
   };
+  state.replay = initialReplay;
+  replayController = createReplayController({
+    initialState: initialReplay,
+    onChange: applyReplayState,
+  });
   rebuildViewModel();
 }
 
@@ -294,21 +334,22 @@ function rebuildViewModel() {
     },
     errors: state.errors,
   });
-  state.replay = {
-    ...state.replay,
-    length: state.viewModel.telemetry.timeline.length,
-  };
   return state.viewModel;
 }
 
-function transitionReplay(action) {
-  state.replay = reduceReplay(state.replay, action);
+function applyReplayState(replayState) {
+  state.replay = replayState;
   state.selectedEvent = state.replay.cursor >= 0
     ? state.viewModel.telemetry.timeline[state.replay.cursor] ?? null
     : null;
   const viewModel = rebuildViewModel();
   panels.renderModelState(viewModel);
-  return viewModel;
+  renderReplayControls();
+}
+
+function transitionReplay(action) {
+  replayController?.dispatch(action);
+  return state.viewModel;
 }
 
 function selectStage(stage) {
@@ -317,8 +358,28 @@ function selectStage(stage) {
   return transitionReplay({ type: "select-stage", stage, cursor });
 }
 
-function tickReplay() {
-  return transitionReplay({ type: "tick" });
+function playReplay({ restart = false } = {}) {
+  if (restart) transitionReplay({ type: "restart" });
+  return transitionReplay({ type: "play" });
+}
+
+function pauseReplay() {
+  return transitionReplay({ type: "pause" });
+}
+
+function stopReplayTimer() {
+  replayController?.stop();
+}
+
+function renderReplayControls() {
+  if (!isReplayMode()) return;
+  const button = document.getElementById("pauseBtn");
+  if (!button) return;
+  button.style.display = "";
+  const atEnd = state.replay.cursor >= state.replay.length - 1;
+  button.innerHTML = state.replay.playing
+    ? `${panels.ICON.pause}<span>pause</span>`
+    : `${panels.ICON.play}<span>${atEnd ? "restart" : "resume"}</span>`;
 }
 
 function isReplayMode() {
@@ -326,12 +387,7 @@ function isReplayMode() {
 }
 
 function updateConnection(channel, status) {
-  const errors = { ...state.errors };
-  if (status === "error") {
-    errors[channel] = { message: `${channel} stream disconnected` };
-  } else {
-    delete errors[channel];
-  }
+  const errors = updateChannelErrors(state.errors, channel, status);
   state.errors = errors;
   const detailMode = modeForDetail(state.detail);
   const hasStreamError = Boolean(errors.trajectory || errors.worker);

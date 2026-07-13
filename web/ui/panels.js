@@ -111,7 +111,11 @@ export function renderInspector(vm, {
 
 export function renderModelState(vm) {
   const inspector = document.getElementById("inspector");
-  if (inspector) inspector.dataset.mode = vm.mode;
+  if (inspector) {
+    inspector.dataset.mode = vm.mode;
+    inspector.dataset.stage = vm.selection?.stage || "plan";
+    inspector.dataset.eventOrder = String(vm.selection?.event?.order ?? "");
+  }
   document.getElementById("trajDot")?.classList.toggle("pulse", vm.pulse);
 }
 

@@ -35,3 +35,41 @@ export function reduceReplay(state, action) {
       return state;
   }
 }
+
+export function createReplayController({
+  initialState,
+  onChange,
+  setIntervalImpl = globalThis.setInterval,
+  clearIntervalImpl = globalThis.clearInterval,
+}) {
+  let state = initialState;
+  let timerId = null;
+
+  const stopTimer = () => {
+    if (timerId === null) return;
+    clearIntervalImpl(timerId);
+    timerId = null;
+  };
+
+  const ensureTimer = () => {
+    if (timerId !== null || !state.playing) return;
+    timerId = setIntervalImpl(() => dispatch({ type: "tick" }), state.intervalMs);
+  };
+
+  const dispatch = action => {
+    state = reduceReplay(state, action);
+    if (state.playing) ensureTimer();
+    else stopTimer();
+    onChange(state, action);
+    return state;
+  };
+
+  return {
+    dispatch,
+    getState: () => state,
+    stop: stopTimer,
+    get timerActive() {
+      return timerId !== null;
+    },
+  };
+}

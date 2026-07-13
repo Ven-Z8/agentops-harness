@@ -59,12 +59,18 @@ test("model state rendering reflects normalized mode and pulse", () => {
   };
 
   try {
-    renderModelState({ mode: "disconnected", pulse: false });
+    renderModelState({
+      mode: "disconnected",
+      pulse: false,
+      selection: { stage: "guard", event: { order: 3 } },
+    });
   } finally {
     globalThis.document = priorDocument;
   }
 
   assert.equal(inspector.dataset.mode, "disconnected");
+  assert.equal(inspector.dataset.stage, "guard");
+  assert.equal(inspector.dataset.eventOrder, "3");
   assert.deepEqual(toggles, [["pulse", false]]);
 });
 
