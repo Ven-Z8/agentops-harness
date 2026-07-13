@@ -157,6 +157,9 @@ def test_evidence_guard_accepts_explicit_no_test_changes_statement(claim: str) -
     [
         "We updated unit and integration tests.",
         "The change modified all four relevant unit tests.",
+        "We updated unit and integration tests for the new route.",
+        "The change modified all four relevant unit tests to cover the migration.",
+        "We changed the endpoint tests so they exercise the new response.",
     ],
 )
 def test_evidence_guard_flags_positive_test_update_claims(claim: str) -> None:

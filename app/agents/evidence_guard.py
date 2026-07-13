@@ -36,6 +36,7 @@ class EvidenceGuard:
     TEST_UPDATE_CLAIM = re.compile(
         r"\b(?:updated|modified|changed)\b\s+"
         r"(?:(?!(?:no|not|without)\b)[A-Za-z0-9_-]+\s+){0,6}tests?\b"
+        r"(?:\s+(?:for|to|so|that|which)\b[^.;:\n]*)?"
         r"(?=\s*(?:[.,;:]|$))"
     )
     NEGATED_TEST_CHANGE = re.compile(
