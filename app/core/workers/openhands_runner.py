@@ -16,13 +16,18 @@ import time
 from pathlib import Path
 from typing import Any
 
-from app.core.packs.loader import assemble_agent_inputs, load_pack
+from app.core.packs.loader import (
+    assemble_agent_inputs,
+    build_pack_provenance,
+    load_pack,
+    resolve_tool_names,
+)
 from app.core.workers.openhands_config import (
     OPENHANDS_TOOL_NAMES,
     load_openhands_config,
     openhands_sdk_available,
 )
-from app.schemas.pack import CapabilityPack
+from app.schemas.pack import CapabilityPack, CapabilityPackProvenance
 from app.schemas.worker_loop import WorkerLoopSummary
 
 EXIT_RUN_ERROR = 1
@@ -100,19 +105,22 @@ def _summary(
     termination_reason: str | None = None,
     setup_error: str | None = None,
     notes: list[str] | None = None,
+    tools_requested: list[str] | None = None,
+    capability_pack: CapabilityPackProvenance | None = None,
 ) -> WorkerLoopSummary:
     return WorkerLoopSummary(
         model=model,
         status=status,
         exit_code=exit_code,
         duration_seconds=round(time.perf_counter() - started, 3),
-        tools_requested=list(OPENHANDS_TOOL_NAMES),
+        tools_requested=list(tools_requested or OPENHANDS_TOOL_NAMES),
         event_log_path=event_log_path,
         observable_event_count=observable_event_count,
         termination_reason=termination_reason,
         setup_error=setup_error,
         notes=notes
         or ["Inner tool trajectory may be partially observable depending on SDK support."],
+        capability_pack=capability_pack,
     )
 
 
@@ -237,6 +245,12 @@ def main() -> int:
 
     try:
         pack = _load_capability_pack()
+        tool_names = (
+            resolve_tool_names(pack, list(OPENHANDS_TOOL_NAMES))
+            if pack is not None
+            else list(OPENHANDS_TOOL_NAMES)
+        )
+        pack_provenance = build_pack_provenance(pack, tool_names) if pack is not None else None
     except Exception as exc:  # a misconfigured pack is a config error, not a crash
         message = f"capability pack failed to load: {exc}"
         print(f"configuration_error: {message}", file=sys.stderr)
@@ -277,7 +291,11 @@ def main() -> int:
         # 02-09 component wiring + capability-pack injection. Extracted to build_agent so it is
         # unit-testable against the real SDK. Kept inside the try so a construction/registration
         # failure still emits a summary + EXIT_RUN_ERROR instead of crashing main().
-        agent, tool_names, pack_hooks = build_agent(llm, pack)
+        agent, built_tool_names, pack_hooks = build_agent(llm, pack)
+        assert built_tool_names == tool_names, (
+            "OpenHands agent tool resolution drifted from the precomputed worker summary: "
+            f"{built_tool_names!r} != {tool_names!r}"
+        )
         notes = [
             "OpenHands SDK controls the inner prompt-model-tool-observe loop.",
             "Observable SDK events are captured through Conversation callbacks.",
@@ -338,6 +356,8 @@ def main() -> int:
                 observable_event_count=event_recorder.observable_event_count,
                 termination_reason="run_error",
                 notes=notes,
+                tools_requested=tool_names,
+                capability_pack=pack_provenance,
             )
         )
         return EXIT_RUN_ERROR
@@ -359,6 +379,8 @@ def main() -> int:
             observable_event_count=event_recorder.observable_event_count,
             termination_reason="completed",
             notes=notes,
+            tools_requested=tool_names,
+            capability_pack=pack_provenance,
         )
     )
     print("openhands run complete")

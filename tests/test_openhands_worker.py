@@ -3,7 +3,44 @@ import sys
 from pathlib import Path
 from types import SimpleNamespace
 
-from app.core.workers.openhands_worker import OpenHandsWorker
+import pytest
+
+from app.core.packs.loader import build_pack_provenance, load_pack, resolve_tool_names
+from app.core.workers.openhands_config import OPENHANDS_TOOL_NAMES
+from app.core.workers.openhands_runner import SUMMARY_PREFIX
+from app.core.workers.openhands_worker import OpenHandsWorker, _summary_from_stdout
+from app.schemas.pack import CapabilityPackProvenance
+from app.schemas.worker_loop import WorkerLoopSummary
+
+
+def test_worker_summary_round_trip_preserves_resolved_pack_tools() -> None:
+    provenance = CapabilityPackProvenance(
+        name="pydantic-v2",
+        domain="python-migration",
+        version="1.0.0",
+        description="Pydantic v1 to v2 migration playbook.",
+        skills=["migration-playbook.md"],
+        resolved_tools=["terminal", "file_editor", "grep", "glob"],
+        hooks=[],
+        manifest_sha256="a" * 64,
+    )
+    parsed = _summary_from_stdout(
+        SUMMARY_PREFIX
+        + WorkerLoopSummary(
+            status="completed",
+            tools_requested=provenance.resolved_tools,
+            capability_pack=provenance,
+        ).model_dump_json()
+    )
+    assert parsed is not None
+    assert parsed.tools_requested == provenance.resolved_tools
+    assert parsed.capability_pack == provenance
+
+
+def test_old_worker_summary_without_pack_remains_readable() -> None:
+    summary = WorkerLoopSummary.model_validate({"status": "completed"})
+
+    assert summary.capability_pack is None
 
 
 def test_blocks_on_non_git_repo(tmp_path: Path):
@@ -215,3 +252,133 @@ def test_failed_runner_exit_is_failed(tmp_path: Path, monkeypatch):
     assert result.exit_code == 1
     assert result.stdout == "out"
     assert result.stderr == "boom"
+
+
+@pytest.mark.parametrize(
+    ("stdout", "malformed"),
+    [
+        ("runner finished without a summary\n", False),
+        (SUMMARY_PREFIX + "{malformed}\n", True),
+    ],
+)
+def test_pack_provenance_is_attached_to_missing_or_malformed_summary_fallbacks(
+    tmp_path: Path,
+    monkeypatch,
+    stdout: str,
+    malformed: bool,
+) -> None:
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    subprocess.run(["git", "init", "-q"], cwd=repo, check=True)
+    run_dir = tmp_path / "runs" / "run-1"
+    pack_path = Path("packs/example").resolve()
+    pack = load_pack(pack_path)
+    resolved_tools = resolve_tool_names(pack, list(OPENHANDS_TOOL_NAMES))
+    expected = build_pack_provenance(pack, resolved_tools)
+
+    def fake_run(argv, *args, **kwargs):
+        if argv[:2] == ["git", "rev-parse"]:
+            return SimpleNamespace(returncode=0, stdout=str(repo), stderr="")
+        if argv[:3] == ["git", "status", "--porcelain"]:
+            return SimpleNamespace(returncode=0, stdout="", stderr="")
+        return SimpleNamespace(returncode=0, stdout=stdout, stderr="")
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    OpenHandsWorker().run(
+        repo_path=repo,
+        task="x",
+        timeout_seconds=5,
+        run_dir=run_dir,
+        pack_path=str(pack_path),
+    )
+
+    summary = WorkerLoopSummary.model_validate_json(
+        (run_dir / "worker_loop_summary.json").read_text(encoding="utf-8")
+    )
+    assert summary.tools_requested == resolved_tools
+    assert summary.capability_pack == expected
+    assert ("malformed summary JSON" in " ".join(summary.notes)) is malformed
+
+
+def test_pack_provenance_is_attached_to_timeout_fallback(tmp_path: Path, monkeypatch) -> None:
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    subprocess.run(["git", "init", "-q"], cwd=repo, check=True)
+    run_dir = tmp_path / "runs" / "run-1"
+    pack_path = Path("packs/example").resolve()
+    pack = load_pack(pack_path)
+    resolved_tools = resolve_tool_names(pack, list(OPENHANDS_TOOL_NAMES))
+    expected = build_pack_provenance(pack, resolved_tools)
+
+    def fake_run(argv, *args, **kwargs):
+        if argv[:2] == ["git", "rev-parse"]:
+            return SimpleNamespace(returncode=0, stdout=str(repo), stderr="")
+        if argv[:3] == ["git", "status", "--porcelain"]:
+            return SimpleNamespace(returncode=0, stdout="", stderr="")
+        raise subprocess.TimeoutExpired(cmd=argv, timeout=1, output="out", stderr="err")
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    OpenHandsWorker().run(
+        repo_path=repo,
+        task="x",
+        timeout_seconds=1,
+        run_dir=run_dir,
+        pack_path=str(pack_path),
+    )
+
+    summary = WorkerLoopSummary.model_validate_json(
+        (run_dir / "worker_loop_summary.json").read_text(encoding="utf-8")
+    )
+    assert summary.tools_requested == resolved_tools
+    assert summary.capability_pack == expected
+
+
+def test_valid_child_summary_provenance_is_not_overwritten(tmp_path: Path, monkeypatch) -> None:
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    subprocess.run(["git", "init", "-q"], cwd=repo, check=True)
+    run_dir = tmp_path / "runs" / "run-1"
+    child_provenance = CapabilityPackProvenance(
+        name="child-authoritative",
+        domain="testing",
+        version="9.9.9",
+        description="emitted by child",
+        skills=[],
+        resolved_tools=["terminal"],
+        hooks=[],
+        manifest_sha256="d" * 64,
+    )
+    child_summary = WorkerLoopSummary(
+        status="completed",
+        tools_requested=child_provenance.resolved_tools,
+        capability_pack=child_provenance,
+    )
+
+    def fake_run(argv, *args, **kwargs):
+        if argv[:2] == ["git", "rev-parse"]:
+            return SimpleNamespace(returncode=0, stdout=str(repo), stderr="")
+        if argv[:3] == ["git", "status", "--porcelain"]:
+            return SimpleNamespace(returncode=0, stdout="", stderr="")
+        return SimpleNamespace(
+            returncode=0,
+            stdout=SUMMARY_PREFIX + child_summary.model_dump_json() + "\n",
+            stderr="",
+        )
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    OpenHandsWorker().run(
+        repo_path=repo,
+        task="x",
+        timeout_seconds=5,
+        run_dir=run_dir,
+        pack_path=str(Path("packs/example").resolve()),
+    )
+
+    persisted = WorkerLoopSummary.model_validate_json(
+        (run_dir / "worker_loop_summary.json").read_text(encoding="utf-8")
+    )
+    assert persisted.tools_requested == ["terminal"]
+    assert persisted.capability_pack == child_provenance

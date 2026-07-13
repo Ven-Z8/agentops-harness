@@ -42,6 +42,7 @@ from app.core.test_runner import TestRunner
 from app.core.workers.claude_worker import ClaudeCodeWorker
 from app.core.workers.codex_worker import CodexWorker
 from app.core.workers.opencode_worker import OpenCodeWorker
+from app.core.workers.openhands_artifacts import read_worker_summary
 from app.core.workers.openhands_worker import OpenHandsWorker
 from app.core.workspace.base import Workspace
 from app.core.workspace.docker import DockerWorkspace
@@ -977,6 +978,8 @@ def run_harness(
         and not graph_state["workspace_report"].ok
     ):
         status = "blocked"
+    artifact_dir = artifact_dir_for_run(storage_path, run_id)
+    worker_summary = read_worker_summary(artifact_dir)
     record = RunRecord(
         run_id=run_id,
         task=task,
@@ -1002,6 +1005,7 @@ def run_harness(
         pre_dispatch=pre_dispatch,
         product_review=graph_state["product_review"],
         edit_result=edit_result,
+        capability_pack=(worker_summary.capability_pack if worker_summary else None),
         execution_logs=graph_state["execution_logs"],
         token_usage={"tokens_in": 0, "tokens_out": 0},
         status=status,
@@ -1011,7 +1015,6 @@ def run_harness(
         started_at=started_at,
         completed_at=datetime.now(UTC),
     )
-    artifact_dir = artifact_dir_for_run(storage_path, run_id)
     record = append_artifact_links(record, artifact_dir)
     RunStorage(storage_path).save(record)
     RunArtifactWriter().write(record, storage_path)

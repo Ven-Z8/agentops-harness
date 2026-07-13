@@ -49,6 +49,8 @@ class RunArtifactWriter:
         self._write_json(artifact_dir / "product_review.json", record.product_review)
         self._write_json(artifact_dir / "verification_bundle.json", record.verification_bundle)
         self._write_json(artifact_dir / "conflict_report.json", record.conflict_report)
+        if record.capability_pack is not None:
+            self._write_json(artifact_dir / "capability_pack.json", record.capability_pack)
         self._write_text(artifact_dir / "final_report.md", record.final_report.markdown)
         self._write_trace(artifact_dir / "trace.jsonl", record)
         self._write_json(artifact_dir / "run_record.json", record)

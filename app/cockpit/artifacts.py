@@ -85,6 +85,14 @@ class CockpitReader:
             "product_verdict": record.product_review.overall_verdict,
             "attempts": record.attempts,
             "converged": record.converged,
+            "capability_pack": (
+                {
+                    "name": record.capability_pack.name,
+                    "version": record.capability_pack.version,
+                }
+                if record.capability_pack
+                else None
+            ),
             "started_at": record.started_at.isoformat(),
             "completed_at": record.completed_at.isoformat(),
             "duration_seconds": _duration(record.started_at, record.completed_at),
@@ -101,6 +109,10 @@ class CockpitReader:
             "live": self.live_event_path(run_id).exists(),
             "artifacts": self.artifact_files(run_id),
             "worker": self.worker_view(run_id),
+            "verification": {
+                "accepted": record.verification_bundle.accepted,
+                "overall_confidence": record.verification_bundle.overall_confidence,
+            },
         }
 
     # ── derived views ───────────────────────────────────────────────────

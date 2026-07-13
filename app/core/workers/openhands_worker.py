@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import Any
 
 from app.core.git_utils import collect_status_lines, is_git_repo
+from app.core.packs.loader import build_pack_provenance, load_pack, resolve_tool_names
 from app.core.workers.auth_errors import detect_auth_failure
 from app.core.workers.openhands_artifacts import (
     write_worker_logs,
@@ -30,6 +31,7 @@ from app.core.workers.openhands_config import OPENHANDS_TOOL_NAMES
 from app.core.workers.openhands_runner import SUMMARY_PREFIX
 from app.prompts.workers import build_worker_prompt
 from app.schemas.edit import ExternalEditResult
+from app.schemas.pack import CapabilityPackProvenance
 from app.schemas.worker_loop import WorkerLoopSummary, WorkerScorecard
 
 COMMAND_STR = "python -m app.core.workers.openhands_runner <repo> (task on stdin)"
@@ -88,6 +90,12 @@ class OpenHandsWorker:
         )
         argv = [sys.executable, "-m", "app.core.workers.openhands_runner", str(repo_path)]
         prompt_path = write_worker_prompt(run_dir, prompt) if run_dir else None
+        resolved_tool_names = list(OPENHANDS_TOOL_NAMES)
+        pack_provenance = None
+        if pack_path:
+            capability_pack = load_pack(Path(pack_path))
+            resolved_tool_names = resolve_tool_names(capability_pack, resolved_tool_names)
+            pack_provenance = build_pack_provenance(capability_pack, resolved_tool_names)
 
         started = time.perf_counter()
         try:
@@ -121,9 +129,10 @@ class OpenHandsWorker:
                 status="timeout",
                 exit_code=None,
                 duration_seconds=duration,
-                tools_requested=list(OPENHANDS_TOOL_NAMES),
+                tools_requested=resolved_tool_names,
                 termination_reason="timeout",
                 prompt_path=str(prompt_path) if prompt_path else None,
+                capability_pack=pack_provenance,
             )
             _persist_worker_artifacts(
                 run_dir=run_dir,
@@ -137,16 +146,21 @@ class OpenHandsWorker:
 
         duration = round(time.perf_counter() - started, 3)
         code = completed.returncode
-        summary = _summary_from_stdout(completed.stdout) or WorkerLoopSummary(
+        summary = _summary_from_stdout(
+            completed.stdout,
+            fallback_tools_requested=resolved_tool_names,
+            fallback_capability_pack=pack_provenance,
+        ) or WorkerLoopSummary(
             status=_status_from_exit_code(code, completed.stdout, completed.stderr),
             exit_code=code,
             duration_seconds=duration,
-            tools_requested=list(OPENHANDS_TOOL_NAMES),
+            tools_requested=resolved_tool_names,
             termination_reason=_termination_from_exit_code(
                 code,
                 completed.stdout,
                 completed.stderr,
             ),
+            capability_pack=pack_provenance,
         )
         summary.exit_code = code
         summary.duration_seconds = duration
@@ -212,7 +226,12 @@ def _runner_env(
     return env
 
 
-def _summary_from_stdout(stdout: str) -> WorkerLoopSummary | None:
+def _summary_from_stdout(
+    stdout: str,
+    *,
+    fallback_tools_requested: list[str] | None = None,
+    fallback_capability_pack: CapabilityPackProvenance | None = None,
+) -> WorkerLoopSummary | None:
     for line in stdout.splitlines():
         if not line.startswith(SUMMARY_PREFIX):
             continue
@@ -221,8 +240,10 @@ def _summary_from_stdout(stdout: str) -> WorkerLoopSummary | None:
         except (json.JSONDecodeError, ValueError):
             return WorkerLoopSummary(
                 status="failed",
+                tools_requested=list(fallback_tools_requested or OPENHANDS_TOOL_NAMES),
                 termination_reason="malformed_worker_summary",
                 notes=["OpenHands runner emitted malformed summary JSON."],
+                capability_pack=fallback_capability_pack,
             )
     return None
 

@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from pydantic import BaseModel, Field
 
+from app.schemas.pack import CapabilityPackProvenance
+
 
 class WorkerLoopSummary(BaseModel):
     worker_type: str = "openhands"
@@ -20,6 +22,7 @@ class WorkerLoopSummary(BaseModel):
     termination_reason: str | None = None
     setup_error: str | None = None
     notes: list[str] = Field(default_factory=list)
+    capability_pack: CapabilityPackProvenance | None = None
 
 
 class WorkerArtifactPaths(BaseModel):

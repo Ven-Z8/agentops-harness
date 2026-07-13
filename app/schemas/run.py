@@ -10,6 +10,7 @@ from app.schemas.edit import ExternalEditResult
 from app.schemas.evidence import EvidenceReport
 from app.schemas.governance import PreDispatchDecision
 from app.schemas.memory import MemoryReport
+from app.schemas.pack import CapabilityPackProvenance
 from app.schemas.permission import PermissionReport
 from app.schemas.plan import ImplementationPlan
 from app.schemas.product_review import ProductReview
@@ -50,6 +51,7 @@ class RunRecord(BaseModel):
     workspace_report: PrepareResult = Field(default_factory=PrepareResult)
     pre_dispatch: PreDispatchDecision = Field(default_factory=PreDispatchDecision)
     edit_result: ExternalEditResult | None = None
+    capability_pack: CapabilityPackProvenance | None = None
     execution_logs: list[str] = Field(default_factory=list)
     token_usage: dict[str, int] = Field(default_factory=dict)
     status: RunStatus

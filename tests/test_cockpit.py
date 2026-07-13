@@ -1,11 +1,13 @@
+import json
 from pathlib import Path
 
 from fastapi.testclient import TestClient
 
 from app.api import create_api
 from app.cockpit.artifacts import CockpitReader
-from app.core.run_artifacts import artifact_dir_for_run
+from app.core.run_artifacts import RunArtifactWriter, artifact_dir_for_run
 from app.core.storage import RunStorage
+from app.schemas.pack import CapabilityPackProvenance
 from tests.helpers_runrecord import minimal_run_record
 
 _OBSERVE_LOGS = [
@@ -52,6 +54,43 @@ def test_reader_summary_stats_and_phases(tmp_path: Path) -> None:
         "tests": "done",
         "review": "done",
     }
+    assert detail["verification"] == {
+        "accepted": True,
+        "overall_confidence": "low",
+    }
+
+
+def test_old_run_without_pack_remains_readable(tmp_path: Path) -> None:
+    payload = minimal_run_record().model_dump(mode="json", exclude={"capability_pack"})
+    storage = tmp_path / "runs.jsonl"
+    storage.write_text(json.dumps(payload) + "\n", encoding="utf-8")
+
+    detail = CockpitReader(storage).detail("testrun")
+
+    assert detail["record"]["capability_pack"] is None
+    assert detail["summary"]["capability_pack"] is None
+
+
+def test_run_artifacts_include_capability_pack_json(tmp_path: Path) -> None:
+    record = minimal_run_record()
+    record.capability_pack = CapabilityPackProvenance(
+        name="demo",
+        domain="testing",
+        version="1.0.0",
+        description="demo",
+        skills=["playbook.md"],
+        resolved_tools=["terminal"],
+        hooks=[],
+        manifest_sha256="b" * 64,
+    )
+    RunArtifactWriter().write(record, tmp_path / "runs.db")
+    payload = json.loads(
+        (
+            artifact_dir_for_run(tmp_path / "runs.db", record.run_id)
+            / "capability_pack.json"
+        ).read_text(encoding="utf-8")
+    )
+    assert payload["resolved_tools"] == ["terminal"]
 
 
 def test_inner_events_skips_partial_json_line(tmp_path: Path) -> None:

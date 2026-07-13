@@ -2,6 +2,11 @@ import subprocess
 from pathlib import Path
 
 from app.core.graph import run_harness
+from app.core.workers.openhands_artifacts import write_worker_summary
+from app.core.workers.openhands_worker import OpenHandsWorker
+from app.schemas.edit import ExternalEditResult
+from app.schemas.pack import CapabilityPackProvenance
+from app.schemas.worker_loop import WorkerLoopSummary
 
 _SKIP_PARTS = {".git", "__pycache__", ".pytest_cache", ".venv"}
 
@@ -96,6 +101,51 @@ def test_bad_pack_name_blocks_run_instead_of_crashing(tmp_path: Path) -> None:
     assert "pack" in (result.edit_result.stderr or "").lower()
     # the run was still persisted (no crash)
     assert storage_path.exists() and result.run_id in storage_path.read_text()
+
+
+def test_openhands_summary_provenance_is_lifted_to_run_record(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    repo = tmp_path / "repo"
+    _copy_sample_repo(Path("examples/sample_fastapi_app"), repo)
+    _init_git_repo(repo)
+    provenance = CapabilityPackProvenance(
+        name="example",
+        domain="general",
+        version="0.1.0",
+        description="example",
+        skills=["overview.md"],
+        resolved_tools=["terminal", "file_editor"],
+        hooks=[],
+        manifest_sha256="c" * 64,
+    )
+
+    def fake_run(self, **kwargs):
+        write_worker_summary(
+            kwargs["run_dir"],
+            WorkerLoopSummary(
+                status="completed",
+                tools_requested=provenance.resolved_tools,
+                capability_pack=provenance,
+            ),
+        )
+        return ExternalEditResult(
+            status="completed",
+            command="fake",
+            worker_type="openhands",
+        )
+
+    monkeypatch.setattr(OpenHandsWorker, "run", fake_run)
+    record = run_harness(
+        repo_path=repo,
+        task="inspect provenance",
+        storage_path=tmp_path / "runs.db",
+        worker_type="openhands",
+        pack="example",
+        test_commands=["python -m pytest -q"],
+    )
+    assert record.capability_pack == provenance
 
 
 def test_run_harness_maps_changed_file_to_impacted_graph(tmp_path: Path) -> None:
