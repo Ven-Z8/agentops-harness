@@ -11,12 +11,13 @@ import {
 import { createReplayController, createReplayState } from "./replay-controller.js";
 import { buildCockpitViewModel, STAGE_IDS } from "./run-model.js";
 import { createThreeStage } from "./scene/three-stage.js";
-import { stageVisual } from "./scene/transitions.js";
 import * as panels from "./ui/panels.js";
 
 // AgentOps Cockpit — vanilla ES-module lifecycle coordinator. The data client
 // owns API/SSE access, while ui/panels.js projects backend-authored run data.
 const client = new CockpitDataClient();
+const reducedMotionQuery = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+const mobileStageQuery = window.matchMedia?.("(max-width: 820px)");
 const state = {
   runs: [], selected: null, detail: null, viewModel: null, tab: "plan", wfilter: "all",
   mission: missionFromLocation(), mode: "replay", errors: {}, selectedEvent: null,
@@ -26,6 +27,8 @@ const state = {
 let replayController = null;
 let cockpitStage = null;
 let stageContextLostHandler = null;
+let webglAvailable = false;
+let mobile3dVisible = false;
 const runDetailRequests = createLatestRequestGate();
 
 if (state.mission?.initialStage) {
@@ -56,6 +59,11 @@ const TAB_STAGES = Object.freeze({
   files: "prove",
 });
 const TERMINAL_STATUSES = new Set(["completed", "blocked", "failed"]);
+const panelCallbacks = Object.freeze({
+  onSelectStage: selectStage,
+  onSelectArtifact,
+  onRetryStream: retryStream,
+});
 
 window.addEventListener("beforeunload", () => {
   stopReplayTimer();
@@ -65,6 +73,16 @@ window.addEventListener("beforeunload", () => {
 document.addEventListener("visibilitychange", () => {
   if (document.hidden && state.replay.playing) pauseReplay();
 });
+document.getElementById("replayBtn")?.addEventListener("click", togglePause);
+document.getElementById("show3dBtn")?.addEventListener("click", () => {
+  mobile3dVisible = !mobile3dVisible;
+  syncMobileStageMode();
+});
+mobileStageQuery?.addEventListener?.("change", () => {
+  mobile3dVisible = false;
+  syncMobileStageMode();
+});
+renderMissionSummary();
 initializeTacticalStage();
 init();
 
@@ -78,17 +96,19 @@ function initializeTacticalStage() {
       onStageSelected: stageId => {
         if (state.viewModel) selectStage(stageId);
       },
-      reducedMotion: window.matchMedia?.("(prefers-reduced-motion: reduce)").matches || false,
+      reducedMotion: reducedMotionQuery?.matches || false,
     });
+    webglAvailable = true;
     canvas.hidden = false;
     fallback.hidden = true;
     visualMode.textContent = "3D stage";
+    syncMobileStageMode();
     stageContextLostHandler = event => {
       event.preventDefault();
       activateStageFallback("WebGL context lost");
       if (state.detail) {
         const viewModel = rebuildViewModel();
-        panels.renderModelState(viewModel);
+        panels.renderModelState(viewModel, panelCallbacks);
       }
     };
     canvas.addEventListener("webglcontextlost", stageContextLostHandler);
@@ -110,6 +130,8 @@ function disposeTacticalStage() {
 
 function activateStageFallback(message) {
   disposeTacticalStage();
+  webglAvailable = false;
+  mobile3dVisible = false;
   state.errors = {
     ...state.errors,
     webgl: { type: "webgl", message: String(message) },
@@ -119,37 +141,25 @@ function activateStageFallback(message) {
   const visualMode = document.getElementById("visualMode");
   canvas.hidden = true;
   fallback.hidden = false;
-  fallback.setAttribute("aria-label", "2D fallback stage");
+  fallback.textContent = `3D architecture unavailable: ${String(message)}. Semantic stage controls remain available.`;
   visualMode.textContent = "2D fallback";
-  renderStageFallback(state.viewModel);
+  syncMobileStageMode();
+  renderSemanticStage(state.viewModel);
 }
 
-function renderStageFallback(viewModel) {
-  const fallback = document.getElementById("stageFallback");
-  if (fallback.hidden) return;
+function renderSemanticStage(viewModel) {
+  const ribbon = document.getElementById("stageRibbon");
   if (!viewModel) {
-    fallback.innerHTML = '<div class="empty">Select a run to inspect the stage.</div>';
+    ribbon.innerHTML = '<span class="empty">Select a run to inspect its stages.</span>';
     return;
   }
-  fallback.innerHTML = `<div class="stage-fallback-ribbon" role="group" aria-label="Run stages">
-    ${viewModel.stages.map(stage => {
-    const visual = stageVisual(stage.status);
-    const selected = stage.id === viewModel.selection.stage;
-    return `<button class="stage-fallback-node" data-stage="${panels.esc(stage.id)}" data-status="${panels.esc(stage.status)}" aria-pressed="${selected}">
-      <span class="fallback-glyph" aria-hidden="true">${panels.esc(visual.glyph)}</span>
-      <span>${panels.esc(stage.label)}</span>
-      <span class="fallback-status">${panels.esc(visual.label)}</span>
-    </button>`;
-  }).join("")}
-  </div>`;
-  fallback.querySelectorAll("[data-stage]").forEach(button => {
-    button.addEventListener("click", () => selectStage(button.dataset.stage));
-  });
+  ribbon.innerHTML = panels.stageRibbon(viewModel);
+  panels.bindStageButtons(selectStage);
 }
 
 function renderTacticalStage(viewModel) {
+  renderSemanticStage(viewModel);
   if (!cockpitStage) {
-    renderStageFallback(viewModel);
     return;
   }
   try {
@@ -158,6 +168,28 @@ function renderTacticalStage(viewModel) {
   } catch (error) {
     activateStageFallback(error?.message || "WebGL rendering failed");
   }
+}
+
+function syncMobileStageMode() {
+  const narrow = mobileStageQuery?.matches || false;
+  const canvas = document.getElementById("cockpit3d");
+  const shell = document.querySelector(".stage-shell");
+  const button = document.getElementById("show3dBtn");
+  const show3d = webglAvailable && (!narrow || mobile3dVisible);
+  shell?.classList.toggle("mobile-3d", narrow && mobile3dVisible);
+  if (canvas) canvas.hidden = !show3d;
+  if (button) {
+    button.hidden = !webglAvailable || !narrow;
+    button.setAttribute("aria-pressed", String(mobile3dVisible));
+    button.textContent = mobile3dVisible ? "Hide 3D architecture" : "Show 3D architecture";
+  }
+  if (show3d) cockpitStage?.resize();
+}
+
+function renderMissionSummary() {
+  const host = document.getElementById("missionSummary");
+  if (!host || !state.mission) return;
+  host.innerHTML = `<p class="eyebrow">Mission</p><h1>${panels.esc(state.mission.title)}</h1><p>${panels.esc(state.mission.summary)}</p>`;
 }
 
 async function init() {
@@ -202,7 +234,9 @@ async function selectRun(runId) {
     selectedTab: state.tab,
     onSelectTab: selectTab,
     onTogglePause: togglePause,
+    ...panelCallbacks,
   });
+  renderReplayControls();
   streamTrajectory(runId);
 }
 
@@ -226,7 +260,7 @@ async function loadDiffArtifact() {
     );
     pane.innerHTML = panels.colorizeDiff(text);
   } catch {
-    pane.textContent = "Could not load diff.patch";
+    pane.textContent = panels.artifactFailureMessage("diff.patch");
   }
 }
 
@@ -236,7 +270,7 @@ function streamTrajectory(runId) {
   host.innerHTML = "";
   state.viewModel.telemetry.governance.forEach(event => panels.appendEvent(host, event));
   if (isReplayMode()) playReplay({ restart: true });
-  host.streamSource = client.openStream(
+  host.streamSource = client.openResilientStream(
     `/cockpit/api/runs/${encodeURIComponent(runId)}/stream`,
     {
       open: () => updateConnection("trajectory", "open"),
@@ -245,6 +279,7 @@ function streamTrajectory(runId) {
         const evidenceCount = state.viewModel.telemetry.governance.length;
         state.trajectoryEvents.push(streamedEvent);
         const viewModel = rebuildViewModel();
+        syncReplayLength(viewModel.telemetry.timeline.length);
         viewModel.telemetry.governance.slice(evidenceCount).forEach(
           evidence => panels.appendEvent(host, evidence),
         );
@@ -255,11 +290,9 @@ function streamTrajectory(runId) {
           finishTrajectory(host, { keepReplayControls: isReplayMode() });
         }
       },
-      error: () => {
-        updateConnection("trajectory", "error");
-        if (streamShouldClose("error")) {
-          finishTrajectory(host, { keepReplayControls: isReplayMode() });
-        }
+      error: (_event, connection) => {
+        transitionReplay({ type: "disconnect" });
+        updateConnection("trajectory", "error", connection);
       },
     },
   );
@@ -318,17 +351,18 @@ function streamWorker(runId) {
     closeHostStream(host);
     document.getElementById("wDot")?.classList.remove("pulse");
   };
-  host.streamSource = client.openStream(
+  host.streamSource = client.openResilientStream(
     `/cockpit/api/runs/${encodeURIComponent(runId)}/worker/stream`,
     {
       open: () => {
-        updateConnection("worker", "open");
-        document.getElementById("wDot")?.classList.add("pulse");
+        const viewModel = updateConnection("worker", "open");
+        document.getElementById("wDot")?.classList.toggle("pulse", viewModel.pulse);
       },
       event: event => {
         const evidenceCount = state.viewModel.telemetry.worker.length;
         state.workerEvents.push(JSON.parse(event.data));
         const viewModel = rebuildViewModel();
+        syncReplayLength(viewModel.telemetry.timeline.length);
         viewModel.telemetry.worker.slice(evidenceCount).forEach(evidence => {
           host.insertAdjacentHTML("beforeend", panels.ievRow(evidence));
           panels.applyFilterToRow(host.lastElementChild, state.wfilter);
@@ -339,10 +373,10 @@ function streamWorker(runId) {
         updateConnection("worker", "done");
         if (streamShouldClose("done")) stop();
       },
-      error: () => {
-        updateConnection("worker", "error");
+      error: (_event, connection) => {
+        transitionReplay({ type: "disconnect" });
+        updateConnection("worker", "error", connection);
         document.getElementById("wDot")?.classList.remove("pulse");
-        if (streamShouldClose("error")) stop();
       },
     },
   );
@@ -358,6 +392,18 @@ function closeHostStream(host) {
   host.streamSource = null;
 }
 
+function retryStream(channel) {
+  const host = channel === "worker"
+    ? document.getElementById("wtraj")
+    : document.getElementById("traj");
+  host?.streamSource?.retry?.();
+}
+
+function syncReplayLength(length) {
+  if (!replayController || state.replay.length === length) return state.viewModel;
+  return transitionReplay({ type: "set-length", length });
+}
+
 async function onSelectArtifact({ name, pane }) {
   try {
     const text = await client.text(
@@ -366,8 +412,21 @@ async function onSelectArtifact({ name, pane }) {
     pane.innerHTML = name.endsWith(".patch")
       ? panels.colorizeDiff(text)
       : panels.esc(text);
-  } catch {
-    pane.textContent = "Could not load file.";
+    pane.hidden = false;
+    if (state.errors.artifact?.name === name) {
+      const { artifact: _artifact, ...remainingErrors } = state.errors;
+      state.errors = remainingErrors;
+    }
+  } catch (error) {
+    state.errors = {
+      ...state.errors,
+      artifact: { name, message: String(error?.message || error) },
+    };
+    const viewModel = rebuildViewModel();
+    panels.renderModelState(viewModel, panelCallbacks);
+    const target = document.getElementById(pane.id) || pane;
+    target.hidden = false;
+    target.textContent = panels.artifactFailureMessage(name);
   }
 }
 
@@ -409,7 +468,7 @@ function setDetail(detail) {
   const initialReplay = {
     ...createReplayState({
       length,
-      reducedMotion: window.matchMedia?.("(prefers-reduced-motion: reduce)").matches || false,
+      reducedMotion: reducedMotionQuery?.matches || false,
     }),
     selectedStage: state.mission?.initialStage || "plan",
   };
@@ -417,6 +476,7 @@ function setDetail(detail) {
   replayController = createReplayController({
     initialState: initialReplay,
     onChange: applyReplayState,
+    stageAtCursor: cursor => state.viewModel?.telemetry.timeline[cursor]?.stage ?? null,
   });
   rebuildViewModel();
 }
@@ -431,6 +491,7 @@ function rebuildViewModel() {
       event: state.selectedEvent,
     },
     errors: state.errors,
+    reducedMotion: state.replay.reducedMotion,
   });
   renderTacticalStage(state.viewModel);
   return state.viewModel;
@@ -442,7 +503,7 @@ function applyReplayState(replayState) {
     ? state.viewModel.telemetry.timeline[state.replay.cursor] ?? null
     : null;
   const viewModel = rebuildViewModel();
-  panels.renderModelState(viewModel);
+  panels.renderModelState(viewModel, panelCallbacks);
   renderReplayControls();
 }
 
@@ -471,27 +532,43 @@ function stopReplayTimer() {
 }
 
 function renderReplayControls() {
-  if (!isReplayMode()) return;
-  const button = document.getElementById("pauseBtn");
-  if (!button) return;
-  button.style.display = "";
+  const buttons = [
+    document.getElementById("replayBtn"),
+    document.getElementById("pauseBtn"),
+  ].filter(Boolean);
+  if (!buttons.length) return;
+  const replay = isReplayMode();
   const atEnd = state.replay.cursor >= state.replay.length - 1;
-  button.innerHTML = state.replay.playing
-    ? `${panels.ICON.pause}<span>pause</span>`
-    : `${panels.ICON.play}<span>${atEnd ? "restart" : "resume"}</span>`;
+  const action = state.replay.playing ? "pause" : atEnd ? "restart" : "resume";
+  for (const button of buttons) {
+    button.disabled = !state.detail || !replay;
+    button.style.display = replay ? "" : "none";
+    button.setAttribute("aria-pressed", String(state.replay.playing));
+    button.setAttribute("aria-label", `${action[0].toUpperCase()}${action.slice(1)} recorded replay`);
+    button.innerHTML = state.replay.playing
+      ? `${panels.ICON.pause}<span>pause</span>`
+      : `${panels.ICON.play}<span>${action}</span>`;
+  }
 }
 
 function isReplayMode() {
   return state.mode === "recorded" || state.mode === "replay";
 }
 
-function updateConnection(channel, status) {
-  const errors = updateChannelErrors(state.errors, channel, status);
+function updateConnection(channel, status, connection = null) {
+  let errors = updateChannelErrors(state.errors, channel, status);
+  if (status === "error" && connection) {
+    errors = {
+      ...errors,
+      [channel]: { ...errors[channel], ...connection },
+    };
+  }
   state.errors = errors;
   const detailMode = modeForDetail(state.detail);
   const hasStreamError = Boolean(errors.trajectory || errors.worker);
   state.mode = detailMode === "live" && hasStreamError ? "disconnected" : detailMode;
   const viewModel = rebuildViewModel();
-  panels.renderModelState(viewModel);
+  panels.renderModelState(viewModel, panelCallbacks);
+  renderReplayControls();
   return viewModel;
 }

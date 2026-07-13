@@ -1,6 +1,15 @@
 "use strict";
 
 export const STAGE_IDS = Object.freeze(["plan", "equip", "work", "guard", "prove"]);
+export const STAGE_EVIDENCE = Object.freeze({
+  plan: Object.freeze(["task_plan.yaml", "repo_graph.json"]),
+  equip: Object.freeze(["capability_pack.json", "worker_loop_summary.json"]),
+  work: Object.freeze(["openhands_events.jsonl", "diff.patch", "worker_result.json"]),
+  guard: Object.freeze(["test_results.json", "risk_report.json", "permission_report.json"]),
+  prove: Object.freeze([
+    "evidence_report.json", "product_review.json", "verification_bundle.json",
+  ]),
+});
 
 const GOVERNANCE_STAGES = Object.freeze({
   scan_repo: "plan",
@@ -44,6 +53,7 @@ export function buildCockpitViewModel({
   mode = "replay",
   selection = { stage: "plan", event: null },
   errors = {},
+  reducedMotion = false,
 }) {
   const record = detail.record;
   const summary = detail.summary;
@@ -59,6 +69,29 @@ export function buildCockpitViewModel({
   const governanceEvents = detail.trajectory || [];
   const workerEvents = detail.worker?.events || [];
   const workerDeclared = Boolean(record.edit_result || detail.worker?.present);
+  const selectedStage = STAGE_IDS.includes(selection?.stage) ? selection.stage : "plan";
+  const availableArtifactNames = (detail.artifacts || []).map(item => item.name);
+  const availableArtifactSet = new Set(availableArtifactNames);
+  const expectedStageEvidence = STAGE_EVIDENCE[selectedStage];
+  const testsAvailable = tests.length > 0 || (summary.tests_total ?? 0) > 0;
+  const testsPassed = testsAvailable
+    ? (summary.tests_passed ?? tests.filter(item => item.exit_code === 0).length)
+    : null;
+  const testsTotal = testsAvailable ? (summary.tests_total ?? tests.length) : null;
+  const planSteps = Array.isArray(plan?.steps) ? plan.steps.length : null;
+  const changedFileCount = Array.isArray(record.changed_files)
+    ? record.changed_files.length
+    : null;
+  const riskAvailable = record.risk_report != null &&
+    (risk.risk_score != null || risk.risk_level != null);
+  const permissionsAvailable = record.permission_report != null;
+  const captureSource = detail.capture || detail.showcase || detail.manifest ||
+    record.capture || record.showcase || null;
+  const capture = captureSource ? {
+    sourceRunId: captureSource.sourceRunId ?? captureSource.source_run_id ?? null,
+    sourceCommit: captureSource.sourceCommit ?? captureSource.source_commit ?? null,
+    capturedAt: captureSource.capturedAt ?? captureSource.captured_at ?? null,
+  } : null;
 
   const planStatus = plan?.steps?.length > 0 &&
       (detail.phases || []).some(phase => phase.name === "plan")
@@ -119,8 +152,9 @@ export function buildCockpitViewModel({
         : mode === "disconnected"
           ? "Disconnected"
           : "Replay",
-    pulse: mode === "live",
+    pulse: mode === "live" && !reducedMotion,
     mission,
+    capture,
     run: {
       id: record.run_id,
       task: record.task,
@@ -140,10 +174,24 @@ export function buildCockpitViewModel({
     },
     stages,
     proof: {
-      tests: { available: tests.length > 0, commands: tests },
-      scope: { available: true, changedFiles: record.changed_files || [] },
-      risk: { available: true, ...risk },
-      permissions: { available: true, ...permissions },
+      tests: {
+        available: testsAvailable,
+        commands: tests,
+        passed: testsPassed,
+        total: testsTotal,
+      },
+      scope: {
+        available: planSteps != null || changedFileCount != null,
+        planSteps,
+        changedFiles: changedFileCount,
+        files: record.changed_files || [],
+      },
+      risk: { available: riskAvailable, ...risk },
+      permissions: {
+        available: permissionsAvailable,
+        tier: permissionsAvailable ? (summary.permission_tier ?? null) : null,
+        ...permissions,
+      },
       evidence: {
         available: hasArtifact(detail, "evidence_report.json"),
         ...evidence,
@@ -175,13 +223,18 @@ export function buildCockpitViewModel({
       timeline: mergeTimeline(governanceEvents, workerEvents),
     },
     artifacts: {
-      available: (detail.artifacts || []).map(item => item.name),
+      available: availableArtifactNames,
       files: detail.artifacts || [],
       bundleUrl: `/cockpit/api/runs/${encodeURIComponent(record.run_id)}/bundle.zip`,
     },
     selection: {
-      stage: STAGE_IDS.includes(selection?.stage) ? selection.stage : "plan",
+      stage: selectedStage,
       event: selection?.event ?? null,
+      evidence: {
+        expected: [...expectedStageEvidence],
+        available: expectedStageEvidence.filter(name => availableArtifactSet.has(name)),
+        missing: expectedStageEvidence.filter(name => !availableArtifactSet.has(name)),
+      },
     },
     errors: {
       ...errors,

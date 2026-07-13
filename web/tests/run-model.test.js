@@ -2,7 +2,11 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { MISSIONS } from "../mission-config.js";
-import { buildCockpitViewModel, mergeTimeline } from "../run-model.js";
+import {
+  buildCockpitViewModel,
+  mergeTimeline,
+  STAGE_EVIDENCE,
+} from "../run-model.js";
 
 function governedMigrationDetail() {
   return {
@@ -18,6 +22,9 @@ function governedMigrationDetail() {
       attempts: 1,
       converged: true,
       duration_seconds: 12.5,
+      tests_passed: 1,
+      tests_total: 1,
+      changed_files: 1,
     },
     record: {
       run_id: "showcase-governed-migration",
@@ -68,8 +75,101 @@ function governedMigrationDetail() {
       { name: "verification_bundle.json", size: 180 },
     ],
     verification: { accepted: true, overall_confidence: "high" },
+    capture: {
+      source_run_id: "source-capture-123",
+      source_commit: "1".repeat(40),
+      captured_at: "2026-07-13T12:00:00Z",
+    },
   };
 }
+
+test("recorded mode never becomes a pulsing live state", () => {
+  const vm = buildCockpitViewModel({
+    detail: governedMigrationDetail(),
+    mission: MISSIONS["governed-migration"],
+    mode: "recorded",
+  });
+
+  assert.equal(vm.mode, "recorded");
+  assert.equal(vm.modeLabel, "Recorded");
+  assert.equal(vm.pulse, false);
+});
+
+test("reduced motion removes live pulses without changing live mode", () => {
+  const vm = buildCockpitViewModel({
+    detail: governedMigrationDetail(),
+    mode: "live",
+    reducedMotion: true,
+  });
+
+  assert.equal(vm.mode, "live");
+  assert.equal(vm.modeLabel, "Live");
+  assert.equal(vm.pulse, false);
+});
+
+test("stage evidence is exact and separates available from missing artifacts", () => {
+  const detail = governedMigrationDetail();
+  detail.artifacts.push(
+    { name: "capability_pack.json", size: 100 },
+    { name: "worker_loop_summary.json", size: 80 },
+  );
+
+  const vm = buildCockpitViewModel({
+    detail,
+    selection: { stage: "equip", event: null },
+  });
+
+  assert.deepEqual(STAGE_EVIDENCE, {
+    plan: ["task_plan.yaml", "repo_graph.json"],
+    equip: ["capability_pack.json", "worker_loop_summary.json"],
+    work: ["openhands_events.jsonl", "diff.patch", "worker_result.json"],
+    guard: ["test_results.json", "risk_report.json", "permission_report.json"],
+    prove: ["evidence_report.json", "product_review.json", "verification_bundle.json"],
+  });
+  assert.deepEqual(vm.selection.evidence.available, [
+    "capability_pack.json", "worker_loop_summary.json",
+  ]);
+  assert.deepEqual(vm.selection.evidence.missing, []);
+});
+
+test("one missing stage artifact preserves available evidence and the Python verdict", () => {
+  const detail = governedMigrationDetail();
+  detail.artifacts.push({ name: "product_review.json", size: 200 });
+
+  const vm = buildCockpitViewModel({
+    detail,
+    selection: { stage: "prove", event: null },
+    errors: { artifact: { name: "product_review.json", message: "404" } },
+  });
+
+  assert.deepEqual(vm.selection.evidence.available, [
+    "evidence_report.json", "product_review.json", "verification_bundle.json",
+  ]);
+  assert.equal(vm.errors.artifact.name, "product_review.json");
+  assert.equal(vm.proof.finalVerdict, "Accepted");
+});
+
+test("proof projections preserve recorded capture metadata and honest missing values", () => {
+  const detail = governedMigrationDetail();
+  delete detail.summary.tests_passed;
+  delete detail.summary.tests_total;
+  delete detail.record.test_results;
+  delete detail.record.risk_report;
+  delete detail.record.permission_report;
+
+  const vm = buildCockpitViewModel({ detail, mode: "recorded" });
+
+  assert.equal(vm.proof.tests.available, false);
+  assert.equal(vm.proof.tests.passed, null);
+  assert.equal(vm.proof.tests.total, null);
+  assert.equal(vm.proof.risk.available, false);
+  assert.equal(vm.proof.permissions.available, false);
+  assert.deepEqual(vm.capture, {
+    sourceRunId: "source-capture-123",
+    sourceCommit: "1".repeat(40),
+    capturedAt: "2026-07-13T12:00:00Z",
+  });
+});
 
 test("maps a recorded governed migration into five evidence-backed stages", () => {
   const vm = buildCockpitViewModel({

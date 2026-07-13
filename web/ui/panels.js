@@ -24,8 +24,141 @@ export function fmtAge(iso) {
   if (secs < 86400) return `${Math.round(secs / 3600)}h ago`;
   return `${Math.round(secs / 86400)}d ago`;
 }
-export const fmtDur = s => (s < 60 ? `${s.toFixed(1)}s` : `${Math.floor(s / 60)}m ${Math.round(s % 60)}s`);
+export const fmtDur = s => (
+  Number.isFinite(s)
+    ? s < 60
+      ? `${s.toFixed(1)}s`
+      : `${Math.floor(s / 60)}m ${Math.round(s % 60)}s`
+    : "unavailable"
+);
 export const fmtBytes = n => (n < 1024 ? `${n} B` : n < 1048576 ? `${(n / 1024).toFixed(1)} KB` : `${(n / 1048576).toFixed(1)} MB`);
+const unavailable = '<span class="t-mut">unavailable</span>';
+
+const plural = (count, noun) => `${count} ${noun}${count === 1 ? "" : "s"}`;
+
+export function stageAriaLabel(viewModel, stage) {
+  const prefix = `${stage.label}, ${stage.status}`;
+  if (stage.id === "equip" && viewModel.pack?.available) {
+    return `${prefix}, capability pack ${viewModel.pack.name} version ${viewModel.pack.version}`;
+  }
+  if (stage.id === "plan" && viewModel.proof?.scope?.planSteps != null) {
+    return `${prefix}, ${plural(viewModel.proof.scope.planSteps, "recorded plan step")}`;
+  }
+  if (stage.id === "work" && viewModel.proof?.scope?.changedFiles != null) {
+    return `${prefix}, ${plural(viewModel.proof.scope.changedFiles, "changed file")}`;
+  }
+  if (stage.id === "guard" && viewModel.proof?.tests?.available) {
+    return `${prefix}, tests ${viewModel.proof.tests.passed} of ${viewModel.proof.tests.total}`;
+  }
+  if (stage.id === "prove" && viewModel.proof?.verification?.available) {
+    return `${prefix}, verification ${viewModel.proof.finalVerdict}, confidence ${viewModel.proof.verification.confidence ?? "unavailable"}`;
+  }
+  return `${prefix}, supporting evidence unavailable`;
+}
+
+export function stageButton({ stage, selected, viewModel }) {
+  const selectedState = selected ? "step" : "false";
+  return `<button type="button" class="stage-fallback-node" data-stage="${esc(stage.id)}" data-status="${esc(stage.status)}" aria-label="${esc(stageAriaLabel(viewModel, stage))}" aria-current="${selectedState}" aria-pressed="${selected}">
+    <span class="fallback-glyph" aria-hidden="true">${phaseGlyph(stage.status)}</span>
+    <span>${esc(stage.label)}</span>
+    <span class="fallback-status">${esc(stage.status)}</span>
+  </button>`;
+}
+
+export function stageRibbon(viewModel) {
+  return viewModel.stages.map(stage => stageButton({
+    stage,
+    selected: stage.id === viewModel.selection.stage,
+    viewModel,
+  })).join("");
+}
+
+export function artifactFailureMessage(name) {
+  return `Could not load ${name}. Other evidence remains available.`;
+}
+
+export function selectedStageEvidence(viewModel) {
+  const evidence = viewModel.selection.evidence;
+  const stage = viewModel.stages?.find(item => item.id === viewModel.selection.stage);
+  const artifactError = viewModel.errors?.artifact;
+  const availableLinks = evidence.available.map(name => {
+    const href = `/cockpit/api/runs/${encodeURIComponent(viewModel.run.id)}/artifacts/${encodeURIComponent(name)}`;
+    return `<li><a class="evidence-link" href="${esc(href)}" data-evidence-name="${esc(name)}">${esc(name)}</a></li>`;
+  }).join("");
+  const missing = evidence.missing.map(name => (
+    `<li class="evidence-missing">Missing expected artifact: ${esc(name)}</li>`
+  )).join("");
+  const scopedError = artifactError && evidence.expected.includes(artifactError.name)
+    ? `<div class="artifact-error" role="status">${esc(artifactFailureMessage(artifactError.name))}</div>`
+    : "";
+  return `<section class="card stage-evidence-card" aria-labelledby="selectedStageTitle">
+    <div class="card-head"><span id="selectedStageTitle">${esc(stage?.label || viewModel.selection.stage)} evidence</span><span class="badge b-${stage?.status === "pass" ? "green" : stage?.status === "blocked" ? "red" : "mut"}">${esc(stage?.status || "unavailable")}</span></div>
+    <div class="evidence-body">
+      ${availableLinks ? `<ul class="evidence-list evidence-available">${availableLinks}</ul>` : '<p class="note">No expected artifacts are available for this stage.</p>'}
+      ${missing ? `<div class="scoped-unavailable"><div class="note">Scoped unavailable evidence</div><ul class="evidence-list">${missing}</ul></div>` : ""}
+      ${scopedError}
+      <pre class="code evidence-pane" id="evidencePane" hidden></pre>
+    </div>
+  </section>`;
+}
+
+export function workerTelemetry(viewModel) {
+  const event = viewModel.selection?.event;
+  const workerCount = viewModel.telemetry?.worker?.length ?? 0;
+  const governanceCount = viewModel.telemetry?.governance?.length ?? 0;
+  const eventText = event
+    ? esc(event.summary || event.node || event.raw || event.type || "Recorded event")
+    : "No replay event selected.";
+  return `<section class="card telemetry-card" aria-labelledby="workerTelemetryTitle">
+    <div class="card-head"><span id="workerTelemetryTitle">Worker telemetry</span></div>
+    <div class="telemetry-summary">
+      <div><span class="t-mut">governance</span> <span class="mono">${governanceCount}</span></div>
+      <div><span class="t-mut">worker events</span> <span class="mono">${workerCount}</span></div>
+      <p class="telemetry-event">${eventText}</p>
+    </div>
+  </section>`;
+}
+
+function proofCard(label, value, detail = "") {
+  return `<article class="proof-card"><div class="proof-label">${esc(label)}</div><div class="proof-value">${value}</div>${detail ? `<div class="proof-detail">${detail}</div>` : ""}</article>`;
+}
+
+export function proofCards(viewModel) {
+  const { tests, scope, risk, permissions, evidence, verification } = viewModel.proof;
+  const testsValue = tests.available
+    ? `<span class="mono">${esc(tests.passed)}/${esc(tests.total)}</span>`
+    : unavailable;
+  const scopeValue = scope.available
+    ? [
+      scope.planSteps != null ? plural(scope.planSteps, "plan step") : null,
+      scope.changedFiles != null ? plural(scope.changedFiles, "changed file") : null,
+    ].filter(Boolean).map(esc).join(" · ") || unavailable
+    : unavailable;
+  const riskValue = risk.available
+    ? `<span class="${RISK_TONE[risk.risk_level] || "t-mut"}">${esc(risk.risk_score ?? "score unavailable")} · ${esc(risk.risk_level ?? "level unavailable")}</span>`
+    : unavailable;
+  const permissionValue = permissions.available
+    ? esc(permissions.tier ? `${permissions.tier} tier` : "tier unavailable")
+    : unavailable;
+  const flags = evidence.unsupported_claim_count;
+  const evidenceValue = evidence.available
+    ? `${evidence.grounded === true ? "grounded" : evidence.grounded === false ? "not grounded" : "grounding unavailable"}${flags != null ? ` · ${plural(flags, "flag")}` : ""}`
+    : unavailable;
+  const verificationValue = verification.available
+    ? `<span class="${viewModel.proof.finalVerdict === "Accepted" ? "t-green" : viewModel.proof.finalVerdict === "Blocked" ? "t-red" : "t-amber"}">${esc(viewModel.proof.finalVerdict)}</span>`
+    : unavailable;
+  const confidence = verification.available && verification.confidence != null
+    ? `confidence ${esc(verification.confidence)}`
+    : "";
+  return [
+    proofCard("Tests", testsValue, tests.available ? "passed / total commands" : ""),
+    proofCard("Plan scope", scopeValue),
+    proofCard("Risk", riskValue),
+    proofCard("Permissions", permissionValue),
+    proofCard("Evidence", evidenceValue),
+    proofCard("Verification", verificationValue, confidence),
+  ].join("");
+}
 
 export function renderStats(s) {
   document.getElementById("kTotal").textContent = s.total;
@@ -74,10 +207,16 @@ export function renderInspector(vm, {
   selectedTab,
   onSelectTab,
   onTogglePause,
+  onSelectStage,
+  onSelectArtifact,
+  onRetryStream,
 }) {
   const run = vm.run;
   const statusTone = run.blocked ? "t-red" : run.status === "completed" ? "t-green" : "t-amber";
   const statusBg = run.blocked ? "var(--red-bg)" : run.status === "completed" ? "var(--green-bg)" : "var(--amber-bg)";
+  const capture = vm.capture
+    ? `<div class="capture-meta">Recorded source ${esc(vm.capture.sourceRunId || "unavailable")} · commit ${esc(vm.capture.sourceCommit?.slice(0, 8) || "unavailable")} · captured ${esc(vm.capture.capturedAt || "unavailable")}</div>`
+    : "";
   document.getElementById("inspector").innerHTML = `
     <div class="insp-head">
       <div class="insp-head-l">
@@ -87,16 +226,18 @@ export function renderInspector(vm, {
       <a class="dl-btn" href="${esc(vm.artifacts.bundleUrl)}" download>${ICON.download}bundle.zip</a>
     </div>
     <div class="insp-meta">${esc(run.id.slice(0, 8))} · ${esc(run.worker)} · ${fmtDur(run.duration)} · attempt ${run.attempts} · converged ${run.converged} · ${esc(run.repository)}</div>
-    <div class="ribbon">${vm.stages.map(phaseEl).join("")}</div>
-    <div class="insp-body">
-      <div class="card">
-        <div class="card-head">
-          <span class="lbl"><span class="dot pulse" style="background:var(--green)" id="trajDot"></span>Governance loop <span class="sub">· outer (AgentOps)</span></span>
-          <button class="btn-ghost" id="pauseBtn">${ICON.pause}<span>pause</span></button>
-        </div>
-        <div class="traj" id="traj"></div>
+    ${capture}
+    <div id="connectionAlerts"></div>
+    <div class="stage-detail-grid">
+      <div id="stageEvidence">${selectedStageEvidence(vm)}</div>
+      <div id="workerTelemetry">${workerTelemetry(vm)}</div>
+    </div>
+    <div class="card governance-card">
+      <div class="card-head">
+        <span class="lbl"><span class="dot" style="background:var(--green)" id="trajDot"></span>Governance loop <span class="sub">· outer (AgentOps)</span></span>
+        <button type="button" class="btn-ghost" id="pauseBtn" aria-pressed="false" aria-label="Pause recorded replay">${ICON.pause}<span>pause</span></button>
       </div>
-      <div class="guards">${guardCards(vm)}</div>
+      <div class="traj" id="traj"></div>
     </div>
     <div class="deep">
       <div class="tabs" id="tabs">${tabs.map(t => tabBtn(t, detail)).join("")}</div>
@@ -105,11 +246,58 @@ export function renderInspector(vm, {
   document.getElementById("pauseBtn").addEventListener("click", onTogglePause);
   document.querySelectorAll("#tabs .tab").forEach(b => b.addEventListener("click", () => onSelectTab(b.dataset.tab)));
   if (!tabs.some(t => t.key === selectedTab)) selectedTab = "plan";
-  renderModelState(vm);
+  renderModelState(vm, { onSelectStage, onSelectArtifact, onRetryStream });
   onSelectTab(selectedTab);
 }
 
-export function renderModelState(vm) {
+function connectionAlerts(viewModel) {
+  const alerts = ["trajectory", "worker"].flatMap(channel => {
+    const error = viewModel.errors?.[channel];
+    if (!error) return [];
+    const status = error.status === "reconnecting" ? "Reconnecting" : "Disconnected";
+    const retry = error.retryable
+      ? `<button type="button" class="btn-ghost" data-retry-stream="${channel}">Retry ${channel} stream</button>`
+      : "";
+    return [`<div class="connection-alert" role="status"><span>${status}: ${esc(error.message)}</span>${retry}</div>`];
+  });
+  return alerts.join("");
+}
+
+export function bindStageEvidence(onSelectArtifact) {
+  if (typeof onSelectArtifact !== "function") return;
+  document.querySelectorAll?.("[data-evidence-name]").forEach(link => {
+    if (link.dataset.evidenceBound) return;
+    link.dataset.evidenceBound = "true";
+    link.addEventListener("click", event => {
+      event.preventDefault();
+      const pane = document.getElementById("evidencePane");
+      if (!pane) return;
+      pane.hidden = false;
+      pane.textContent = "loading…";
+      onSelectArtifact({ name: link.dataset.evidenceName, pane });
+    });
+  });
+}
+
+export function bindStageButtons(onSelectStage) {
+  if (typeof onSelectStage !== "function") return;
+  document.querySelectorAll?.("[data-stage]").forEach(button => {
+    if (button.dataset.stageBound) return;
+    button.dataset.stageBound = "true";
+    button.addEventListener("click", () => onSelectStage(button.dataset.stage));
+  });
+}
+
+function bindRetryButtons(onRetryStream) {
+  if (typeof onRetryStream !== "function") return;
+  document.querySelectorAll?.("[data-retry-stream]").forEach(button => {
+    if (button.dataset.retryBound) return;
+    button.dataset.retryBound = "true";
+    button.addEventListener("click", () => onRetryStream(button.dataset.retryStream));
+  });
+}
+
+export function renderModelState(vm, callbacks = {}) {
   const inspector = document.getElementById("inspector");
   if (inspector) {
     inspector.dataset.mode = vm.mode;
@@ -117,6 +305,33 @@ export function renderModelState(vm) {
     inspector.dataset.eventOrder = String(vm.selection?.event?.order ?? "");
   }
   document.getElementById("trajDot")?.classList.toggle("pulse", vm.pulse);
+  document.getElementById("wDot")?.classList.toggle("pulse", vm.pulse);
+  const modeBadge = document.getElementById("modeBadge");
+  if (modeBadge) {
+    modeBadge.textContent = vm.modeLabel;
+    modeBadge.dataset.mode = vm.mode;
+    modeBadge.classList.toggle("pulse", vm.pulse);
+  }
+  const runMetrics = document.getElementById("runMetrics");
+  if (runMetrics) {
+    runMetrics.innerHTML = `<span>duration <b>${esc(fmtDur(vm.run.duration))}</b></span><span>attempts <b>${esc(vm.run.attempts)}</b></span><span>status <b>${esc(vm.run.blocked ? "blocked" : vm.run.status)}</b></span>`;
+  }
+  document.querySelectorAll?.("[data-stage]").forEach(button => {
+    const selected = button.dataset.stage === vm.selection?.stage;
+    button.setAttribute("aria-current", selected ? "step" : "false");
+    button.setAttribute("aria-pressed", String(selected));
+  });
+  const evidence = document.getElementById("stageEvidence");
+  if (evidence) evidence.innerHTML = selectedStageEvidence(vm);
+  const telemetry = document.getElementById("workerTelemetry");
+  if (telemetry) telemetry.innerHTML = workerTelemetry(vm);
+  const proofRail = document.getElementById("proofRail");
+  if (proofRail) proofRail.innerHTML = `<h2>Proof</h2>${proofCards(vm)}`;
+  const alerts = document.getElementById("connectionAlerts");
+  if (alerts) alerts.innerHTML = connectionAlerts(vm);
+  bindStageButtons(callbacks.onSelectStage);
+  bindStageEvidence(callbacks.onSelectArtifact);
+  bindRetryButtons(callbacks.onRetryStream);
 }
 
 const STAGE_CLASS = {

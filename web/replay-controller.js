@@ -17,12 +17,21 @@ export function reduceReplay(state, action) {
       return { ...state, playing: state.length > 0 };
     case "pause":
       return { ...state, playing: false };
+    case "disconnect":
+      return { ...state, playing: false };
+    case "set-length":
+      return { ...state, length: Math.max(0, action.length) };
     case "restart":
       return { ...state, cursor: -1, playing: false, selectedStage: "plan" };
     case "tick": {
       if (!state.playing) return state;
       const cursor = Math.min(state.cursor + 1, state.length - 1);
-      return { ...state, cursor, playing: cursor < state.length - 1 };
+      return {
+        ...state,
+        cursor,
+        playing: cursor < state.length - 1,
+        selectedStage: action.stage || state.selectedStage,
+      };
     }
     case "select-stage":
       return {
@@ -41,6 +50,7 @@ export function createReplayController({
   onChange,
   setIntervalImpl = globalThis.setInterval,
   clearIntervalImpl = globalThis.clearInterval,
+  stageAtCursor = () => null,
 }) {
   let state = initialState;
   let timerId = null;
@@ -53,7 +63,10 @@ export function createReplayController({
 
   const ensureTimer = () => {
     if (timerId !== null || !state.playing) return;
-    timerId = setIntervalImpl(() => dispatch({ type: "tick" }), state.intervalMs);
+    timerId = setIntervalImpl(() => {
+      const cursor = Math.min(state.cursor + 1, state.length - 1);
+      dispatch({ type: "tick", stage: stageAtCursor(cursor) });
+    }, state.intervalMs);
   };
 
   const dispatch = action => {

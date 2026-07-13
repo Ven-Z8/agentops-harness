@@ -1,7 +1,17 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { guardCards, phaseEl, renderModelState, tabPlan } from "../ui/panels.js";
+import {
+  artifactFailureMessage,
+  fmtDur,
+  guardCards,
+  phaseEl,
+  proofCards,
+  renderModelState,
+  selectedStageEvidence,
+  stageButton,
+  tabPlan,
+} from "../ui/panels.js";
 
 function inspectorModel() {
   return {
@@ -86,4 +96,71 @@ test("deep-dive plan rendering still accepts raw detail", () => {
 
   assert.match(html, /Inspect then edit/);
   assert.match(html, /Change the file/);
+});
+
+test("semantic stage buttons expose descriptive labels and current state", () => {
+  const html = stageButton({
+    stage: { id: "equip", label: "Equip", status: "pass" },
+    selected: true,
+    viewModel: {
+      pack: { available: true, name: "pydantic-v2", version: "1.0.0" },
+      proof: {},
+    },
+  });
+
+  assert.match(html, /aria-label="Equip, pass, capability pack pydantic-v2 version 1\.0\.0"/);
+  assert.match(html, /aria-current="step"/);
+  assert.match(html, /data-stage="equip"/);
+});
+
+test("selected-stage evidence links only available files and names every missing file", () => {
+  const html = selectedStageEvidence({
+    run: { id: "run/1" },
+    selection: {
+      stage: "work",
+      evidence: {
+        expected: ["openhands_events.jsonl", "diff.patch", "worker_result.json"],
+        available: ["diff.patch"],
+        missing: ["openhands_events.jsonl", "worker_result.json"],
+      },
+    },
+    errors: {},
+  });
+
+  assert.match(html, /data-evidence-name="diff\.patch"/);
+  assert.doesNotMatch(html, /data-evidence-name="openhands_events\.jsonl"/);
+  assert.match(html, /Missing expected artifact: openhands_events\.jsonl/);
+  assert.match(html, /Missing expected artifact: worker_result\.json/);
+});
+
+test("proof cards render six required categories without false success defaults", () => {
+  const html = proofCards({
+    proof: {
+      tests: { available: false, passed: null, total: null },
+      scope: { available: false, planSteps: null, changedFiles: null },
+      risk: { available: false },
+      permissions: { available: false },
+      evidence: { available: false },
+      verification: { available: false },
+      finalVerdict: "Unavailable",
+    },
+  });
+
+  for (const label of ["Tests", "Plan scope", "Risk", "Permissions", "Evidence", "Verification"]) {
+    assert.match(html, new RegExp(label));
+  }
+  assert.doesNotMatch(html, /0\/0|100%|Accepted/);
+  assert.match(html, /unavailable/);
+});
+
+test("artifact failure copy names only the affected artifact", () => {
+  assert.equal(
+    artifactFailureMessage("risk_report.json"),
+    "Could not load risk_report.json. Other evidence remains available.",
+  );
+});
+
+test("missing durations render as unavailable instead of a zero or NaN metric", () => {
+  assert.equal(fmtDur(null), "unavailable");
+  assert.equal(fmtDur(undefined), "unavailable");
 });

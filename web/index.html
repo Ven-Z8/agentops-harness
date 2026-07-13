@@ -13,28 +13,54 @@
       AgentOps cockpit
       <span class="path" id="storePath">.agentops/runs</span>
     </div>
-    <div class="kpis">
-      <span class="kpi">runs <b class="tnum" id="kTotal">—</b></span>
-      <span class="kpi">pass <b class="tnum" id="kPass">—</b></span>
-      <span class="kpi">risk <b class="tnum" id="kRisk">—</b></span>
-      <span class="live" id="liveInd"><span class="dot"></span>idle</span>
+    <span class="mode-badge" id="modeBadge" data-mode="empty">No run</span>
+    <div class="top-replay" aria-label="Replay controls">
+      <button type="button" class="btn-ghost" id="replayBtn" aria-pressed="false" aria-label="Replay unavailable" disabled>
+        Replay unavailable
+      </button>
+    </div>
+    <div class="run-metrics" id="runMetrics" aria-label="Selected run metrics">
+      <span>duration <b>—</b></span><span>attempts <b>—</b></span><span>status <b>—</b></span>
     </div>
   </header>
-  <section class="stage-shell" aria-labelledby="stageTitle">
-    <div class="stage-copy">
-      <p class="eyebrow">Harness architecture</p>
-      <h1 id="stageTitle">Plan → Equip → Work → Guard → Prove</h1>
-      <span class="visual-mode" id="visualMode">3D stage</span>
-    </div>
-    <canvas id="cockpit3d" class="cockpit3d" aria-hidden="true"></canvas>
-    <div id="stageFallback" class="stage-fallback" hidden></div>
-  </section>
-  <div class="main">
-    <nav class="runlist"><h2>Runs</h2><div id="runs"></div></nav>
-    <section class="inspector" id="inspector">
-      <div class="empty">Select a run to inspect.</div>
+  <main class="main">
+    <aside class="mission-rail" aria-label="Mission and run selection">
+      <section class="mission-summary" id="missionSummary">
+        <p class="eyebrow">Mission</p>
+        <h1>AgentOps runs</h1>
+        <p>Select a stored run to inspect its governed evidence.</p>
+      </section>
+      <div class="collection-metrics" aria-label="Run collection metrics">
+        <span class="kpi">runs <b class="tnum" id="kTotal">—</b></span>
+        <span class="kpi">pass <b class="tnum" id="kPass">—</b></span>
+        <span class="kpi">risk <b class="tnum" id="kRisk">—</b></span>
+        <span class="live" id="liveInd"><span class="dot"></span>idle</span>
+      </div>
+      <nav class="runlist" aria-label="Recorded and stored runs"><h2>Runs</h2><div id="runs"></div></nav>
+    </aside>
+    <section class="portfolio-center" aria-label="Cockpit run inspection">
+      <section class="stage-shell" aria-labelledby="stageTitle">
+        <div class="stage-copy">
+          <p class="eyebrow">Harness architecture</p>
+          <h2 id="stageTitle">Plan → Equip → Work → Guard → Prove</h2>
+          <span class="visual-mode" id="visualMode">3D stage</span>
+        </div>
+        <button type="button" class="btn-ghost show-3d" id="show3dBtn" aria-pressed="false" hidden>Show 3D architecture</button>
+        <canvas id="cockpit3d" class="cockpit3d" aria-hidden="true"></canvas>
+        <div id="stageFallback" class="stage-fallback-message" role="status" hidden></div>
+        <div id="stageRibbon" class="stage-fallback-ribbon stage-dom-ribbon" role="group" aria-label="Run stages">
+          <span class="empty">Select a run to inspect its stages.</span>
+        </div>
+      </section>
+      <section class="inspector" id="inspector">
+        <div class="empty">Select a run to inspect.</div>
+      </section>
     </section>
-  </div>
+    <aside class="proof-rail" id="proofRail" aria-label="Independent run proof">
+      <h2>Proof</h2>
+      <div class="empty">Select a run to inspect proof.</div>
+    </aside>
+  </main>
   <script type="module" src="./app.js"></script>
 </body>
 </html>

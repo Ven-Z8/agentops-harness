@@ -131,3 +131,105 @@ test("closeStream closes only the selected source", () => {
   assert.equal(second.closed, false);
   assert.deepEqual([...client.sources], [second]);
 });
+
+function fakeTimeouts() {
+  const scheduled = [];
+  const cleared = [];
+  return {
+    scheduled,
+    cleared,
+    setTimeoutImpl(callback, delay) {
+      const timer = { id: scheduled.length + 1, callback, delay, cleared: false };
+      scheduled.push(timer);
+      return timer.id;
+    },
+    clearTimeoutImpl(id) {
+      const timer = scheduled.find(candidate => candidate.id === id);
+      if (timer) timer.cleared = true;
+      cleared.push(id);
+    },
+    run(id) {
+      const timer = scheduled.find(candidate => candidate.id === id);
+      if (timer && !timer.cleared) timer.callback();
+    },
+  };
+}
+
+function fakeEventSources() {
+  const instances = [];
+  class FakeEventSource {
+    constructor(path) {
+      this.path = path;
+      this.listeners = new Map();
+      this.closed = false;
+      instances.push(this);
+    }
+
+    addEventListener(name, handler) {
+      this.listeners.set(name, handler);
+    }
+
+    emit(name, event = { type: name }) {
+      this.listeners.get(name)?.(event);
+    }
+
+    close() {
+      this.closed = true;
+    }
+  }
+  return { FakeEventSource, instances };
+}
+
+test("resilient streams retry after one two and four seconds then require manual retry", () => {
+  const timers = fakeTimeouts();
+  const sources = fakeEventSources();
+  const connectionStates = [];
+  const client = new CockpitDataClient({
+    fetchImpl: async () => ({ ok: true }),
+    EventSourceImpl: sources.FakeEventSource,
+    setTimeoutImpl: timers.setTimeoutImpl,
+    clearTimeoutImpl: timers.clearTimeoutImpl,
+  });
+
+  const handle = client.openResilientStream("/stream", {
+    error: (_event, connection) => connectionStates.push(connection),
+  });
+
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    sources.instances.at(-1).emit("error");
+    const retry = timers.scheduled[attempt];
+    if (retry) timers.run(retry.id);
+  }
+
+  assert.deepEqual(timers.scheduled.map(timer => timer.delay), [1000, 2000, 4000]);
+  assert.equal(sources.instances.length, 4);
+  assert.deepEqual(connectionStates, [
+    { status: "reconnecting", retryable: false },
+    { status: "reconnecting", retryable: false },
+    { status: "reconnecting", retryable: false },
+    { status: "disconnected", retryable: true },
+  ]);
+
+  handle.retry();
+  assert.equal(sources.instances.length, 5);
+});
+
+test("closeStreams cancels a resilient stream pending retry", () => {
+  const timers = fakeTimeouts();
+  const sources = fakeEventSources();
+  const client = new CockpitDataClient({
+    fetchImpl: async () => ({ ok: true }),
+    EventSourceImpl: sources.FakeEventSource,
+    setTimeoutImpl: timers.setTimeoutImpl,
+    clearTimeoutImpl: timers.clearTimeoutImpl,
+  });
+
+  client.openResilientStream("/stream", {});
+  sources.instances[0].emit("error");
+  client.closeStreams();
+  timers.run(timers.scheduled[0].id);
+
+  assert.deepEqual(timers.cleared, [timers.scheduled[0].id]);
+  assert.equal(sources.instances.length, 1);
+  assert.equal(client.sources.size, 0);
+});

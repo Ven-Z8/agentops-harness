@@ -119,3 +119,42 @@ test("restart resets the cursor without starting another timer", () => {
   assert.equal(controller.getState().playing, false);
   assert.equal(timers.scheduled.length, 0);
 });
+
+test("disconnect preserves the last verified cursor and stops playback", () => {
+  const before = createReplayState({ length: 8 });
+  const progressed = { ...before, cursor: 4, playing: true };
+
+  const after = reduceReplay(progressed, { type: "disconnect" });
+
+  assert.equal(after.cursor, 4);
+  assert.equal(after.playing, false);
+  assert.equal(after.length, 8);
+});
+
+test("verified event ingestion changes replay length without advancing the cursor", () => {
+  const before = { ...createReplayState({ length: 2 }), cursor: 1 };
+
+  const after = reduceReplay(before, { type: "set-length", length: 5 });
+
+  assert.equal(after.length, 5);
+  assert.equal(after.cursor, 1);
+});
+
+test("timer ticks select the stage of the verified event at the new cursor", () => {
+  const timers = fakeTimers();
+  const stages = ["plan", "work", "guard"];
+  const controller = createReplayController({
+    initialState: createReplayState({ length: stages.length }),
+    onChange() {},
+    stageAtCursor: cursor => stages[cursor],
+    setIntervalImpl: timers.setIntervalImpl,
+    clearIntervalImpl: timers.clearIntervalImpl,
+  });
+
+  controller.dispatch({ type: "play" });
+  timers.scheduled[0].callback();
+  timers.scheduled[0].callback();
+
+  assert.equal(controller.getState().cursor, 1);
+  assert.equal(controller.getState().selectedStage, "work");
+});
