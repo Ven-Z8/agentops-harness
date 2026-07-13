@@ -117,6 +117,35 @@ def test_planner_prompt_includes_graph_context_for_llm() -> None:
     assert "uv run pytest -q" in prompt
 
 
+def test_llm_planner_uses_graph_grounded_validation_commands() -> None:
+    class FileOnlyValidationLLM(FakeLLMClient):
+        def generate_structured(self, prompt: str, schema: type) -> object:
+            plan = super().generate_structured(prompt, schema)
+            assert isinstance(plan, ImplementationPlan)
+            plan.tests_to_run = ["tests/test_service.py"]
+            return plan
+
+    fixture = Path("examples/showcase/fixtures/pydantic-v1-app")
+    graph = RepoGraphBuilder().build(fixture)
+    profile = RepoProfile(
+        repo_path=str(fixture),
+        language="python",
+        source_files=[
+            "app/models.py",
+            "app/service.py",
+            "tests/test_service.py",
+        ],
+    )
+
+    plan = Planner(llm_client=FileOnlyValidationLLM()).create_plan(
+        "Migrate Pydantic v1 APIs",
+        profile,
+        repo_graph=graph,
+    )
+
+    assert plan.tests_to_run == ["uv run pytest -q", "uv run ruff check ."]
+
+
 def test_reviewer_uses_llm_client_when_provided() -> None:
     llm_client = FakeLLMClient()
     test_results = TestRunSummary(

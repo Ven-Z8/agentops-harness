@@ -18,10 +18,15 @@ class Planner:
     ) -> ImplementationPlan:
         lessons = memory_lessons or []
         if self.llm_client is not None:
-            return self.llm_client.generate_structured(
+            plan = self.llm_client.generate_structured(
                 self._build_prompt(task, repo_profile, repo_graph, lessons),
                 ImplementationPlan,
             )
+            if repo_graph is not None:
+                grounded_commands = RepoGraphQuery(repo_graph).validation_commands()
+                if grounded_commands:
+                    plan.tests_to_run = grounded_commands
+            return plan
 
         if repo_graph is not None:
             return self._graph_aware_plan(task, repo_profile, repo_graph, lessons)
