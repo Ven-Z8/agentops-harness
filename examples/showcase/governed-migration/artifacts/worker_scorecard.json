@@ -1,0 +1,16 @@
+{
+  "agentops_tests_passed": null,
+  "changed_file_count": null,
+  "convergence_type": null,
+  "duration_seconds": 81.136,
+  "notes": [
+    "AgentOps owns final diff collection, permission enforcement, tests, risk, and evidence."
+  ],
+  "permission_violations": null,
+  "risk_level": null,
+  "status": "completed",
+  "task_id": "showcase-governed-migration",
+  "tests_attempted_by_worker": true,
+  "unsupported_claims": null,
+  "worker_type": "openhands"
+}

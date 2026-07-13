@@ -1,0 +1,22 @@
+{
+  "config_files": [
+    "pyproject.toml"
+  ],
+  "entrypoints": [],
+  "framework": null,
+  "generated_at": "2026-07-13T23:03:30.526257Z",
+  "important_folders": [
+    "app",
+    "tests"
+  ],
+  "language": "python",
+  "package_manager": "uv",
+  "repo_path": "examples/showcase/fixtures/pydantic-v1-app",
+  "source_files": [
+    "app/__init__.py",
+    "app/models.py",
+    "app/service.py",
+    "tests/test_service.py"
+  ],
+  "test_framework": "pytest"
+}

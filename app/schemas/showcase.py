@@ -4,6 +4,8 @@ from pydantic import BaseModel, Field
 
 from app.schemas.pack import CapabilityPackProvenance
 
+SHOWCASE_MANIFEST_ARTIFACT = "showcase_manifest.json"
+
 
 class ShowcaseManifest(BaseModel):
     mission_id: str

@@ -1,6 +1,8 @@
 import json
 import re
 import sys
+import zipfile
+from io import BytesIO
 from pathlib import Path
 
 import pytest
@@ -8,12 +10,15 @@ import yaml
 from fastapi.testclient import TestClient
 
 from app.api import create_api
+from app.cockpit.artifacts import CockpitReader
 from app.core.run_artifacts import artifact_dir_for_run, artifact_root_for_storage
 from app.core.showcase import ShowcaseError, import_showcase, load_showcase_fixture
 from app.core.storage import RunStorage
 from app.schemas.pack import CapabilityPackProvenance
 from scripts import showcase as showcase_script
 from tests.helpers_runrecord import minimal_run_record
+
+COMMITTED_SHOWCASE = Path("examples/showcase/governed-migration")
 
 
 def write_showcase_fixture(root: Path) -> Path:
@@ -199,6 +204,120 @@ def test_imported_showcase_uses_normal_cockpit_routes(
     bundle = client.get(f"/cockpit/api/runs/{record.run_id}/bundle.zip")
     assert bundle.status_code == 200
     assert bundle.content[:2] == b"PK"
+
+
+@pytest.mark.parametrize(
+    ("route", "response_kind"),
+    [
+        ("/cockpit/api/runs", "list"),
+        ("/cockpit/api/runs/{run_id}", "detail"),
+        (
+            "/cockpit/api/runs/{run_id}/artifacts/final_report.md",
+            "artifact",
+        ),
+        ("/cockpit/api/runs/{run_id}/bundle.zip", "bundle"),
+        ("/cockpit/api/runs/{run_id}/stream", "stream"),
+        ("/cockpit/api/runs/{run_id}/worker/stream", "stream"),
+    ],
+)
+def test_committed_showcase_uses_every_normal_cockpit_route(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    route: str,
+    response_kind: str,
+) -> None:
+    fixture = load_showcase_fixture(COMMITTED_SHOWCASE)
+    storage = tmp_path / "showcase.db"
+    record = import_showcase(COMMITTED_SHOWCASE, storage)
+    monkeypatch.setattr("app.api.settings.llm_provider", "mock")
+    client = TestClient(create_api(storage_path=storage))
+    path = route.format(run_id=record.run_id)
+
+    if response_kind == "stream":
+        seen_open = seen_event = False
+        with client.stream("GET", path) as response:
+            assert response.status_code == 200
+            assert response.headers["content-type"].startswith("text/event-stream")
+            for line in response.iter_lines():
+                seen_open = seen_open or line == "event: open"
+                seen_event = seen_event or line == "event: event"
+                if seen_open and seen_event:
+                    break
+        assert seen_open and seen_event
+        return
+
+    response = client.get(path)
+    assert response.status_code == 200
+    if response_kind == "list":
+        assert record.run_id in {item["run_id"] for item in response.json()["runs"]}
+    elif response_kind == "detail":
+        detail = response.json()
+        assert detail["record"]["run_id"] == record.run_id
+        assert detail["capture"]["source_run_id"] == fixture.manifest.source_run_id
+        assert detail["capture"]["source_commit"] == fixture.manifest.source_commit
+    elif response_kind == "artifact":
+        assert "Pydantic v2" in response.text
+    else:
+        assert response.content[:2] == b"PK"
+
+
+def test_committed_showcase_serves_every_required_artifact_and_bundle_entry(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    fixture = load_showcase_fixture(COMMITTED_SHOWCASE)
+    storage = tmp_path / "showcase.db"
+    record = import_showcase(COMMITTED_SHOWCASE, storage)
+    monkeypatch.setattr("app.api.settings.llm_provider", "mock")
+    client = TestClient(create_api(storage_path=storage))
+
+    for name in fixture.manifest.required_artifacts:
+        response = client.get(
+            f"/cockpit/api/runs/{record.run_id}/artifacts/{name}"
+        )
+        assert response.status_code == 200, name
+
+    bundle = client.get(f"/cockpit/api/runs/{record.run_id}/bundle.zip")
+    assert bundle.status_code == 200
+    with zipfile.ZipFile(BytesIO(bundle.content)) as archive:
+        assert set(fixture.manifest.required_artifacts) <= set(archive.namelist())
+
+
+def test_imported_showcase_exposes_capture_metadata_through_normal_detail(
+    tmp_path: Path,
+) -> None:
+    fixture = write_showcase_fixture(tmp_path / "fixture")
+    storage = tmp_path / "showcase.db"
+
+    record = import_showcase(fixture, storage)
+    detail = CockpitReader(storage).detail(record.run_id)
+
+    assert detail["capture"] == {
+        "source_run_id": "source-capture-123",
+        "source_commit": "1" * 40,
+        "captured_at": "2026-07-13T12:00:00+00:00",
+    }
+    assert "showcase_manifest.json" in {
+        artifact["name"] for artifact in detail["artifacts"]
+    }
+
+
+def test_showcase_bundle_includes_sanitized_manifest_projection(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    fixture = write_showcase_fixture(tmp_path / "fixture")
+    storage = tmp_path / "showcase.db"
+    record = import_showcase(fixture, storage)
+    monkeypatch.setattr("app.api.settings.llm_provider", "mock")
+    client = TestClient(create_api(storage_path=storage))
+
+    response = client.get(f"/cockpit/api/runs/{record.run_id}/bundle.zip")
+
+    assert response.status_code == 200
+    with zipfile.ZipFile(BytesIO(response.content)) as archive:
+        manifest = json.loads(archive.read("showcase_manifest.json"))
+    assert manifest["source_run_id"] == "source-capture-123"
 
 
 def test_showcase_validation_names_missing_artifact(tmp_path: Path) -> None:

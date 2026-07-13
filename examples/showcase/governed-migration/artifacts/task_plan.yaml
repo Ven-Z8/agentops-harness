@@ -1,0 +1,56 @@
+task: Migrate from Pydantic v1 to v2 APIs
+summary: Update app/models.py to use Pydantic v2 APIs (BaseModel, Field, validators,
+  etc.) while preserving behavior. Run existing tests to confirm no regressions.
+steps:
+- id: 1
+  title: Inspect current Pydantic v1 usage
+  description: Read app/models.py and app/service.py to identify all Pydantic v1 APIs
+    (e.g., BaseModel, Field, validators, root_validator, validator, Config class,
+    etc.) that need migration.
+  files_to_inspect:
+  - app/models.py
+  - app/service.py
+  - tests/test_service.py
+  files_to_edit: []
+  tests: []
+- id: 2
+  title: Update app/models.py to Pydantic v2
+  description: 'Replace deprecated Pydantic v1 patterns with v2 equivalents: change
+    BaseModel import, update validators (use @field_validator, @model_validator),
+    replace Config class with model_config, update Field usage if needed. Preserve
+    all field names, types, and validation logic exactly.'
+  files_to_inspect: []
+  files_to_edit:
+  - app/models.py
+  tests: []
+- id: 3
+  title: Update app/service.py if needed
+  description: Check if service.py uses any Pydantic v1-specific APIs (e.g., .dict(),
+    .schema(), .json() with v1 behavior). If so, update to v2 equivalents (.model_dump(),
+    .model_dump_json()).
+  files_to_inspect: []
+  files_to_edit:
+  - app/service.py
+  tests: []
+- id: 4
+  title: Run focused tests
+  description: Execute the existing test suite to verify behavior is preserved.
+  files_to_inspect: []
+  files_to_edit: []
+  tests:
+  - uv run pytest -q tests/test_service.py
+acceptance_criteria:
+- All existing tests pass with no failures
+- No Pydantic v1 deprecation warnings in test output
+- Application behavior unchanged (same inputs produce same outputs)
+tests_to_run:
+- uv run pytest -q
+- uv run ruff check .
+risk_notes:
+- No secrets or auth concerns in this migration
+- 'Dependency: Ensure pydantic>=2.0 is installed (uv add pydantic@latest)'
+- No broad refactor needed; only targeted API changes in models.py and possibly service.py
+- If validators use v1-specific patterns (e.g., pre=True, each_item=True), ensure
+  v2 equivalents are correct
+- Check for any use of .dict() -> .model_dump(), .json() -> .model_dump_json(), .schema()
+  -> .model_json_schema()

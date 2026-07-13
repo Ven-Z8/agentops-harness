@@ -1,0 +1,9 @@
+{
+  "blocked": false,
+  "factors": [
+    "2 changed file(s)",
+    "No tests changed"
+  ],
+  "risk_level": "low",
+  "risk_score": 18
+}

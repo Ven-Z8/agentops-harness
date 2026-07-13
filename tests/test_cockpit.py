@@ -69,6 +69,7 @@ def test_old_run_without_pack_remains_readable(tmp_path: Path) -> None:
 
     assert detail["record"]["capability_pack"] is None
     assert detail["summary"]["capability_pack"] is None
+    assert detail["capture"] is None
 
 
 def test_run_artifacts_include_capability_pack_json(tmp_path: Path) -> None:

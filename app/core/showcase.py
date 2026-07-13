@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import shutil
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath, PureWindowsPath
@@ -9,7 +10,7 @@ import yaml
 from app.core.run_artifacts import artifact_dir_for_run, artifact_root_for_storage
 from app.core.storage import RunStorage
 from app.schemas.run import RunRecord
-from app.schemas.showcase import ShowcaseManifest
+from app.schemas.showcase import SHOWCASE_MANIFEST_ARTIFACT, ShowcaseManifest
 
 _TEXT_SUFFIXES = {".json", ".jsonl", ".yaml", ".yml", ".md", ".patch", ".log", ".txt"}
 _FORBIDDEN_MARKERS = (
@@ -100,4 +101,9 @@ def import_showcase(root: Path, storage_path: Path) -> RunRecord:
         shutil.rmtree(destination)
     destination.parent.mkdir(parents=True, exist_ok=True)
     shutil.copytree(fixture.artifacts_dir, destination)
+    (destination / SHOWCASE_MANIFEST_ARTIFACT).write_text(
+        json.dumps(fixture.manifest.model_dump(mode="json"), indent=2, sort_keys=True)
+        + "\n",
+        encoding="utf-8",
+    )
     return fixture.record

@@ -1,0 +1,38 @@
++----------------------------------------------------------------------+
+|  OpenHands SDK v1.28.1                                               |
+|                                                                      |
+|  Report a bug: github.com/OpenHands/software-agent-sdk/issues        |
+|  Get help: openhands.dev/joinslack                                   |
+|  Scale up: openhands.dev/product/sdk                                 |
+|                                                                      |
+|  Set OPENHANDS_SUPPRESS_BANNER=1 to hide this message                |
++----------------------------------------------------------------------+
+
+[07/13/26 18:03:52] INFO     Registered file-based agent          default.py:134
+                             'bash-runner' from                                 
+                             ./.venv/lib/python3.12/               
+                             site-packages/openhands/tools/preset               
+                             /subagents/bash_runner.md                          
+[07/13/26 18:03:52] INFO     Registered file-based agent          default.py:134
+                             'code-explorer' from                               
+                             ./.venv/lib/python3.12/               
+                             site-packages/openhands/tools/preset               
+                             /subagents/code_explorer.md                        
+[07/13/26 18:03:52] INFO     Registered file-based agent          default.py:134
+                             'general-purpose' from                             
+                             ./.venv/lib/python3.12/               
+                             site-packages/openhands/tools/preset               
+                             /subagents/default.md                              
+[07/13/26 18:03:52] INFO     Created new conversation               state.py:468
+                             3a35e73e-f419-4a4a-b981-ebe249a44157               
+[07/13/26 18:03:52] INFO     FileEditor initialized with cwd:       editor.py:95
+                             examples/showcase/fixtures/pydantic-v1-app             
+[07/13/26 18:03:52] INFO     TmuxPanePool initialized:     tmux_pane_pool.py:135
+                             session=openhands-pool-None-4                      
+                             8862f1d-f81c-4192-8844-9f2c5b                      
+                             6c2b93, max_panes=4                                
+[07/13/26 18:03:52] INFO     TerminalExecutor initialized (pool      impl.py:140
+                             mode) working_dir:                                 
+                             examples/showcase/fixtures/pydantic-v1-app,               
+                             username: None, max_panes: 4                       
+[07/13/26 18:03:52] INFO     Loaded 4 tools from spec                base.py:534

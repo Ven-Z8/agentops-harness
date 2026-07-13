@@ -14,6 +14,7 @@ from pathlib import Path
 from app.core.run_artifacts import artifact_dir_for_run
 from app.core.storage import RunStorage
 from app.schemas.run import RunRecord
+from app.schemas.showcase import SHOWCASE_MANIFEST_ARTIFACT, ShowcaseManifest
 
 # The five macro-phases the governance pipeline collapses to, and the LangGraph
 # node names whose lifecycle events feed each one. Order is display order.
@@ -113,6 +114,7 @@ class CockpitReader:
                 "accepted": record.verification_bundle.accepted,
                 "overall_confidence": record.verification_bundle.overall_confidence,
             },
+            "capture": self.capture_view(run_id),
         }
 
     # ── derived views ───────────────────────────────────────────────────
@@ -180,6 +182,23 @@ class CockpitReader:
         if len(data) > max_bytes:
             return data[:max_bytes] + f"\n… (truncated at {max_bytes} bytes)"
         return data
+
+    def capture_view(self, run_id: str) -> dict | None:
+        """Project validated imported-capture metadata from the normal artifact bundle."""
+        path = artifact_dir_for_run(self.storage_path, run_id) / SHOWCASE_MANIFEST_ARTIFACT
+        if not path.is_file():
+            return None
+        try:
+            manifest = ShowcaseManifest.model_validate_json(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            return None
+        if manifest.run_id != run_id:
+            return None
+        return {
+            "source_run_id": manifest.source_run_id,
+            "source_commit": manifest.source_commit,
+            "captured_at": manifest.captured_at.isoformat(),
+        }
 
     # ── inner OpenHands worker loop ─────────────────────────────────────
     def worker_view(self, run_id: str) -> dict:
