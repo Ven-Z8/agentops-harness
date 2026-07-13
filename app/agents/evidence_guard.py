@@ -33,7 +33,18 @@ class EvidenceGuard:
         "tests changed",
         "test changed",
     )
-    TEST_UPDATE_CLAIM = re.compile(r"\b(updated|modified|changed)\b.*\btest\b")
+    TEST_UPDATE_CLAIM = re.compile(
+        r"\b(?:updated|modified|changed)\b\s+"
+        r"(?:(?!(?:and|but|no)\b)[A-Za-z0-9_-]+\s+){0,3}tests?\b"
+    )
+    NEGATED_TEST_CHANGE = re.compile(
+        r"\b(?:"
+        r"no\s+(?:new\s+)?tests?(?:\s+files?)?\s+(?:were\s+|was\s+)?"
+        r"(?:added|updated|modified|changed|created)"
+        r"|tests?(?:\s+files?)?\s+(?:were|was)\s+not\s+"
+        r"(?:added|updated|modified|changed|created)"
+        r")\b"
+    )
     ROUTE_CLAIM_PATTERN = re.compile(r"\b(GET|POST|PUT|PATCH|DELETE|ANY)\s+(/[A-Za-z0-9_./{}-]*)")
     VALIDATION_RECOMMENDATION_WORDS = (
         "recommended targeted validation",
@@ -136,11 +147,15 @@ This report contains claims that are not supported by the run record.
         markdown: str,
         changed_file_set: set[str],
     ) -> list[EvidenceFinding]:
-        lowered = markdown.lower()
-        has_test_claim = (
-            any(pattern in lowered for pattern in self.TEST_CLAIM_PATTERNS)
-            or self.TEST_UPDATE_CLAIM.search(lowered) is not None
-        )
+        has_test_claim = False
+        for line in markdown.lower().splitlines():
+            claim_text = self.NEGATED_TEST_CHANGE.sub("", line)
+            if any(pattern in claim_text for pattern in self.TEST_CLAIM_PATTERNS):
+                has_test_claim = True
+                break
+            if self.TEST_UPDATE_CLAIM.search(claim_text) is not None:
+                has_test_claim = True
+                break
         has_changed_tests = any(path.startswith("tests/") for path in changed_file_set)
         if has_test_claim and not has_changed_tests:
             return [

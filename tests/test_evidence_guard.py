@@ -127,6 +127,25 @@ def test_evidence_guard_flags_updated_test_claim_without_test_file_changes() -> 
     )
 
 
+def test_evidence_guard_accepts_explicit_no_test_changes_statement() -> None:
+    report = FinalReport(
+        title="PR Report",
+        markdown=(
+            "Only two source files were changed, no tests were modified, and all "
+            "existing tests continue to pass. The successful test outcomes keep risk low."
+        ),
+    )
+
+    evidence = EvidenceGuard().check(
+        final_report=report,
+        changed_files=["app/models.py", "app/service.py"],
+        test_results=passing_tests(),
+    )
+
+    assert evidence.grounded is True
+    assert evidence.unsupported_claim_count == 0
+
+
 def test_evidence_guard_flags_lint_claim_without_lint_command() -> None:
     report = FinalReport(
         title="PR Report",
