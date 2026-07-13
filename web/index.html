@@ -20,6 +20,15 @@
       <span class="live" id="liveInd"><span class="dot"></span>idle</span>
     </div>
   </header>
+  <section class="stage-shell" aria-labelledby="stageTitle">
+    <div class="stage-copy">
+      <p class="eyebrow">Harness architecture</p>
+      <h1 id="stageTitle">Plan → Equip → Work → Guard → Prove</h1>
+      <span class="visual-mode" id="visualMode">3D stage</span>
+    </div>
+    <canvas id="cockpit3d" class="cockpit3d" aria-hidden="true"></canvas>
+    <div id="stageFallback" class="stage-fallback" hidden></div>
+  </section>
   <div class="main">
     <nav class="runlist"><h2>Runs</h2><div id="runs"></div></nav>
     <section class="inspector" id="inspector">

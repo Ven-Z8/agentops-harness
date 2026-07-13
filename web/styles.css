@@ -38,6 +38,52 @@ body {
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
 @media (prefers-reduced-motion:reduce){ .pulse{animation:none} }
 
+/* bounded tactical stage; the canvas is visual-only and the DOM fallback is semantic */
+.stage-shell {
+  position:relative; flex:0 0 clamp(190px,29vh,300px); min-height:190px;
+  overflow:hidden; border-bottom:1px solid var(--border);
+  background:
+    radial-gradient(circle at 50% 125%,rgba(56,189,248,.12),transparent 52%),
+    linear-gradient(180deg,#111c32 0%,var(--bg) 100%);
+}
+.stage-copy { position:absolute; z-index:2; top:16px; left:20px; pointer-events:none; }
+.stage-copy .eyebrow {
+  margin:0 0 4px; color:var(--blue); font-family:var(--mono); font-size:10px;
+  font-weight:600; letter-spacing:.12em; text-transform:uppercase;
+}
+.stage-copy h1 { margin:0; font-size:18px; line-height:1.2; letter-spacing:.01em; }
+.visual-mode {
+  display:inline-block; margin-top:7px; border:1px solid var(--border-2); border-radius:999px;
+  padding:2px 8px; background:rgba(15,23,42,.76); color:var(--text-2);
+  font-family:var(--mono); font-size:10px;
+}
+.cockpit3d { position:absolute; inset:0; display:block; width:100%; height:100%; }
+.cockpit3d[hidden],.stage-fallback[hidden] { display:none; }
+.stage-fallback {
+  position:absolute; z-index:1; inset:76px 20px 18px; display:flex; align-items:flex-end;
+}
+.stage-fallback-ribbon {
+  display:grid; grid-template-columns:repeat(5,minmax(90px,1fr)); gap:8px; width:100%;
+}
+.stage-fallback-node {
+  min-width:0; border:1px solid var(--border-2); border-radius:var(--radius);
+  padding:11px 9px; background:rgba(21,32,58,.94); color:var(--text-2);
+  font:inherit; text-align:center; cursor:pointer;
+}
+.stage-fallback-node:hover,.stage-fallback-node:focus-visible {
+  border-color:var(--blue); color:var(--text); outline:none;
+}
+.stage-fallback-node[aria-pressed="true"] { box-shadow:inset 0 -3px 0 var(--blue); color:var(--text); }
+.stage-fallback-node .fallback-glyph { display:block; margin-bottom:3px; font-size:15px; }
+.stage-fallback-node .fallback-status {
+  display:block; overflow:hidden; margin-top:2px; color:var(--text-3);
+  font-family:var(--mono); font-size:10px; text-overflow:ellipsis; white-space:nowrap;
+}
+.stage-fallback-node[data-status="pass"] .fallback-glyph { color:var(--green); }
+.stage-fallback-node[data-status="warn"] .fallback-glyph { color:var(--amber); }
+.stage-fallback-node[data-status="blocked"] .fallback-glyph { color:var(--red); }
+.stage-fallback-node[data-status="active"] .fallback-glyph { color:var(--blue); }
+
 /* main split */
 .main { flex:1 1 auto; display:grid; grid-template-columns:268px 1fr; min-height:0; }
 .runlist { border-right:1px solid var(--border); overflow-y:auto; background:var(--muted); }
@@ -215,6 +261,10 @@ details.dd .dd-tag { margin-left:auto; font-weight:400; }
   .kpis{ gap:12px; }
 }
 @media (max-width:560px){
+  .stage-shell{ flex-basis:250px; }
+  .stage-copy h1{ font-size:15px; }
+  .stage-fallback{ inset:82px 12px 12px; align-items:stretch; overflow-y:auto; }
+  .stage-fallback-ribbon{ grid-template-columns:1fr 1fr; }
   .ribbon{ flex-wrap:wrap; } .phase{ flex:1 1 30%; }
   .kpis .kpi{ display:none; } .topbar .live{ display:flex; }
 }

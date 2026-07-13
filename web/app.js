@@ -10,6 +10,8 @@ import {
 } from "./app-state.js";
 import { createReplayController, createReplayState } from "./replay-controller.js";
 import { buildCockpitViewModel, STAGE_IDS } from "./run-model.js";
+import { createThreeStage } from "./scene/three-stage.js";
+import { stageVisual } from "./scene/transitions.js";
 import * as panels from "./ui/panels.js";
 
 // AgentOps Cockpit — vanilla ES-module lifecycle coordinator. The data client
@@ -22,6 +24,8 @@ const state = {
   trajectoryEvents: [], workerEvents: [],
 };
 let replayController = null;
+let cockpitStage = null;
+let stageContextLostHandler = null;
 const runDetailRequests = createLatestRequestGate();
 
 if (state.mission?.initialStage) {
@@ -56,11 +60,105 @@ const TERMINAL_STATUSES = new Set(["completed", "blocked", "failed"]);
 window.addEventListener("beforeunload", () => {
   stopReplayTimer();
   client.closeStreams();
+  disposeTacticalStage();
 }, { once: true });
 document.addEventListener("visibilitychange", () => {
   if (document.hidden && state.replay.playing) pauseReplay();
 });
+initializeTacticalStage();
 init();
+
+function initializeTacticalStage() {
+  const canvas = document.getElementById("cockpit3d");
+  const fallback = document.getElementById("stageFallback");
+  const visualMode = document.getElementById("visualMode");
+  try {
+    cockpitStage = createThreeStage({
+      canvas,
+      onStageSelected: stageId => {
+        if (state.viewModel) selectStage(stageId);
+      },
+      reducedMotion: window.matchMedia?.("(prefers-reduced-motion: reduce)").matches || false,
+    });
+    canvas.hidden = false;
+    fallback.hidden = true;
+    visualMode.textContent = "3D stage";
+    stageContextLostHandler = event => {
+      event.preventDefault();
+      activateStageFallback("WebGL context lost");
+      if (state.detail) {
+        const viewModel = rebuildViewModel();
+        panels.renderModelState(viewModel);
+      }
+    };
+    canvas.addEventListener("webglcontextlost", stageContextLostHandler);
+  } catch (error) {
+    activateStageFallback(error?.message || "WebGL is unavailable");
+  }
+}
+
+function disposeTacticalStage() {
+  const canvas = document.getElementById("cockpit3d");
+  if (stageContextLostHandler) {
+    canvas?.removeEventListener("webglcontextlost", stageContextLostHandler);
+    stageContextLostHandler = null;
+  }
+  const stage = cockpitStage;
+  cockpitStage = null;
+  stage?.dispose();
+}
+
+function activateStageFallback(message) {
+  disposeTacticalStage();
+  state.errors = {
+    ...state.errors,
+    webgl: { type: "webgl", message: String(message) },
+  };
+  const canvas = document.getElementById("cockpit3d");
+  const fallback = document.getElementById("stageFallback");
+  const visualMode = document.getElementById("visualMode");
+  canvas.hidden = true;
+  fallback.hidden = false;
+  fallback.setAttribute("aria-label", "2D fallback stage");
+  visualMode.textContent = "2D fallback";
+  renderStageFallback(state.viewModel);
+}
+
+function renderStageFallback(viewModel) {
+  const fallback = document.getElementById("stageFallback");
+  if (fallback.hidden) return;
+  if (!viewModel) {
+    fallback.innerHTML = '<div class="empty">Select a run to inspect the stage.</div>';
+    return;
+  }
+  fallback.innerHTML = `<div class="stage-fallback-ribbon" role="group" aria-label="Run stages">
+    ${viewModel.stages.map(stage => {
+    const visual = stageVisual(stage.status);
+    const selected = stage.id === viewModel.selection.stage;
+    return `<button class="stage-fallback-node" data-stage="${panels.esc(stage.id)}" data-status="${panels.esc(stage.status)}" aria-pressed="${selected}">
+      <span class="fallback-glyph" aria-hidden="true">${panels.esc(visual.glyph)}</span>
+      <span>${panels.esc(stage.label)}</span>
+      <span class="fallback-status">${panels.esc(visual.label)}</span>
+    </button>`;
+  }).join("")}
+  </div>`;
+  fallback.querySelectorAll("[data-stage]").forEach(button => {
+    button.addEventListener("click", () => selectStage(button.dataset.stage));
+  });
+}
+
+function renderTacticalStage(viewModel) {
+  if (!cockpitStage) {
+    renderStageFallback(viewModel);
+    return;
+  }
+  try {
+    cockpitStage.setPlaybackActive(state.replay.playing);
+    cockpitStage.render(viewModel);
+  } catch (error) {
+    activateStageFallback(error?.message || "WebGL rendering failed");
+  }
+}
 
 async function init() {
   await loadRuns();
@@ -303,7 +401,7 @@ function setDetail(detail) {
   stopReplayTimer();
   state.detail = detail;
   state.mode = modeForDetail(detail);
-  state.errors = {};
+  state.errors = state.errors.webgl ? { webgl: state.errors.webgl } : {};
   state.selectedEvent = null;
   state.trajectoryEvents = [];
   state.workerEvents = [];
@@ -334,6 +432,7 @@ function rebuildViewModel() {
     },
     errors: state.errors,
   });
+  renderTacticalStage(state.viewModel);
   return state.viewModel;
 }
 
