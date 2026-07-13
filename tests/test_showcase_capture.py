@@ -116,6 +116,24 @@ def test_sanitize_text_rejects_residual_workspace_volume_path() -> None:
         )
 
 
+@pytest.mark.parametrize(
+    ("unsafe_text", "message"),
+    [
+        ("Authorization: Bearer reviewer-sentinel", "authorization bearer"),
+        ("key=sk-or-v1-reviewer-sentinel", "OpenRouter-shaped key"),
+        ("cache=/root/.cache/openhands", "home or temporary path"),
+        ("state=openhands_state/session", "provider-state marker"),
+        ("artifact=provider_request.json", "provider-state marker"),
+    ],
+)
+def test_sanitize_text_rejects_credentials_paths_and_provider_state(
+    unsafe_text: str,
+    message: str,
+) -> None:
+    with pytest.raises(ShowcaseError, match=message):
+        sanitize_text(unsafe_text, source_root=Path("/capture/repo"))
+
+
 def test_capture_rewrites_repo_root_without_changing_semantic_results(
     tmp_path: Path,
 ) -> None:
@@ -271,3 +289,191 @@ def test_capture_preserves_worker_event_order_and_omits_provider_state(
     assert not (output / "artifacts" / "openhands_state").exists()
     assert (output / "artifacts" / "showcase_manifest.json").is_file()
     assert fixture == load_showcase_fixture(output)
+
+
+def test_capture_sanitizes_identity_and_internal_paths_without_reordering_events(
+    tmp_path: Path,
+) -> None:
+    source_root = tmp_path / "capture" / "pydantic-v1-app"
+    source_root.mkdir(parents=True)
+    storage = tmp_path / "capture" / "capture.db"
+    run_id = _capturable_run(storage, source_root)
+    artifacts = artifact_dir_for_run(storage, run_id)
+    artifacts.mkdir(parents=True)
+    source_events = [
+        {"event_type": "ActionEvent", "event": {"tool_name": "grep"}},
+        {
+            "event_type": "ObservationEvent",
+            "event": {
+                "tool_name": "terminal",
+                "observation": {
+                    "command": "uv run pytest -q",
+                    "content": [{"type": "text", "text": "2 passed"}],
+                    "full_output_save_dir": str(
+                        artifacts / "openhands_state" / "session" / "observations"
+                    ),
+                    "metadata": {
+                        "hostname": "reviewer-host",
+                        "username": "reviewer-user",
+                        "working_dir": str(source_root),
+                    },
+                },
+            },
+        },
+        {"event_type": "ActionEvent", "event": {"tool_name": "file_editor"}},
+    ]
+    (artifacts / "openhands_events.jsonl").write_text(
+        "".join(json.dumps(event) + "\n" for event in source_events),
+        encoding="utf-8",
+    )
+
+    output = tmp_path / "governed-migration"
+    capture_showcase(
+        storage=storage,
+        run_id=run_id,
+        source_root=source_root,
+        source_commit="5" * 40,
+        output=output,
+    )
+
+    captured_events = [
+        json.loads(line)
+        for line in (output / "artifacts" / "openhands_events.jsonl")
+        .read_text(encoding="utf-8")
+        .splitlines()
+    ]
+    assert len(captured_events) == len(source_events)
+    assert [event["event_type"] for event in captured_events] == [
+        event["event_type"] for event in source_events
+    ]
+    assert [event["event"]["tool_name"] for event in captured_events] == [
+        event["event"]["tool_name"] for event in source_events
+    ]
+    observation = captured_events[1]["event"]["observation"]
+    assert observation["command"] == "uv run pytest -q"
+    assert observation["content"] == [{"type": "text", "text": "2 passed"}]
+    assert observation["metadata"] == {
+        "hostname": "portfolio-host",
+        "username": "portfolio-user",
+        "working_dir": "examples/showcase/fixtures/pydantic-v1-app",
+    }
+    assert observation["full_output_save_dir"] == "showcase://omitted-internal-output"
+    captured_text = json.dumps(captured_events)
+    assert "reviewer-host" not in captured_text
+    assert "reviewer-user" not in captured_text
+    assert "openhands_state" not in captured_text
+
+
+@pytest.mark.parametrize("unexpected_name", ["provider_request.json", "request-debug.txt"])
+def test_capture_rejects_unexpected_provider_or_request_artifact(
+    tmp_path: Path,
+    unexpected_name: str,
+) -> None:
+    source_root = tmp_path / "capture" / "pydantic-v1-app"
+    source_root.mkdir(parents=True)
+    storage = tmp_path / "capture" / "capture.db"
+    run_id = _capturable_run(storage, source_root)
+    artifacts = artifact_dir_for_run(storage, run_id)
+    artifacts.mkdir(parents=True)
+    (artifacts / "openhands_events.jsonl").write_text(
+        json.dumps({"event_type": "ActionEvent", "event": {"tool_name": "terminal"}})
+        + "\n",
+        encoding="utf-8",
+    )
+    (artifacts / unexpected_name).write_text("request metadata\n", encoding="utf-8")
+
+    with pytest.raises(ShowcaseError, match="unexpected capture artifact"):
+        capture_showcase(
+            storage=storage,
+            run_id=run_id,
+            source_root=source_root,
+            source_commit="6" * 40,
+            output=tmp_path / "governed-migration",
+        )
+
+
+def test_capture_restores_existing_output_when_atomic_install_fails(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source_root = tmp_path / "capture" / "pydantic-v1-app"
+    source_root.mkdir(parents=True)
+    storage = tmp_path / "capture" / "capture.db"
+    run_id = _capturable_run(storage, source_root)
+    artifacts = artifact_dir_for_run(storage, run_id)
+    artifacts.mkdir(parents=True)
+    (artifacts / "openhands_events.jsonl").write_text(
+        json.dumps({"event_type": "ActionEvent", "event": {"tool_name": "terminal"}})
+        + "\n",
+        encoding="utf-8",
+    )
+    output = tmp_path / "governed-migration"
+    output.mkdir()
+    sentinel = output / "keep.txt"
+    sentinel.write_text("existing fixture\n", encoding="utf-8")
+    original_rename = Path.rename
+
+    def fail_staging_install(path: Path, target: Path) -> Path:
+        if path.name.startswith(".governed-migration.capture-") and Path(target) == output:
+            raise OSError("injected staging install failure")
+        return original_rename(path, target)
+
+    monkeypatch.setattr(Path, "rename", fail_staging_install)
+
+    with pytest.raises(OSError, match="injected staging install failure"):
+        capture_showcase(
+            storage=storage,
+            run_id=run_id,
+            source_root=source_root,
+            source_commit="7" * 40,
+            output=output,
+        )
+
+    assert sentinel.read_text(encoding="utf-8") == "existing fixture\n"
+    assert not list(tmp_path.glob(".governed-migration.capture-*"))
+    assert not list(tmp_path.glob(".governed-migration.backup-*"))
+
+
+def test_capture_restores_existing_output_when_installed_validation_fails(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source_root = tmp_path / "capture" / "pydantic-v1-app"
+    source_root.mkdir(parents=True)
+    storage = tmp_path / "capture" / "capture.db"
+    run_id = _capturable_run(storage, source_root)
+    artifacts = artifact_dir_for_run(storage, run_id)
+    artifacts.mkdir(parents=True)
+    (artifacts / "openhands_events.jsonl").write_text(
+        json.dumps({"event_type": "ActionEvent", "event": {"tool_name": "terminal"}})
+        + "\n",
+        encoding="utf-8",
+    )
+    output = tmp_path / "governed-migration"
+    output.mkdir()
+    sentinel = output / "keep.txt"
+    sentinel.write_text("existing fixture\n", encoding="utf-8")
+    original_load = load_showcase_fixture
+
+    def fail_installed_validation(root: Path):
+        if Path(root) == output:
+            raise ShowcaseError("injected installed validation failure")
+        return original_load(root)
+
+    monkeypatch.setattr(
+        "scripts.capture_showcase.load_showcase_fixture",
+        fail_installed_validation,
+    )
+
+    with pytest.raises(ShowcaseError, match="injected installed validation failure"):
+        capture_showcase(
+            storage=storage,
+            run_id=run_id,
+            source_root=source_root,
+            source_commit="8" * 40,
+            output=output,
+        )
+
+    assert sentinel.read_text(encoding="utf-8") == "existing fixture\n"
+    assert not list(tmp_path.glob(".governed-migration.capture-*"))
+    assert not list(tmp_path.glob(".governed-migration.backup-*"))

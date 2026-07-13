@@ -14,7 +14,12 @@ from pathlib import Path
 import yaml
 
 from app.core.run_artifacts import artifact_dir_for_run
-from app.core.showcase import ShowcaseError, ShowcaseFixture, load_showcase_fixture
+from app.core.showcase import (
+    ShowcaseError,
+    ShowcaseFixture,
+    load_showcase_fixture,
+    unsafe_showcase_content,
+)
 from app.core.storage import RunStorage
 from app.schemas.run import RunRecord
 from app.schemas.showcase import SHOWCASE_MANIFEST_ARTIFACT, ShowcaseManifest
@@ -27,31 +32,37 @@ HARNESS_ROOT = Path(__file__).resolve().parents[1]
 CONTROLLED_MIGRATION_FILES = frozenset({"app/models.py", "app/service.py"})
 
 _TEXT_SUFFIXES = {".json", ".jsonl", ".yaml", ".yml", ".md", ".patch", ".log", ".txt"}
-_CREDENTIAL_ASSIGNMENT = re.compile(
-    r"(?ix)(?<![A-Z0-9_.-])"
-    r"(?P<name>[A-Z0-9_.-]*(?:API[_-]?KEY|TOKEN|PASSWORD|SECRET|ACCESS[_-]?KEY)"
-    r"[A-Z0-9_.-]*)\s*[:=]\s*"
-    r"(?P<value>\"[^\"\n]*\"|'[^'\n]*'|[^\s,;}\]]+)"
+CAPTURE_ARTIFACT_ALLOWLIST = frozenset(
+    {
+        "capability_pack.json",
+        "conflict_report.json",
+        "diff.patch",
+        "evidence_report.json",
+        "final_report.md",
+        "impacted_graph.json",
+        "openhands_events.jsonl",
+        "permission_report.json",
+        "product_review.json",
+        "repo_graph.json",
+        "repo_profile.json",
+        "risk_report.json",
+        "task_plan.yaml",
+        "test_results.json",
+        "trace.jsonl",
+        "verification_bundle.json",
+        "worker_loop_summary.json",
+        "worker_packet.md",
+        "worker_prompt.md",
+        "worker_result.json",
+        "worker_scorecard.json",
+        "workspace_report.json",
+    }
 )
-_UNSAFE_PATH = re.compile(
-    r"(?i)(?:/Volumes/|/Users/|/home/|/private/tmp/|/tmp/|/var/tmp/|"
-    r"/var/folders/|[A-Z]:\\Users\\)"
+OMITTED_NORMAL_ARTIFACTS = frozenset(
+    {"run_record.json", "worker_stderr.log", "worker_stdout.log"}
 )
-_TOKEN_USAGE_NAMES = {
-    "tokens",
-    "ntokens",
-    "prompttokens",
-    "completiontokens",
-    "totaltokens",
-    "inputtokens",
-    "outputtokens",
-    "reasoningtokens",
-    "cachedtokens",
-    "cachetokens",
-}
-_TOKEN_USAGE_VALUE = re.compile(
-    r"(?i)(?:\\n)*\d+(?:\.\d+)?|[\u2191\u2193]|\\u219[13]"
-)
+PROVIDER_STATE_DIRECTORY = "openhands_state"
+OMITTED_INTERNAL_OUTPUT = "showcase://omitted-internal-output"
 
 
 def _path_aliases(path: Path) -> set[str]:
@@ -69,19 +80,6 @@ def _replace_exact_value(text: str, source: str, replacement: str) -> str:
     optional_soft_wrap = r"(?:[ \t]*(?:\\n|\r?\n)[ \t]*)?"
     pattern = optional_soft_wrap.join(re.escape(character) for character in source)
     return re.sub(pattern, lambda _match: replacement, text)
-
-
-def _unsafe_credential_assignment(text: str) -> re.Match[str] | None:
-    for match in _CREDENTIAL_ASSIGNMENT.finditer(text):
-        metric_name = re.sub(r"[^a-z0-9]", "", match.group("name").lower())
-        metric_value = match.group("value").strip()
-        if (
-            metric_name in _TOKEN_USAGE_NAMES
-            and _TOKEN_USAGE_VALUE.fullmatch(metric_value)
-        ):
-            continue
-        return match
-    return None
 
 
 def sanitize_text(
@@ -114,14 +112,9 @@ def sanitize_text(
     for source, replacement in sorted(replacements, key=lambda item: len(item[0]), reverse=True):
         sanitized = _replace_exact_value(sanitized, source, replacement)
 
-    credential = _unsafe_credential_assignment(sanitized)
-    if credential:
-        raise ShowcaseError("Capture contains a credential-like value assignment")
-    unsafe_path = _UNSAFE_PATH.search(sanitized)
-    if unsafe_path:
-        raise ShowcaseError(
-            f"Capture contains an unsafe home or temporary path: {unsafe_path.group(0)!r}"
-        )
+    unsafe = unsafe_showcase_content(sanitized)
+    if unsafe:
+        raise ShowcaseError(f"Capture contains {unsafe}")
     return sanitized
 
 
@@ -207,23 +200,109 @@ def _copy_sanitized_artifacts(
 ) -> None:
     destination.mkdir(parents=True)
     for path in sorted(source.iterdir(), key=lambda item: item.name):
-        if path.name == "openhands_state":
+        if path.name == PROVIDER_STATE_DIRECTORY and path.is_dir() and not path.is_symlink():
             continue
         if path.is_symlink():
             raise ShowcaseError(f"Capture artifact must not be a symbolic link: {path.name}")
         if path.is_dir():
             raise ShowcaseError(f"Capture contains an unexpected artifact directory: {path.name}")
+        if path.name not in CAPTURE_ARTIFACT_ALLOWLIST | OMITTED_NORMAL_ARTIFACTS:
+            raise ShowcaseError(f"Capture contains an unexpected capture artifact: {path.name}")
         if path.suffix not in _TEXT_SUFFIXES:
             raise ShowcaseError(f"Capture contains an unsupported binary artifact: {path.name}")
         text = path.read_text(encoding="utf-8", errors="strict")
+        if path.name == "openhands_events.jsonl":
+            sanitized = _sanitize_worker_event_log(
+                text,
+                source_root=source_root,
+                source_run_id=source_run_id,
+                artifact_dir=source,
+                storage_path=storage_path,
+            )
+        else:
+            sanitized = sanitize_text(
+                text,
+                source_root=source_root,
+                source_run_id=source_run_id,
+                artifact_dir=source,
+                storage_path=storage_path,
+            )
+        if path.name in OMITTED_NORMAL_ARTIFACTS:
+            continue
+        (destination / path.name).write_text(sanitized, encoding="utf-8")
+
+
+def _sanitize_worker_event_log(
+    text: str,
+    *,
+    source_root: Path,
+    source_run_id: str,
+    artifact_dir: Path,
+    storage_path: Path,
+) -> str:
+    provider_state_aliases = _path_aliases(artifact_dir / PROVIDER_STATE_DIRECTORY)
+    sanitized_lines: list[str] = []
+    for line_number, line in enumerate(text.splitlines(), start=1):
+        if not line.strip():
+            continue
+        try:
+            event = json.loads(line)
+        except json.JSONDecodeError as exc:
+            raise ShowcaseError(
+                f"Worker event log contains invalid JSON on line {line_number}"
+            ) from exc
+        if not isinstance(event, dict):
+            raise ShowcaseError(f"Worker event {line_number} must be a JSON object")
+        event = _sanitize_worker_event_value(event, provider_state_aliases)
+        serialized = json.dumps(event, sort_keys=False)
         sanitized = sanitize_text(
-            text,
+            serialized,
             source_root=source_root,
             source_run_id=source_run_id,
-            artifact_dir=source,
+            artifact_dir=artifact_dir,
             storage_path=storage_path,
         )
-        (destination / path.name).write_text(sanitized, encoding="utf-8")
+        sanitized_lines.append(sanitized)
+    return "".join(f"{line}\n" for line in sanitized_lines)
+
+
+def _sanitize_worker_event_value(
+    value: object,
+    provider_state_aliases: set[str],
+    *,
+    key: str | None = None,
+) -> object:
+    if isinstance(value, dict):
+        return {
+            item_key: _sanitize_worker_event_value(
+                item_value,
+                provider_state_aliases,
+                key=item_key,
+            )
+            for item_key, item_value in value.items()
+        }
+    if isinstance(value, list):
+        return [
+            _sanitize_worker_event_value(item, provider_state_aliases, key=key)
+            for item in value
+        ]
+    if key == "hostname":
+        return "portfolio-host"
+    if key == "username":
+        return "portfolio-user"
+    if key in {
+        "full_output_save_dir",
+        "persistence_dir",
+        "provider_state_path",
+        "state_dir",
+    }:
+        return OMITTED_INTERNAL_OUTPUT
+    if isinstance(value, str):
+        sanitized = value
+        for alias in sorted(provider_state_aliases, key=len, reverse=True):
+            sanitized = sanitized.replace(alias, OMITTED_INTERNAL_OUTPUT)
+        return sanitized
+    return value
 
 
 def _write_fixture(
@@ -259,8 +338,9 @@ def _write_fixture(
         required_artifacts=required_artifacts,
         sanitation_notes=[
             "Rewrote the source repository, capture storage, artifact directory, and run ID.",
-            "Rejected credential-like assignments and residual home or temporary paths.",
-            "Excluded OpenHands provider persistence state; preserved observable event order.",
+            "Neutralized worker host, user, and internal output-path metadata.",
+            "Rejected credentials, private provider state, and residual machine paths.",
+            "Copied only inspectable allowlisted artifacts; preserved observable event order.",
         ],
     )
     manifest_payload = manifest.model_dump(mode="json")
@@ -307,6 +387,7 @@ def capture_showcase(
         tempfile.mkdtemp(prefix=f".{output.name}.capture-", dir=output.parent)
     )
     backup: Path | None = None
+    installed = False
     try:
         _write_fixture(
             staging,
@@ -321,20 +402,26 @@ def capture_showcase(
         if output.exists():
             backup = output.with_name(f".{output.name}.backup-{uuid.uuid4().hex}")
             output.rename(backup)
-        staging.rename(output)
         try:
+            staging.rename(output)
+            installed = True
             fixture = load_showcase_fixture(output)
         except Exception:
-            shutil.rmtree(output, ignore_errors=True)
-            if backup is not None:
+            if installed:
+                shutil.rmtree(output, ignore_errors=True)
+            if backup is not None and backup.exists():
                 backup.rename(output)
+                backup = None
             raise
         if backup is not None:
             shutil.rmtree(backup)
+            backup = None
         return fixture
     finally:
         if staging.exists():
             shutil.rmtree(staging, ignore_errors=True)
+        if backup is not None and backup.exists() and not output.exists():
+            backup.rename(output)
 
 
 def main() -> int:

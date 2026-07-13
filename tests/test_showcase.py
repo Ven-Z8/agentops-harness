@@ -388,6 +388,52 @@ def test_showcase_validation_scans_the_entire_fixture_root(
         load_showcase_fixture(fixture)
 
 
+@pytest.mark.parametrize(
+    ("unsafe_text", "message"),
+    [
+        ("Authorization: Bearer reviewer-sentinel", "authorization bearer"),
+        ("sk-or-v1-reviewer-sentinel", "OpenRouter-shaped key"),
+        ("cache=/root/.cache/openhands", re.escape("/root/")),
+        ("state=openhands_state/session", "provider-state marker"),
+        ("artifact=provider_request.json", "provider-state marker"),
+    ],
+)
+def test_showcase_validation_rejects_credentials_paths_and_provider_state(
+    tmp_path: Path,
+    unsafe_text: str,
+    message: str,
+) -> None:
+    fixture = write_showcase_fixture(tmp_path / "fixture")
+    report = fixture / "artifacts" / "final_report.md"
+    report.write_text(
+        report.read_text(encoding="utf-8") + f"\n{unsafe_text}\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ShowcaseError, match=message):
+        load_showcase_fixture(fixture)
+
+
+@pytest.mark.parametrize(
+    "relative_path",
+    [
+        "artifacts/provider_request.json",
+        "artifacts/openhands_state/provider.json",
+    ],
+)
+def test_showcase_validation_rejects_provider_state_file_names(
+    tmp_path: Path,
+    relative_path: str,
+) -> None:
+    fixture = write_showcase_fixture(tmp_path / "fixture")
+    path = fixture / relative_path
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("metadata only\n", encoding="utf-8")
+
+    with pytest.raises(ShowcaseError, match="provider-state marker"):
+        load_showcase_fixture(fixture)
+
+
 def test_showcase_validation_rejects_traversal_artifact_name(tmp_path: Path) -> None:
     fixture = write_showcase_fixture(tmp_path / "fixture")
     manifest_path = fixture / "manifest.yaml"

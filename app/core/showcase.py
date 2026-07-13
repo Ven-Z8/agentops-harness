@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 import shutil
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath, PureWindowsPath
@@ -13,13 +14,37 @@ from app.schemas.run import RunRecord
 from app.schemas.showcase import SHOWCASE_MANIFEST_ARTIFACT, ShowcaseManifest
 
 _TEXT_SUFFIXES = {".json", ".jsonl", ".yaml", ".yml", ".md", ".patch", ".log", ".txt"}
-_FORBIDDEN_MARKERS = (
-    "/Users/",
-    "/home/",
-    "/private/tmp/",
-    "API_KEY=",
-    "TOKEN=",
-    "PASSWORD=",
+_CREDENTIAL_ASSIGNMENT = re.compile(
+    r"(?ix)(?<![A-Z0-9_.-])"
+    r"(?P<name>[A-Z0-9_.-]*(?:API[_-]?KEY|TOKEN|PASSWORD|SECRET|ACCESS[_-]?KEY)"
+    r"[A-Z0-9_.-]*)\s*[:=]\s*"
+    r"(?P<value>\"[^\"\n]*\"|'[^'\n]*'|[^\s,;}\]]+)"
+)
+_AUTHORIZATION_BEARER = re.compile(
+    r"(?i)\bauthorization\s*[:=]\s*[\"']?bearer\s+[^\s\"',;}\]]+"
+)
+_OPENROUTER_KEY = re.compile(r"(?i)(?<![A-Z0-9_-])sk-or-v1-[A-Z0-9_-]{4,}")
+_PROVIDER_STATE = re.compile(
+    r"(?i)(?:openhands[_-]state|provider[_-]request(?:\.[a-z0-9._-]+)?)"
+)
+_UNSAFE_PATH = re.compile(
+    r"(?i)(?:/Volumes/|/Users/|/home/|/root/|/private/tmp/|/tmp/|/var/tmp/|"
+    r"/var/folders/|[A-Z]:\\Users\\)"
+)
+_TOKEN_USAGE_NAMES = {
+    "tokens",
+    "ntokens",
+    "prompttokens",
+    "completiontokens",
+    "totaltokens",
+    "inputtokens",
+    "outputtokens",
+    "reasoningtokens",
+    "cachedtokens",
+    "cachetokens",
+}
+_TOKEN_USAGE_VALUE = re.compile(
+    r"(?i)(?:\\n)*\d+(?:\.\d+)?|[\u2191\u2193]|\\u219[13]"
 )
 
 
@@ -33,6 +58,46 @@ class ShowcaseFixture:
 
 class ShowcaseError(ValueError):
     pass
+
+
+def _unsafe_credential_assignment(text: str) -> re.Match[str] | None:
+    for match in _CREDENTIAL_ASSIGNMENT.finditer(text):
+        metric_name = re.sub(r"[^a-z0-9]", "", match.group("name").lower())
+        metric_value = match.group("value").strip()
+        if (
+            metric_name in _TOKEN_USAGE_NAMES
+            and _TOKEN_USAGE_VALUE.fullmatch(metric_value)
+        ):
+            continue
+        return match
+    return None
+
+
+def unsafe_showcase_content(text: str) -> str | None:
+    """Name the first credential, provider-state, or machine-path marker in text."""
+    if _AUTHORIZATION_BEARER.search(text):
+        return "authorization bearer credential"
+    if _OPENROUTER_KEY.search(text):
+        return "OpenRouter-shaped key"
+    credential = _unsafe_credential_assignment(text)
+    if credential:
+        return f"credential-like value assignment {credential.group('name')}="
+    unsafe_path = _UNSAFE_PATH.search(text)
+    if unsafe_path:
+        return f"unsafe home or temporary path: {unsafe_path.group(0)!r}"
+    provider_state = _PROVIDER_STATE.search(text)
+    if provider_state:
+        return f"provider-state marker {provider_state.group(0)!r}"
+    return None
+
+
+def _provider_state_path_marker(path: Path, root: Path) -> str | None:
+    try:
+        relative = path.relative_to(root).as_posix()
+    except ValueError:
+        relative = path.as_posix()
+    marker = _PROVIDER_STATE.search(relative)
+    return marker.group(0) if marker else None
 
 
 def load_showcase_fixture(root: Path) -> ShowcaseFixture:
@@ -70,11 +135,16 @@ def load_showcase_fixture(root: Path) -> ShowcaseFixture:
             raise ShowcaseError(f"Required showcase artifact is missing: {name}")
 
     for path in sorted(root.rglob("*")):
+        provider_marker = _provider_state_path_marker(path, root)
+        if provider_marker:
+            raise ShowcaseError(
+                f"Unsafe provider-state marker {provider_marker!r} remains in fixture path"
+            )
         if path.is_file() and path.suffix in _TEXT_SUFFIXES:
             text = path.read_text(encoding="utf-8", errors="replace")
-            marker = next((item for item in _FORBIDDEN_MARKERS if item in text), None)
-            if marker:
-                raise ShowcaseError(f"Unsafe marker {marker!r} remains in {path.name}")
+            unsafe = unsafe_showcase_content(text)
+            if unsafe:
+                raise ShowcaseError(f"Unsafe {unsafe} remains in {path.name}")
 
     return ShowcaseFixture(root, manifest, record, artifacts_dir)
 

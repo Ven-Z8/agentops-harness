@@ -1,5 +1,5 @@
 {
-  "captured_at": "2026-07-13T23:10:49.887572Z",
+  "captured_at": "2026-07-13T23:36:04.841762Z",
   "mission_id": "governed-migration",
   "pack": {
     "description": "Migrate Pydantic v1 models and serialization APIs to supported v2 equivalents.",
@@ -31,7 +31,6 @@
     "repo_graph.json",
     "repo_profile.json",
     "risk_report.json",
-    "run_record.json",
     "showcase_manifest.json",
     "task_plan.yaml",
     "test_results.json",
@@ -42,15 +41,14 @@
     "worker_prompt.md",
     "worker_result.json",
     "worker_scorecard.json",
-    "worker_stderr.log",
-    "worker_stdout.log",
     "workspace_report.json"
   ],
   "run_id": "showcase-governed-migration",
   "sanitation_notes": [
     "Rewrote the source repository, capture storage, artifact directory, and run ID.",
-    "Rejected credential-like assignments and residual home or temporary paths.",
-    "Excluded OpenHands provider persistence state; preserved observable event order."
+    "Neutralized worker host, user, and internal output-path metadata.",
+    "Rejected credentials, private provider state, and residual machine paths.",
+    "Copied only inspectable allowlisted artifacts; preserved observable event order."
   ],
   "source_commit": "4ef832bcb945fa336082ab2c2f3b12c32ea52c2a",
   "source_run_id": "652d9a18c68548449efe2c015e95fea4",
