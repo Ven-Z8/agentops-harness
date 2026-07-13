@@ -1,5 +1,7 @@
+import os
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 FIXTURE = Path("examples/showcase/fixtures/pydantic-v1-app")
@@ -40,7 +42,18 @@ def test_fixture_lock_keeps_canonical_uv_test_run_clean(tmp_path: Path) -> None:
         check=True,
     )
 
-    subprocess.run(["uv", "run", "pytest", "-q"], cwd=repo, check=True)
+    isolated_env = os.environ.copy()
+    isolated_env.pop("VIRTUAL_ENV", None)
+    harness_bin = str(Path(sys.executable).parent)
+    isolated_env["PATH"] = os.pathsep.join(
+        entry for entry in isolated_env["PATH"].split(os.pathsep) if entry != harness_bin
+    )
+    subprocess.run(
+        ["uv", "run", "pytest", "-q"], cwd=repo, env=isolated_env, check=True
+    )
+    subprocess.run(
+        ["uv", "run", "ruff", "check", "."], cwd=repo, env=isolated_env, check=True
+    )
 
     status = subprocess.run(
         ["git", "status", "--porcelain"],
