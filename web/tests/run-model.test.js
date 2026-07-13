@@ -240,6 +240,21 @@ test("timeline merge adds presentation metadata without mutating recorded artifa
   assert.equal(timeline.some(event => Object.hasOwn(event, "timestamp")), false);
 });
 
+test("timeline events keep stable source identities when another channel grows", () => {
+  const detail = governedMigrationDetail();
+  const before = mergeTimeline(detail.trajectory, detail.worker.events);
+  const workerBefore = before.find(event => event.source === "worker");
+  const after = mergeTimeline(
+    [...detail.trajectory, { index: 2, node: "write_report", phase: "complete" }],
+    detail.worker.events,
+  );
+  const workerAfter = after.find(event => event.source === "worker");
+
+  assert.equal(workerBefore.id, "worker:index:0");
+  assert.equal(workerAfter.id, workerBefore.id);
+  assert.notEqual(workerAfter.order, workerBefore.order);
+});
+
 test("plan requires both recorded steps and a plan phase", () => {
   const detail = governedMigrationDetail();
   detail.phases = [];

@@ -475,7 +475,7 @@ export function tabTests(d) {
   }).join("");
 }
 
-export function tabWorker(d) {
+export function tabWorker(d, viewModel = {}) {
   const w = d.worker || {};
   if (!w.present) return workerEmpty(d);
   const s = w.summary || {}, sc = w.scorecard || {};
@@ -491,8 +491,16 @@ export function tabWorker(d) {
   const k = {};
   (w.events || []).forEach(e => { k[e.kind] = (k[e.kind] || 0) + 1; });
   const opt = (v, label) => `<option value="${v}">${label}</option>`;
+  const workerError = viewModel.errors?.worker;
+  const transportLabel = workerError?.status === "reconnecting"
+    ? "Reconnecting"
+    : workerError
+      ? "Disconnected"
+      : viewModel.modeLabel || "Replay";
+  const pulsing = viewModel.mode === "live" && viewModel.pulse === true && !workerError;
+  const eventLabel = `${w.count} event${w.count === 1 ? "" : "s"}`;
   const toolbar = `<div class="wtoolbar">
-    <span class="sec-h" style="margin:0"><span class="dot pulse" style="background:var(--green)" id="wDot"></span>Inner tool trajectory <span class="sub">· streaming ${w.count} events</span></span>
+    <span class="sec-h" style="margin:0"><span class="dot${pulsing ? " pulse" : ""}" style="background:var(--green)" id="wDot"></span>Inner tool trajectory <span class="sub">· ${esc(transportLabel)} · ${eventLabel}</span></span>
     <select class="csel" id="wfilter" style="margin-left:auto">
       ${opt("all", "all kinds")}${opt("action", `actions (${k.action || 0})`)}${opt("observation", `observations (${k.observation || 0})`)}${opt("message", `messages (${k.message || 0})`)}${opt("state", `state (${k.state || 0})`)}
     </select></div>`;

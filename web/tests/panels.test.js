@@ -11,6 +11,7 @@ import {
   selectedStageEvidence,
   stageButton,
   tabPlan,
+  tabWorker,
 } from "../ui/panels.js";
 
 function inspectorModel() {
@@ -163,4 +164,26 @@ test("artifact failure copy names only the affected artifact", () => {
 test("missing durations render as unavailable instead of a zero or NaN metric", () => {
   assert.equal(fmtDur(null), "unavailable");
   assert.equal(fmtDur(undefined), "unavailable");
+});
+
+test("recorded worker panel has no pulse or live label on its first render", () => {
+  const html = tabWorker({
+    summary: { worker: "openhands" },
+    worker: {
+      present: true,
+      count: 1,
+      summary: { status: "completed" },
+      scorecard: {},
+      events: [{ kind: "action", type: "ActionEvent", summary: "edit" }],
+    },
+  }, {
+    mode: "recorded",
+    modeLabel: "Recorded",
+    pulse: false,
+    errors: {},
+  });
+
+  assert.doesNotMatch(html, /class="dot pulse"/);
+  assert.doesNotMatch(html, /\blive\b/i);
+  assert.match(html, /Recorded · 1 event/);
 });

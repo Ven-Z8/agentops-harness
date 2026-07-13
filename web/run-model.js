@@ -29,18 +29,23 @@ const hasArtifact = (detail, name) => (
 );
 
 const stageForGovernance = event => GOVERNANCE_STAGES[event.node] || "prove";
+const eventId = (source, event, sourceOrder) => (
+  `${source}:${event.index != null ? `index:${event.index}` : `order:${sourceOrder}`}`
+);
 
 export function mergeTimeline(governanceEvents = [], workerEvents = []) {
   const governance = governanceEvents.map((event, sourceOrder) => ({
     ...event,
     source: "governance",
     sourceOrder,
+    id: eventId("governance", event, sourceOrder),
     stage: stageForGovernance(event),
   }));
   const worker = workerEvents.map((event, sourceOrder) => ({
     ...event,
     source: "worker",
     sourceOrder,
+    id: eventId("worker", event, sourceOrder),
     stage: "work",
   }));
 

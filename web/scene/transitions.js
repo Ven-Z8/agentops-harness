@@ -81,3 +81,16 @@ export function stageVisual(status) {
   if (!visual) throw new RangeError(`Unknown stage status: ${status}`);
   return { ...visual };
 }
+
+export function pauseSceneForVisibility() {
+  return { transition: null, playbackActive: false };
+}
+
+export function sceneShouldAnimate({
+  hidden = false,
+  transition = null,
+  playbackActive = false,
+  reducedMotion = false,
+}) {
+  return !hidden && (Boolean(transition) || (playbackActive && !reducedMotion));
+}

@@ -29,13 +29,27 @@ export function updateChannelErrors(errors, channel, status) {
 
 export function createLatestRequestGate() {
   let generation = 0;
+  const begin = () => {
+    generation += 1;
+    return generation;
+  };
+  const isCurrent = candidate => candidate === generation;
   return {
-    begin() {
-      generation += 1;
-      return generation;
-    },
-    isCurrent(candidate) {
-      return candidate === generation;
+    begin,
+    isCurrent,
+    async run({ request, isScopeCurrent = () => true, onSuccess, onError }) {
+      const candidate = begin();
+      let value;
+      try {
+        value = await request();
+      } catch (error) {
+        if (!isCurrent(candidate) || !isScopeCurrent()) return { status: "stale" };
+        onError?.(error);
+        return { status: "error", error };
+      }
+      if (!isCurrent(candidate) || !isScopeCurrent()) return { status: "stale" };
+      onSuccess?.(value);
+      return { status: "success" };
     },
   };
 }

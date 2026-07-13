@@ -6,6 +6,8 @@ import {
   createReplayState,
   reduceReplay,
 } from "../replay-controller.js";
+import * as replayModule from "../replay-controller.js";
+import { mergeTimeline } from "../run-model.js";
 
 function fakeTimers() {
   const scheduled = [];
@@ -52,6 +54,7 @@ test("ticks stop at the final recorded event", () => {
     cursor: 1,
     playing: false,
     selectedStage: "plan",
+    selectedEventId: null,
   });
 });
 
@@ -157,4 +160,31 @@ test("timer ticks select the stage of the verified event at the new cursor", () 
 
   assert.equal(controller.getState().cursor, 1);
   assert.equal(controller.getState().selectedStage, "work");
+});
+
+test("timeline growth preserves selected worker identity without advancing replay", () => {
+  const governance = [{ index: 0, node: "scan_repo", phase: "complete" }];
+  const worker = [{ index: 0, type: "ActionEvent", kind: "action", summary: "edit" }];
+  const beforeTimeline = mergeTimeline(governance, worker);
+  const selectedWorker = beforeTimeline.find(event => event.source === "worker");
+  let state = reduceReplay(createReplayState({ length: beforeTimeline.length }), {
+    type: "select-stage",
+    stage: selectedWorker.stage,
+    cursor: selectedWorker.order,
+    eventId: selectedWorker.id,
+  });
+  const cursorBeforeIngestion = state.cursor;
+
+  const afterTimeline = mergeTimeline(
+    [...governance, { index: 1, node: "run_tests", phase: "complete" }],
+    worker,
+  );
+  state = reduceReplay(state, { type: "set-length", length: afterTimeline.length });
+
+  assert.equal(typeof replayModule.resolveReplayEvent, "function");
+  const selectedAfterIngestion = replayModule.resolveReplayEvent(state, afterTimeline);
+  assert.equal(state.cursor, cursorBeforeIngestion);
+  assert.equal(state.selectedEventId, selectedWorker.id);
+  assert.equal(selectedAfterIngestion.id, selectedWorker.id);
+  assert.equal(selectedAfterIngestion.stage, "work");
 });

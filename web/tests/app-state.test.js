@@ -126,3 +126,41 @@ test("stream errors remain open for same-channel recovery", () => {
   assert.equal(streamShouldClose("open"), false);
   assert.equal(streamShouldClose("done"), true);
 });
+
+test("stale artifact success after a run switch cannot update the current DOM", async () => {
+  const gate = createLatestRequestGate();
+  let resolveRequest;
+  const mutations = [];
+
+  assert.equal(typeof gate.run, "function");
+  const pending = gate.run({
+    request: () => new Promise(resolve => { resolveRequest = resolve; }),
+    isScopeCurrent: () => false,
+    onSuccess: () => mutations.push("dom"),
+    onError: () => mutations.push("error"),
+  });
+  gate.begin();
+  resolveRequest("old artifact");
+
+  assert.deepEqual(await pending, { status: "stale" });
+  assert.deepEqual(mutations, []);
+});
+
+test("stale artifact failure after a run switch cannot set errors or rebuild", async () => {
+  const gate = createLatestRequestGate();
+  let rejectRequest;
+  const mutations = [];
+
+  assert.equal(typeof gate.run, "function");
+  const pending = gate.run({
+    request: () => new Promise((_resolve, reject) => { rejectRequest = reject; }),
+    isScopeCurrent: () => false,
+    onSuccess: () => mutations.push("dom"),
+    onError: () => mutations.push("error", "rebuild"),
+  });
+  gate.begin();
+  rejectRequest(new Error("old run failed"));
+
+  assert.deepEqual(await pending, { status: "stale" });
+  assert.deepEqual(mutations, []);
+});

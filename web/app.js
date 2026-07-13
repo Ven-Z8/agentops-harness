@@ -8,7 +8,11 @@ import {
   streamShouldClose,
   updateChannelErrors,
 } from "./app-state.js";
-import { createReplayController, createReplayState } from "./replay-controller.js";
+import {
+  createReplayController,
+  createReplayState,
+  resolveReplayEvent,
+} from "./replay-controller.js";
 import { buildCockpitViewModel, STAGE_IDS } from "./run-model.js";
 import { createThreeStage } from "./scene/three-stage.js";
 import * as panels from "./ui/panels.js";
@@ -30,6 +34,7 @@ let stageContextLostHandler = null;
 let webglAvailable = false;
 let mobile3dVisible = false;
 const runDetailRequests = createLatestRequestGate();
+const artifactRequests = createLatestRequestGate();
 
 if (state.mission?.initialStage) {
   state.tab = state.mission.initialStage;
@@ -213,6 +218,7 @@ async function loadRuns() {
 
 async function selectRun(runId) {
   const request = runDetailRequests.begin();
+  artifactRequests.begin();
   stopReplayTimer();
   state.selected = runId;
   panels.markSelected(state.selected);
@@ -254,14 +260,7 @@ function selectTab(key) {
 async function loadDiffArtifact() {
   const pane = document.getElementById("diffPane");
   if (!pane) return;
-  try {
-    const text = await client.text(
-      `/cockpit/api/runs/${encodeURIComponent(state.viewModel.run.id)}/artifacts/diff.patch`,
-    );
-    pane.innerHTML = panels.colorizeDiff(text);
-  } catch {
-    pane.textContent = panels.artifactFailureMessage("diff.patch");
-  }
+  await onSelectArtifact({ name: "diff.patch", pane });
 }
 
 function streamTrajectory(runId) {
@@ -405,29 +404,43 @@ function syncReplayLength(length) {
 }
 
 async function onSelectArtifact({ name, pane }) {
-  try {
-    const text = await client.text(
-      `/cockpit/api/runs/${encodeURIComponent(state.viewModel.run.id)}/artifacts/${encodeURIComponent(name)}`,
-    );
-    pane.innerHTML = name.endsWith(".patch")
-      ? panels.colorizeDiff(text)
-      : panels.esc(text);
-    pane.hidden = false;
-    if (state.errors.artifact?.name === name) {
-      const { artifact: _artifact, ...remainingErrors } = state.errors;
-      state.errors = remainingErrors;
-    }
-  } catch (error) {
-    state.errors = {
-      ...state.errors,
-      artifact: { name, message: String(error?.message || error) },
-    };
-    const viewModel = rebuildViewModel();
-    panels.renderModelState(viewModel, panelCallbacks);
-    const target = document.getElementById(pane.id) || pane;
-    target.hidden = false;
-    target.textContent = panels.artifactFailureMessage(name);
-  }
+  const runId = state.selected;
+  const selectedStage = state.replay.selectedStage;
+  const isScopeCurrent = () => (
+    state.selected === runId &&
+    pane.isConnected !== false &&
+    (pane.id !== "evidencePane" || state.replay.selectedStage === selectedStage)
+  );
+  return artifactRequests.run({
+    request: () => client.text(
+      `/cockpit/api/runs/${encodeURIComponent(runId)}/artifacts/${encodeURIComponent(name)}`,
+    ),
+    isScopeCurrent,
+    onSuccess: text => {
+      pane.innerHTML = name.endsWith(".patch")
+        ? panels.colorizeDiff(text)
+        : panels.esc(text);
+      pane.hidden = false;
+      if (state.errors.artifact?.name === name) {
+        const { artifact: _artifact, ...remainingErrors } = state.errors;
+        state.errors = remainingErrors;
+        document.querySelector(".artifact-error")?.remove();
+      }
+    },
+    onError: error => {
+      state.errors = {
+        ...state.errors,
+        artifact: { name, message: String(error?.message || error) },
+      };
+      const viewModel = rebuildViewModel();
+      panels.renderModelState(viewModel, panelCallbacks);
+      const target = pane.id ? document.getElementById(pane.id) : pane;
+      if (target) {
+        target.hidden = false;
+        target.textContent = panels.artifactFailureMessage(name);
+      }
+    },
+  });
 }
 
 function modeForDetail(detail) {
@@ -476,7 +489,7 @@ function setDetail(detail) {
   replayController = createReplayController({
     initialState: initialReplay,
     onChange: applyReplayState,
-    stageAtCursor: cursor => state.viewModel?.telemetry.timeline[cursor]?.stage ?? null,
+    eventAtCursor: cursor => state.viewModel?.telemetry.timeline[cursor] ?? null,
   });
   rebuildViewModel();
 }
@@ -499,9 +512,10 @@ function rebuildViewModel() {
 
 function applyReplayState(replayState) {
   state.replay = replayState;
-  state.selectedEvent = state.replay.cursor >= 0
-    ? state.viewModel.telemetry.timeline[state.replay.cursor] ?? null
-    : null;
+  state.selectedEvent = resolveReplayEvent(
+    state.replay,
+    state.viewModel.telemetry.timeline,
+  );
   const viewModel = rebuildViewModel();
   panels.renderModelState(viewModel, panelCallbacks);
   renderReplayControls();
@@ -515,7 +529,8 @@ function transitionReplay(action) {
 function selectStage(stage) {
   if (!STAGE_IDS.includes(stage)) return state.viewModel;
   const cursor = state.viewModel.telemetry.timeline.findIndex(event => event.stage === stage);
-  return transitionReplay({ type: "select-stage", stage, cursor });
+  const eventId = state.viewModel.telemetry.timeline[cursor]?.id ?? null;
+  return transitionReplay({ type: "select-stage", stage, cursor, eventId });
 }
 
 function playReplay({ restart = false } = {}) {

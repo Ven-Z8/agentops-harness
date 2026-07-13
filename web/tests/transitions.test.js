@@ -6,6 +6,7 @@ import {
   interpolateCamera,
   stageVisual,
 } from "../scene/transitions.js";
+import * as transitions from "../scene/transitions.js";
 
 const STAGES = ["plan", "equip", "work", "guard", "prove"];
 const STATUSES = ["pending", "active", "pass", "warn", "blocked", "unavailable"];
@@ -57,4 +58,25 @@ test("unavailable is visibly distinct without color-only meaning", () => {
     glyph: "×",
     label: "Unavailable",
   });
+});
+
+test("hidden scene lifecycle cancels motion and visibility return does not resume it", () => {
+  assert.equal(typeof transitions.pauseSceneForVisibility, "function");
+  assert.equal(typeof transitions.sceneShouldAnimate, "function");
+  const hidden = transitions.pauseSceneForVisibility({
+    transition: { startedAt: 10 },
+    playbackActive: true,
+  });
+
+  assert.deepEqual(hidden, { transition: null, playbackActive: false });
+  assert.equal(transitions.sceneShouldAnimate({
+    hidden: true,
+    reducedMotion: false,
+    ...hidden,
+  }), false);
+  assert.equal(transitions.sceneShouldAnimate({
+    hidden: false,
+    reducedMotion: false,
+    ...hidden,
+  }), false);
 });

@@ -1,7 +1,13 @@
 "use strict";
 
 import * as THREE from "../vendor/three.module.min.js";
-import { cameraPreset, interpolateCamera, stageVisual } from "./transitions.js";
+import {
+  cameraPreset,
+  interpolateCamera,
+  pauseSceneForVisibility,
+  sceneShouldAnimate,
+  stageVisual,
+} from "./transitions.js";
 
 const STAGE_IDS = Object.freeze(["plan", "equip", "work", "guard", "prove"]);
 const LAYER_LAYOUT = Object.freeze([
@@ -217,7 +223,12 @@ export function createThreeStage({ canvas, onStageSelected, reducedMotion = fals
   }
 
   function shouldAnimate() {
-    return Boolean(transition) || (playbackActive && !reducedMotion);
+    return sceneShouldAnimate({
+      hidden: documentRef.hidden,
+      transition,
+      playbackActive,
+      reducedMotion,
+    });
   }
 
   function stopAnimationLoop() {
@@ -260,6 +271,7 @@ export function createThreeStage({ canvas, onStageSelected, reducedMotion = fals
 
   function handleVisibilityChange() {
     if (documentRef.hidden) {
+      ({ transition, playbackActive } = pauseSceneForVisibility());
       stopAnimationLoop();
       return;
     }

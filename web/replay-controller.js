@@ -8,6 +8,7 @@ export function createReplayState({ length, intervalMs = 420, reducedMotion = fa
     cursor: -1,
     playing: false,
     selectedStage: "plan",
+    selectedEventId: null,
   };
 }
 
@@ -22,7 +23,13 @@ export function reduceReplay(state, action) {
     case "set-length":
       return { ...state, length: Math.max(0, action.length) };
     case "restart":
-      return { ...state, cursor: -1, playing: false, selectedStage: "plan" };
+      return {
+        ...state,
+        cursor: -1,
+        playing: false,
+        selectedStage: "plan",
+        selectedEventId: null,
+      };
     case "tick": {
       if (!state.playing) return state;
       const cursor = Math.min(state.cursor + 1, state.length - 1);
@@ -31,6 +38,7 @@ export function reduceReplay(state, action) {
         cursor,
         playing: cursor < state.length - 1,
         selectedStage: action.stage || state.selectedStage,
+        selectedEventId: action.eventId ?? null,
       };
     }
     case "select-stage":
@@ -39,10 +47,19 @@ export function reduceReplay(state, action) {
         selectedStage: action.stage,
         cursor: action.cursor,
         playing: false,
+        selectedEventId: action.eventId ?? null,
       };
     default:
       return state;
   }
+}
+
+export function resolveReplayEvent(state, timeline = []) {
+  if (state.selectedEventId != null) {
+    const selected = timeline.find(event => event.id === state.selectedEventId);
+    if (selected) return selected;
+  }
+  return state.cursor >= 0 ? timeline[state.cursor] ?? null : null;
 }
 
 export function createReplayController({
@@ -51,6 +68,7 @@ export function createReplayController({
   setIntervalImpl = globalThis.setInterval,
   clearIntervalImpl = globalThis.clearInterval,
   stageAtCursor = () => null,
+  eventAtCursor = cursor => ({ stage: stageAtCursor(cursor), id: null }),
 }) {
   let state = initialState;
   let timerId = null;
@@ -65,7 +83,12 @@ export function createReplayController({
     if (timerId !== null || !state.playing) return;
     timerId = setIntervalImpl(() => {
       const cursor = Math.min(state.cursor + 1, state.length - 1);
-      dispatch({ type: "tick", stage: stageAtCursor(cursor) });
+      const event = eventAtCursor(cursor) || {};
+      dispatch({
+        type: "tick",
+        stage: event.stage || stageAtCursor(cursor),
+        eventId: event.id ?? null,
+      });
     }, state.intervalMs);
   };
 
