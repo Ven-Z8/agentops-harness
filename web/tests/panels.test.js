@@ -5,6 +5,7 @@ import {
   artifactFailureMessage,
   fmtDur,
   guardCards,
+  preserveRecoveredArtifactEvidence,
   phaseEl,
   proofCards,
   renderModelState,
@@ -171,6 +172,56 @@ test("same-stage model renders preserve an opened artifact pane", () => {
   assert.equal(renderStageEvidence(nextStage, host), true);
   assert.match(host.innerHTML, /Work evidence/);
   assert.doesNotMatch(host.innerHTML, /loaded capability pack/);
+});
+
+test("successful artifact retry preserves its pane until the stage or run changes", () => {
+  const failedViewModel = {
+    run: { id: "run-1" },
+    selection: {
+      stage: "equip",
+      evidence: {
+        expected: ["capability_pack.json"],
+        available: ["capability_pack.json"],
+        missing: [],
+      },
+    },
+    stages: [{ id: "equip", label: "Equip", status: "pass" }],
+    errors: { artifact: { name: "capability_pack.json", message: "offline" } },
+  };
+  let removedError = false;
+  const host = {
+    dataset: {},
+    innerHTML: "",
+    querySelector: selector => selector === ".artifact-error"
+      ? { remove: () => { removedError = true; } }
+      : null,
+  };
+
+  assert.equal(renderStageEvidence(failedViewModel, host), true);
+  host.innerHTML = '<pre id="evidencePane">loaded capability pack</pre>';
+  const recoveredViewModel = { ...failedViewModel, errors: {} };
+
+  assert.equal(preserveRecoveredArtifactEvidence(recoveredViewModel, host), true);
+  assert.equal(removedError, true);
+  assert.equal(renderStageEvidence(recoveredViewModel, host), false);
+  assert.match(host.innerHTML, /loaded capability pack/);
+
+  const nextStage = {
+    ...recoveredViewModel,
+    selection: {
+      stage: "work",
+      evidence: { expected: [], available: [], missing: [] },
+    },
+    stages: [{ id: "work", label: "Work", status: "pass" }],
+  };
+  assert.equal(renderStageEvidence(nextStage, host), true);
+  assert.doesNotMatch(host.innerHTML, /loaded capability pack/);
+
+  host.innerHTML = '<pre id="evidencePane">loaded work evidence</pre>';
+  preserveRecoveredArtifactEvidence(nextStage, host);
+  const nextRun = { ...nextStage, run: { id: "run-2" } };
+  assert.equal(renderStageEvidence(nextRun, host), true);
+  assert.doesNotMatch(host.innerHTML, /loaded work evidence/);
 });
 
 test("proof cards render six required categories without false success defaults", () => {

@@ -424,7 +424,8 @@ async function onSelectArtifact({ name, pane }) {
       if (state.errors.artifact?.name === name) {
         const { artifact: _artifact, ...remainingErrors } = state.errors;
         state.errors = remainingErrors;
-        document.querySelector(".artifact-error")?.remove();
+        const viewModel = rebuildViewModel();
+        panels.preserveRecoveredArtifactEvidence(viewModel);
       }
     },
     onError: error => {

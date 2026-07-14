@@ -102,18 +102,14 @@ export function selectedStageEvidence(viewModel) {
   </section>`;
 }
 
-export function renderStageEvidence(
-  viewModel,
-  host = globalThis.document?.getElementById("stageEvidence"),
-) {
-  if (!host) return false;
+function stageEvidenceRenderKey(viewModel) {
   const evidence = viewModel.selection.evidence;
   const stage = viewModel.stages?.find(item => item.id === viewModel.selection.stage);
   const artifactError = viewModel.errors?.artifact;
   const scopedError = artifactError && evidence.expected.includes(artifactError.name)
     ? artifactError.name
     : null;
-  const renderKey = JSON.stringify([
+  return JSON.stringify([
     viewModel.run.id,
     viewModel.selection.stage,
     stage?.status || "unavailable",
@@ -122,6 +118,24 @@ export function renderStageEvidence(
     evidence.missing,
     scopedError,
   ]);
+}
+
+export function preserveRecoveredArtifactEvidence(
+  viewModel,
+  host = globalThis.document?.getElementById("stageEvidence"),
+) {
+  if (!host) return false;
+  host.querySelector?.(".artifact-error")?.remove();
+  host.dataset.evidenceRenderKey = stageEvidenceRenderKey(viewModel);
+  return true;
+}
+
+export function renderStageEvidence(
+  viewModel,
+  host = globalThis.document?.getElementById("stageEvidence"),
+) {
+  if (!host) return false;
+  const renderKey = stageEvidenceRenderKey(viewModel);
   if (host.dataset.evidenceRenderKey === renderKey) return false;
   host.innerHTML = selectedStageEvidence(viewModel);
   host.dataset.evidenceRenderKey = renderKey;
