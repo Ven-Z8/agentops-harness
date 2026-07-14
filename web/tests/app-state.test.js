@@ -4,11 +4,55 @@ import test from "node:test";
 import {
   createLatestRequestGate,
   mergeEvidenceEvents,
+  modeForDetail,
   streamShouldClose,
   updateChannelErrors,
 } from "../app-state.js";
 import { createReplayController, createReplayState } from "../replay-controller.js";
 import { buildCockpitViewModel } from "../run-model.js";
+
+const terminalDetail = (runId = "run-1") => ({
+  summary: { run_id: runId, status: "completed" },
+  record: { run_id: runId, status: "completed" },
+});
+
+test("persisted capture metadata marks a run recorded without mission context", () => {
+  const capture = {
+    source_run_id: "source-run",
+    source_commit: "1".repeat(40),
+    captured_at: "2026-07-13T12:00:00Z",
+  };
+  const details = [
+    { ...terminalDetail(), capture },
+    { ...terminalDetail(), showcase: capture },
+    { ...terminalDetail(), manifest: capture },
+    { ...terminalDetail(), record: { ...terminalDetail().record, capture } },
+    { ...terminalDetail(), record: { ...terminalDetail().record, showcase: capture } },
+  ];
+
+  for (const detail of details) {
+    assert.equal(modeForDetail(detail), "recorded");
+  }
+});
+
+test("mission run-id collision does not mark an ordinary run recorded", () => {
+  const runId = "showcase-governed-migration";
+  const mission = { recordedRunId: runId };
+
+  assert.equal(modeForDetail(terminalDetail(runId), mission), "replay");
+});
+
+test("ordinary terminal runs use replay mode", () => {
+  assert.equal(modeForDetail(terminalDetail()), "replay");
+});
+
+test("ordinary nonterminal runs use live mode", () => {
+  const detail = terminalDetail();
+  detail.summary.status = "running";
+  detail.record.status = "running";
+
+  assert.equal(modeForDetail(detail), "live");
+});
 
 test("stream open partial backlog and disconnect preserve fetched governance evidence", () => {
   const fetched = [

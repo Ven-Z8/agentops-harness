@@ -5,6 +5,7 @@ import { missionFromLocation } from "./mission-config.js";
 import {
   createLatestRequestGate,
   mergeEvidenceEvents,
+  modeForDetail,
   streamShouldClose,
   updateChannelErrors,
 } from "./app-state.js";
@@ -63,7 +64,6 @@ const TAB_STAGES = Object.freeze({
   report: "prove",
   files: "prove",
 });
-const TERMINAL_STATUSES = new Set(["completed", "blocked", "failed"]);
 const panelCallbacks = Object.freeze({
   onSelectStage: selectStage,
   onSelectArtifact,
@@ -442,11 +442,6 @@ async function onSelectArtifact({ name, pane }) {
       }
     },
   });
-}
-
-function modeForDetail(detail) {
-  if (state.mission?.recordedRunId === detail.summary.run_id) return "recorded";
-  return TERMINAL_STATUSES.has(detail.summary.status) ? "replay" : "live";
 }
 
 function projectedDetail() {

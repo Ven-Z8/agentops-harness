@@ -1,5 +1,14 @@
 "use strict";
 
+const TERMINAL_STATUSES = new Set(["completed", "blocked", "failed"]);
+
+export function modeForDetail(detail) {
+  const capture = detail?.capture || detail?.showcase || detail?.manifest ||
+    detail?.record?.capture || detail?.record?.showcase;
+  if (capture) return "recorded";
+  return TERMINAL_STATUSES.has(detail?.summary?.status) ? "replay" : "live";
+}
+
 function eventKey(event) {
   if (event?.index != null) return `index:${event.index}`;
   return JSON.stringify(event);
