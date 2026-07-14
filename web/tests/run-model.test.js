@@ -83,6 +83,30 @@ function governedMigrationDetail() {
   };
 }
 
+const CANONICAL_NODES_BY_STAGE = Object.freeze({
+  plan: ["scan_repo", "repo_graph", "goal_model", "recall_experience", "create_plan"],
+  equip: ["prepare_workspace", "pre_dispatch"],
+  work: ["run_external_worker", "collect_diff"],
+  guard: [
+    "enforce_permissions", "run_tests", "check_convergence", "build_changed_subgraph",
+    "review_diff", "assess_risk", "classify_permissions",
+  ],
+  prove: [
+    "write_report", "check_report_quality", "check_evidence", "build_product_review",
+    "assemble_verification", "audit_conflicts",
+  ],
+});
+
+function canonicalGovernanceEvents() {
+  let index = 0;
+  return Object.values(CANONICAL_NODES_BY_STAGE).flatMap(nodes => (
+    nodes.flatMap(node => {
+      const phases = node === "run_external_worker" ? ["start", "complete"] : ["complete"];
+      return phases.map(phase => ({ index: index++, node, phase }));
+    })
+  ));
+}
+
 test("recorded mode never becomes a pulsing live state", () => {
   const vm = buildCockpitViewModel({
     detail: governedMigrationDetail(),
@@ -223,7 +247,79 @@ test("timeline ordering is stable when source timestamps are absent", () => {
 
   assert.deepEqual(first, second);
   assert.deepEqual(first.map(event => event.order), first.map((_, index) => index));
-  assert.deepEqual(first.map(event => event.source), ["governance", "governance", "worker"]);
+  assert.deepEqual(first.map(event => event.source), ["governance", "worker", "governance"]);
+});
+
+test("canonical governance and worker events tell one causal five-stage story", () => {
+  const governance = canonicalGovernanceEvents();
+  const worker = [
+    { index: 0, type: "ActionEvent", summary: "inspect" },
+    { index: 1, type: "ObservationEvent", summary: "edited" },
+  ];
+
+  const timeline = mergeTimeline(governance, worker);
+  const governanceTimeline = timeline.filter(event => event.source === "governance");
+  const stagesByNode = new Map(
+    governanceTimeline.map(event => [event.node, event.stage]),
+  );
+  const transitions = timeline
+    .map(event => event.stage)
+    .filter((stage, index, stages) => index === 0 || stage !== stages[index - 1]);
+
+  for (const [stage, nodes] of Object.entries(CANONICAL_NODES_BY_STAGE)) {
+    assert.deepEqual(nodes.map(node => stagesByNode.get(node)), nodes.map(() => stage));
+  }
+  assert.deepEqual(transitions, ["plan", "equip", "work", "guard", "prove"]);
+  assert.equal(timeline.at(-1).stage, "prove");
+
+  const workerStart = timeline.find(
+    event => event.node === "run_external_worker" && event.phase === "start",
+  );
+  const workerComplete = timeline.find(
+    event => event.node === "run_external_worker" && event.phase === "complete",
+  );
+  const workerOrders = timeline
+    .filter(event => event.source === "worker")
+    .map(event => event.order);
+  assert.ok(workerOrders.every(order => workerStart.order < order));
+  assert.ok(workerOrders.every(order => order < workerComplete.order));
+});
+
+test("worker events use a deterministic causal fallback when their bracket is absent", () => {
+  const governance = [
+    { index: 0, node: "scan_repo", phase: "complete" },
+    { index: 1, node: "prepare_workspace", phase: "complete" },
+    { index: 2, node: "collect_diff", phase: "complete" },
+    { index: 3, node: "enforce_permissions", phase: "complete" },
+    { index: 4, node: "write_report", phase: "complete" },
+  ];
+  const worker = [
+    { index: 0, type: "ActionEvent", summary: "inspect" },
+    { index: 1, type: "ObservationEvent", summary: "edited" },
+  ];
+
+  const timeline = mergeTimeline(governance, worker);
+
+  assert.deepEqual(timeline.map(event => event.source === "worker" ? "worker" : event.node), [
+    "scan_repo", "prepare_workspace", "worker", "worker", "collect_diff",
+    "enforce_permissions", "write_report",
+  ]);
+  assert.deepEqual(
+    timeline.map(event => event.stage).filter(
+      (stage, index, stages) => index === 0 || stage !== stages[index - 1],
+    ),
+    ["plan", "equip", "work", "guard", "prove"],
+  );
+});
+
+test("unknown governance nodes remain explicitly unclassified", () => {
+  const [event] = mergeTimeline([
+    { index: 7, node: "future_governance_node", phase: "complete" },
+  ]);
+
+  assert.equal(event.stage, null);
+  assert.equal(event.id, "governance:index:7");
+  assert.equal(event.sourceOrder, 0);
 });
 
 test("timeline merge adds presentation metadata without mutating recorded artifacts", () => {
@@ -240,19 +336,38 @@ test("timeline merge adds presentation metadata without mutating recorded artifa
   assert.equal(timeline.some(event => Object.hasOwn(event, "timestamp")), false);
 });
 
-test("timeline events keep stable source identities when another channel grows", () => {
-  const detail = governedMigrationDetail();
-  const before = mergeTimeline(detail.trajectory, detail.worker.events);
+test("timeline events keep stable source identities and source order as channels grow", () => {
+  const governance = [
+    { index: 0, node: "scan_repo", phase: "complete" },
+    { index: 1, node: "run_external_worker", phase: "start" },
+    { index: 2, node: "run_external_worker", phase: "complete" },
+    { index: 3, node: "write_report", phase: "complete" },
+  ];
+  const worker = [{ index: 0, type: "ActionEvent", summary: "edit" }];
+  const before = mergeTimeline(governance, worker);
+  const afterGovernanceGrowth = mergeTimeline([
+    ...governance,
+    { index: 4, node: "audit_conflicts", phase: "complete" },
+  ], worker);
+  const afterWorkerGrowth = mergeTimeline(governance, [
+    ...worker,
+    { index: 1, type: "ObservationEvent", summary: "done" },
+  ]);
   const workerBefore = before.find(event => event.source === "worker");
-  const after = mergeTimeline(
-    [...detail.trajectory, { index: 2, node: "write_report", phase: "complete" }],
-    detail.worker.events,
-  );
-  const workerAfter = after.find(event => event.source === "worker");
+  const workerAfter = afterGovernanceGrowth.find(event => event.id === workerBefore.id);
 
   assert.equal(workerBefore.id, "worker:index:0");
-  assert.equal(workerAfter.id, workerBefore.id);
-  assert.notEqual(workerAfter.order, workerBefore.order);
+  assert.equal(workerAfter.order, workerBefore.order);
+  assert.deepEqual(
+    afterGovernanceGrowth.slice(0, before.length).map(event => event.id),
+    before.map(event => event.id),
+  );
+  assert.deepEqual(
+    afterWorkerGrowth.filter(event => event.source === "governance")
+      .map(({ id, sourceOrder }) => ({ id, sourceOrder })),
+    before.filter(event => event.source === "governance")
+      .map(({ id, sourceOrder }) => ({ id, sourceOrder })),
+  );
 });
 
 test("plan requires both recorded steps and a plan phase", () => {

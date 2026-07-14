@@ -15,23 +15,60 @@ const GOVERNANCE_STAGES = Object.freeze({
   scan_repo: "plan",
   repo_graph: "plan",
   goal_model: "plan",
+  recall_experience: "plan",
   create_plan: "plan",
+  prepare_workspace: "equip",
+  pre_dispatch: "equip",
   run_external_worker: "work",
   collect_diff: "work",
   enforce_permissions: "guard",
   run_tests: "guard",
   check_convergence: "guard",
+  build_changed_subgraph: "guard",
+  review_diff: "guard",
   assess_risk: "guard",
+  classify_permissions: "guard",
+  write_report: "prove",
+  check_report_quality: "prove",
+  check_evidence: "prove",
+  build_product_review: "prove",
+  assemble_verification: "prove",
+  audit_conflicts: "prove",
 });
 
 const hasArtifact = (detail, name) => (
   (detail.artifacts || []).some(item => item.name === name)
 );
 
-const stageForGovernance = event => GOVERNANCE_STAGES[event.node] || "prove";
+const stageForGovernance = event => GOVERNANCE_STAGES[event.node] ?? null;
 const eventId = (source, event, sourceOrder) => (
   `${source}:${event.index != null ? `index:${event.index}` : `order:${sourceOrder}`}`
 );
+
+const workerInsertionIndex = governance => {
+  const workerStart = governance.findIndex(
+    event => event.node === "run_external_worker" && event.phase === "start",
+  );
+  const workerComplete = governance.findIndex(
+    (event, index) => index > workerStart &&
+      event.node === "run_external_worker" && event.phase === "complete",
+  );
+  if (workerStart >= 0 && workerComplete >= 0) return workerComplete;
+  if (workerStart >= 0) return workerStart + 1;
+
+  const unmatchedComplete = governance.findIndex(
+    event => event.node === "run_external_worker" && event.phase === "complete",
+  );
+  if (unmatchedComplete >= 0) return unmatchedComplete;
+
+  const firstWork = governance.findIndex(event => event.stage === "work");
+  if (firstWork >= 0) return firstWork;
+
+  const firstPostWork = governance.findIndex(
+    event => event.stage === "guard" || event.stage === "prove",
+  );
+  return firstPostWork >= 0 ? firstPostWork : governance.length;
+};
 
 export function mergeTimeline(governanceEvents = [], workerEvents = []) {
   const governance = governanceEvents.map((event, sourceOrder) => ({
@@ -49,7 +86,12 @@ export function mergeTimeline(governanceEvents = [], workerEvents = []) {
     stage: "work",
   }));
 
-  return [...governance, ...worker].map((event, order) => ({ ...event, order }));
+  const insertionIndex = workerInsertionIndex(governance);
+  return [
+    ...governance.slice(0, insertionIndex),
+    ...worker,
+    ...governance.slice(insertionIndex),
+  ].map((event, order) => ({ ...event, order }));
 }
 
 export function buildCockpitViewModel({
