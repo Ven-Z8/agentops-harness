@@ -8,7 +8,7 @@ export function streamState({ attempt }) {
 
 export class CockpitDataClient {
   constructor({
-    fetchImpl = fetch,
+    fetchImpl = globalThis.fetch.bind(globalThis),
     EventSourceImpl = EventSource,
     setTimeoutImpl = globalThis.setTimeout,
     clearTimeoutImpl = globalThis.clearTimeout,

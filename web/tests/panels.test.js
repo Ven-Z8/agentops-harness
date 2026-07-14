@@ -8,6 +8,7 @@ import {
   phaseEl,
   proofCards,
   renderModelState,
+  renderStageEvidence,
   selectedStageEvidence,
   stageButton,
   tabPlan,
@@ -132,6 +133,44 @@ test("selected-stage evidence links only available files and names every missing
   assert.doesNotMatch(html, /data-evidence-name="openhands_events\.jsonl"/);
   assert.match(html, /Missing expected artifact: openhands_events\.jsonl/);
   assert.match(html, /Missing expected artifact: worker_result\.json/);
+});
+
+test("same-stage model renders preserve an opened artifact pane", () => {
+  const viewModel = {
+    run: { id: "run-1" },
+    selection: {
+      stage: "equip",
+      evidence: {
+        expected: ["capability_pack.json"],
+        available: ["capability_pack.json"],
+        missing: [],
+      },
+    },
+    stages: [{ id: "equip", label: "Equip", status: "pass" }],
+    errors: {},
+  };
+  const host = { dataset: {}, innerHTML: "" };
+
+  assert.equal(renderStageEvidence(viewModel, host), true);
+  host.innerHTML = '<pre id="evidencePane">loaded capability pack</pre>';
+
+  assert.equal(renderStageEvidence(viewModel, host), false);
+  assert.equal(
+    host.innerHTML,
+    '<pre id="evidencePane">loaded capability pack</pre>',
+  );
+
+  const nextStage = {
+    ...viewModel,
+    selection: {
+      stage: "work",
+      evidence: { expected: [], available: [], missing: [] },
+    },
+    stages: [{ id: "work", label: "Work", status: "pass" }],
+  };
+  assert.equal(renderStageEvidence(nextStage, host), true);
+  assert.match(host.innerHTML, /Work evidence/);
+  assert.doesNotMatch(host.innerHTML, /loaded capability pack/);
 });
 
 test("proof cards render six required categories without false success defaults", () => {

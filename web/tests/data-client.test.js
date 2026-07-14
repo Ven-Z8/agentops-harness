@@ -40,6 +40,24 @@ test("run methods use the existing Cockpit API paths", async () => {
   ]);
 });
 
+test("default browser fetch is called with globalThis as its receiver", async t => {
+  const originalFetch = globalThis.fetch;
+  let receiver = null;
+  globalThis.fetch = async function (path) {
+    receiver = this;
+    return { ok: true, json: async () => ({ path }) };
+  };
+  t.after(() => {
+    globalThis.fetch = originalFetch;
+  });
+  const client = new CockpitDataClient({ EventSourceImpl: class {} });
+
+  assert.deepEqual(await client.json("/receiver-check"), {
+    path: "/receiver-check",
+  });
+  assert.equal(receiver, globalThis);
+});
+
 test("json and text surface HTTP failures with the requested path", async () => {
   const client = new CockpitDataClient({
     fetchImpl: async path => ({

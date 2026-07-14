@@ -102,6 +102,32 @@ export function selectedStageEvidence(viewModel) {
   </section>`;
 }
 
+export function renderStageEvidence(
+  viewModel,
+  host = globalThis.document?.getElementById("stageEvidence"),
+) {
+  if (!host) return false;
+  const evidence = viewModel.selection.evidence;
+  const stage = viewModel.stages?.find(item => item.id === viewModel.selection.stage);
+  const artifactError = viewModel.errors?.artifact;
+  const scopedError = artifactError && evidence.expected.includes(artifactError.name)
+    ? artifactError.name
+    : null;
+  const renderKey = JSON.stringify([
+    viewModel.run.id,
+    viewModel.selection.stage,
+    stage?.status || "unavailable",
+    evidence.expected,
+    evidence.available,
+    evidence.missing,
+    scopedError,
+  ]);
+  if (host.dataset.evidenceRenderKey === renderKey) return false;
+  host.innerHTML = selectedStageEvidence(viewModel);
+  host.dataset.evidenceRenderKey = renderKey;
+  return true;
+}
+
 export function workerTelemetry(viewModel) {
   const event = viewModel.selection?.event;
   const workerCount = viewModel.telemetry?.worker?.length ?? 0;
@@ -321,8 +347,7 @@ export function renderModelState(vm, callbacks = {}) {
     button.setAttribute("aria-current", selected ? "step" : "false");
     button.setAttribute("aria-pressed", String(selected));
   });
-  const evidence = document.getElementById("stageEvidence");
-  if (evidence) evidence.innerHTML = selectedStageEvidence(vm);
+  renderStageEvidence(vm);
   const telemetry = document.getElementById("workerTelemetry");
   if (telemetry) telemetry.innerHTML = workerTelemetry(vm);
   const proofRail = document.getElementById("proofRail");
