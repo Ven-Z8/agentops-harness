@@ -5,6 +5,7 @@ receives: skills → system-prompt suffix, tools → an allowlisted name list,
 hooks → callbacks. Guardrail: pack tools stay terminal/file-only.
 """
 
+import hashlib
 from pathlib import Path
 
 import pytest
@@ -12,6 +13,7 @@ import pytest
 from app.core.packs.loader import (
     PackError,
     assemble_agent_inputs,
+    build_pack_provenance,
     discover_pack,
     load_hook_callables,
     load_pack,
@@ -61,6 +63,24 @@ def test_load_pack_parses_manifest_and_reads_skills(tmp_path: Path) -> None:
     assert pack.manifest.domain == "testing"
     assert [s.name for s in pack.skills] == ["playbook.md"]
     assert "small, verified steps" in pack.skills[0].content
+
+
+def test_build_pack_provenance_records_exact_manifest_and_resolved_tools(
+    tmp_path: Path,
+) -> None:
+    pack_dir = _write_pack(tmp_path, tools=["terminal", "file_editor"])
+    pack = load_pack(pack_dir)
+
+    provenance = build_pack_provenance(pack, ["terminal", "file_editor"])
+
+    assert provenance.name == "demo"
+    assert provenance.version == "0.1.0"
+    assert provenance.skills == ["playbook.md"]
+    assert provenance.resolved_tools == ["terminal", "file_editor"]
+    assert provenance.hooks == []
+    assert provenance.manifest_sha256 == hashlib.sha256(
+        (pack_dir / "manifest.yaml").read_bytes()
+    ).hexdigest()
 
 
 def test_pack_system_suffix_includes_skill_text(tmp_path: Path) -> None:
@@ -157,3 +177,15 @@ def test_shipped_example_pack_loads_and_is_terminal_file_only() -> None:
         "glob",
     ]
     assert "example pack" in pack_system_suffix(pack).lower()
+
+
+def test_pydantic_v2_pack_is_bounded_and_inspectable() -> None:
+    pack = load_pack(discover_pack("pydantic-v2"))
+    tools = resolve_tool_names(pack, BUILTIN_DEFAULT_TOOLS)
+
+    assert pack.manifest.name == "pydantic-v2"
+    assert pack.manifest.domain == "python-migration"
+    assert pack.manifest.version == "1.0.0"
+    assert pack.manifest.skills == ["migration-playbook.md"]
+    assert tools == ["terminal", "file_editor", "grep", "glob"]
+    assert pack.manifest.hooks == []

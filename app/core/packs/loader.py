@@ -8,6 +8,7 @@ feeds the inner agent: a system-prompt suffix (skills), a tool-name list
 
 from __future__ import annotations
 
+import hashlib
 import importlib.util
 from collections.abc import Callable
 from pathlib import Path
@@ -15,7 +16,7 @@ from pathlib import Path
 import yaml
 from pydantic import ValidationError
 
-from app.schemas.pack import CapabilityPack, PackManifest, PackSkill
+from app.schemas.pack import CapabilityPack, CapabilityPackProvenance, PackManifest, PackSkill
 
 MANIFEST_FILENAME = "manifest.yaml"
 HOOKS_FILENAME = "hooks.py"
@@ -71,6 +72,23 @@ def load_pack(pack_dir: Path) -> CapabilityPack:
         skills.append(PackSkill(name=relative, content=skill_path.read_text(encoding="utf-8")))
 
     return CapabilityPack(manifest=manifest, root=str(pack_dir), skills=skills)
+
+
+def build_pack_provenance(
+    pack: CapabilityPack,
+    resolved_tools: list[str],
+) -> CapabilityPackProvenance:
+    manifest_path = Path(pack.root) / MANIFEST_FILENAME
+    return CapabilityPackProvenance(
+        name=pack.manifest.name,
+        domain=pack.manifest.domain,
+        version=pack.manifest.version,
+        description=pack.manifest.description,
+        skills=list(pack.manifest.skills),
+        resolved_tools=list(resolved_tools),
+        hooks=list(pack.manifest.hooks),
+        manifest_sha256=hashlib.sha256(manifest_path.read_bytes()).hexdigest(),
+    )
 
 
 def pack_system_suffix(pack: CapabilityPack) -> str:

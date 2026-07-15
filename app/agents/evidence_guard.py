@@ -33,7 +33,55 @@ class EvidenceGuard:
         "tests changed",
         "test changed",
     )
-    TEST_UPDATE_CLAIM = re.compile(r"\b(updated|modified|changed)\b.*\btest\b")
+    TEST_CHANGE_VERB = re.compile(
+        r"\b(?:added|created|updated|modified|changed)\b"
+    )
+    TEST_SUBJECT_CHANGE = re.compile(
+        r"\b(?:new\s+)?tests?(?:\s+files?)?\s+(?:were|was|are|is)\s+"
+        r"(?:added|created|updated|modified|changed)\b"
+    )
+    TEST_OBJECT_TOKEN = re.compile(r"[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*")
+    TEST_OBJECT_MAX_TOKENS = 8
+    TEST_CLAUSE_STARTERS = frozenset({"and", "but", "so", "then", "yet"})
+    TEST_OBJECT_BARRIERS = frozenset(
+        {
+            "about",
+            "checked",
+            "confirm",
+            "confirmed",
+            "execute",
+            "executed",
+            "for",
+            "no",
+            "not",
+            "pass",
+            "passed",
+            "passes",
+            "ran",
+            "run",
+            "that",
+            "to",
+            "use",
+            "used",
+            "using",
+            "verify",
+            "verified",
+            "verifies",
+            "via",
+            "which",
+            "with",
+            "without",
+        }
+    )
+    NEGATED_TEST_CHANGE = re.compile(
+        r"\b(?:"
+        r"no\s+(?:(?:additional|new)\s+){0,2}tests?(?:\s+files?)?\s+"
+        r"(?:were\s+|was\s+)?"
+        r"(?:added|updated|modified|changed|created)"
+        r"|tests?(?:\s+files?)?\s+(?:were|was)\s+not\s+"
+        r"(?:added|updated|modified|changed|created)"
+        r")\b"
+    )
     ROUTE_CLAIM_PATTERN = re.compile(r"\b(GET|POST|PUT|PATCH|DELETE|ANY)\s+(/[A-Za-z0-9_./{}-]*)")
     VALIDATION_RECOMMENDATION_WORDS = (
         "recommended targeted validation",
@@ -136,11 +184,18 @@ This report contains claims that are not supported by the run record.
         markdown: str,
         changed_file_set: set[str],
     ) -> list[EvidenceFinding]:
-        lowered = markdown.lower()
-        has_test_claim = (
-            any(pattern in lowered for pattern in self.TEST_CLAIM_PATTERNS)
-            or self.TEST_UPDATE_CLAIM.search(lowered) is not None
-        )
+        has_test_claim = False
+        for line in markdown.lower().splitlines():
+            claim_text = self.NEGATED_TEST_CHANGE.sub("", line)
+            if any(pattern in claim_text for pattern in self.TEST_CLAIM_PATTERNS):
+                has_test_claim = True
+                break
+            if self.TEST_SUBJECT_CHANGE.search(claim_text) is not None:
+                has_test_claim = True
+                break
+            if self._claims_test_object(claim_text):
+                has_test_claim = True
+                break
         has_changed_tests = any(path.startswith("tests/") for path in changed_file_set)
         if has_test_claim and not has_changed_tests:
             return [
@@ -157,6 +212,25 @@ This report contains claims that are not supported by the run record.
                 )
             ]
         return []
+
+    @classmethod
+    def _claims_test_object(cls, text: str) -> bool:
+        """Detect when a change verb's direct object is a bounded test noun phrase."""
+        for verb in cls.TEST_CHANGE_VERB.finditer(text):
+            if re.search(r"\b(?:never|not)\s*$", text[: verb.start()]):
+                continue
+            clause = re.split(r"[.;:\n]", text[verb.end() :], maxsplit=1)[0]
+            tokens = cls.TEST_OBJECT_TOKEN.findall(clause.lower())
+            if not tokens or tokens[0] in cls.TEST_CLAUSE_STARTERS:
+                continue
+            for index, token in enumerate(tokens):
+                if index > cls.TEST_OBJECT_MAX_TOKENS:
+                    break
+                if token in {"test", "tests"}:
+                    return True
+                if token in cls.TEST_OBJECT_BARRIERS:
+                    break
+        return False
 
     LINT_EXECUTION_WORDS = (
         "passed",

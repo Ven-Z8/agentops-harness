@@ -17,7 +17,9 @@ import time
 from pathlib import Path
 from typing import Any
 
+from app.core.config import settings
 from app.core.git_utils import collect_status_lines, is_git_repo
+from app.core.packs.loader import build_pack_provenance, load_pack, resolve_tool_names
 from app.core.workers.auth_errors import detect_auth_failure
 from app.core.workers.openhands_artifacts import (
     write_worker_logs,
@@ -30,6 +32,7 @@ from app.core.workers.openhands_config import OPENHANDS_TOOL_NAMES
 from app.core.workers.openhands_runner import SUMMARY_PREFIX
 from app.prompts.workers import build_worker_prompt
 from app.schemas.edit import ExternalEditResult
+from app.schemas.pack import CapabilityPackProvenance
 from app.schemas.worker_loop import WorkerLoopSummary, WorkerScorecard
 
 COMMAND_STR = "python -m app.core.workers.openhands_runner <repo> (task on stdin)"
@@ -88,6 +91,12 @@ class OpenHandsWorker:
         )
         argv = [sys.executable, "-m", "app.core.workers.openhands_runner", str(repo_path)]
         prompt_path = write_worker_prompt(run_dir, prompt) if run_dir else None
+        resolved_tool_names = list(OPENHANDS_TOOL_NAMES)
+        pack_provenance = None
+        if pack_path:
+            capability_pack = load_pack(Path(pack_path))
+            resolved_tool_names = resolve_tool_names(capability_pack, resolved_tool_names)
+            pack_provenance = build_pack_provenance(capability_pack, resolved_tool_names)
 
         started = time.perf_counter()
         try:
@@ -121,9 +130,10 @@ class OpenHandsWorker:
                 status="timeout",
                 exit_code=None,
                 duration_seconds=duration,
-                tools_requested=list(OPENHANDS_TOOL_NAMES),
+                tools_requested=resolved_tool_names,
                 termination_reason="timeout",
                 prompt_path=str(prompt_path) if prompt_path else None,
+                capability_pack=pack_provenance,
             )
             _persist_worker_artifacts(
                 run_dir=run_dir,
@@ -137,16 +147,21 @@ class OpenHandsWorker:
 
         duration = round(time.perf_counter() - started, 3)
         code = completed.returncode
-        summary = _summary_from_stdout(completed.stdout) or WorkerLoopSummary(
+        summary = _summary_from_stdout(
+            completed.stdout,
+            fallback_tools_requested=resolved_tool_names,
+            fallback_capability_pack=pack_provenance,
+        ) or WorkerLoopSummary(
             status=_status_from_exit_code(code, completed.stdout, completed.stderr),
             exit_code=code,
             duration_seconds=duration,
-            tools_requested=list(OPENHANDS_TOOL_NAMES),
+            tools_requested=resolved_tool_names,
             termination_reason=_termination_from_exit_code(
                 code,
                 completed.stdout,
                 completed.stderr,
             ),
+            capability_pack=pack_provenance,
         )
         summary.exit_code = code
         summary.duration_seconds = duration
@@ -190,6 +205,18 @@ def _runner_env(
     pack_path: str | None = None,
 ) -> dict[str, str]:
     env = os.environ.copy()
+    if settings.llm_provider.strip().lower() == "openrouter" and settings.openrouter_api_key:
+        openrouter_values = {
+            "AGENTOPS_LLM_PROVIDER": "openrouter",
+            "AGENTOPS_OPENROUTER_API_KEY": settings.openrouter_api_key,
+            "AGENTOPS_OPENROUTER_MODEL": settings.openrouter_model,
+            "AGENTOPS_OPENROUTER_BASE_URL": settings.openrouter_base_url,
+            "AGENTOPS_OPENROUTER_SITE_URL": settings.openrouter_site_url,
+            "AGENTOPS_OPENROUTER_APP_TITLE": settings.openrouter_app_title,
+        }
+        for name, value in openrouter_values.items():
+            if value is not None:
+                env.setdefault(name, value)
     existing = env.get("PYTHONPATH")
     env["PYTHONPATH"] = (
         str(HARNESS_ROOT) if not existing else f"{HARNESS_ROOT}{os.pathsep}{existing}"
@@ -212,7 +239,12 @@ def _runner_env(
     return env
 
 
-def _summary_from_stdout(stdout: str) -> WorkerLoopSummary | None:
+def _summary_from_stdout(
+    stdout: str,
+    *,
+    fallback_tools_requested: list[str] | None = None,
+    fallback_capability_pack: CapabilityPackProvenance | None = None,
+) -> WorkerLoopSummary | None:
     for line in stdout.splitlines():
         if not line.startswith(SUMMARY_PREFIX):
             continue
@@ -221,8 +253,10 @@ def _summary_from_stdout(stdout: str) -> WorkerLoopSummary | None:
         except (json.JSONDecodeError, ValueError):
             return WorkerLoopSummary(
                 status="failed",
+                tools_requested=list(fallback_tools_requested or OPENHANDS_TOOL_NAMES),
                 termination_reason="malformed_worker_summary",
                 notes=["OpenHands runner emitted malformed summary JSON."],
+                capability_pack=fallback_capability_pack,
             )
     return None
 
@@ -263,7 +297,7 @@ def _stderr_with_setup_hint(status: str, stdout: str, stderr: str) -> str:
     if status == "auth_missing":
         hint = detect_auth_failure(stdout, stderr) or (
             "OpenHands authentication missing. Set LLM_API_KEY, ANTHROPIC_API_KEY, "
-            "or OPENAI_API_KEY and retry."
+            "OPENAI_API_KEY, or configure AGENTOPS_OPENROUTER_API_KEY and retry."
         )
         return f"{hint}\n{stderr}".strip()
     return stderr

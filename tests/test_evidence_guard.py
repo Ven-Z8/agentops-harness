@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import pytest
+
 from app.agents.evidence_guard import EvidenceGuard
 from app.core.graph import run_harness
 from app.core.repo_graph.impact import ChangedSubgraph, ImpactedRoute, ImpactedValidation
@@ -117,6 +119,74 @@ def test_evidence_guard_flags_updated_test_claim_without_test_file_changes() -> 
     evidence = EvidenceGuard().check(
         final_report=report,
         changed_files=["app/main.py"],
+        test_results=passing_tests(),
+    )
+
+    assert evidence.grounded is False
+    assert any(
+        finding.claim_type == "tests_added_without_test_diff"
+        for finding in evidence.findings
+    )
+
+
+@pytest.mark.parametrize(
+    "claim",
+    [
+        "No tests were modified; all existing tests continue to pass.",
+        "No additional new tests were added; the focused suite still passes.",
+    ],
+)
+def test_evidence_guard_accepts_explicit_no_test_changes_statement(claim: str) -> None:
+    report = FinalReport(
+        title="PR Report",
+        markdown=claim,
+    )
+
+    evidence = EvidenceGuard().check(
+        final_report=report,
+        changed_files=["app/models.py", "app/service.py"],
+        test_results=passing_tests(),
+    )
+
+    assert evidence.grounded is True
+    assert evidence.unsupported_claim_count == 0
+
+
+@pytest.mark.parametrize(
+    "claim",
+    [
+        "We changed the implementation and ran tests to verify the new route.",
+        "We modified app code and used tests for validation.",
+        "Changed app behavior and ran the focused tests to confirm.",
+        "The API changed and all tests pass.",
+    ],
+)
+def test_evidence_guard_accepts_validation_mentions_after_app_changes(claim: str) -> None:
+    evidence = EvidenceGuard().check(
+        final_report=FinalReport(title="PR Report", markdown=claim),
+        changed_files=["app/main.py"],
+        test_results=passing_tests(),
+    )
+
+    assert evidence.grounded is True
+    assert evidence.unsupported_claim_count == 0
+
+
+@pytest.mark.parametrize(
+    "claim",
+    [
+        "We updated unit and integration tests.",
+        "The change modified all four relevant unit tests.",
+        "We updated unit and integration tests for the new route.",
+        "The change modified all four relevant unit tests to cover the migration.",
+        "We changed the endpoint tests so they exercise the new response.",
+        "We updated API tests for the new route.",
+    ],
+)
+def test_evidence_guard_flags_positive_test_update_claims(claim: str) -> None:
+    evidence = EvidenceGuard().check(
+        final_report=FinalReport(title="PR Report", markdown=claim),
+        changed_files=["app/models.py"],
         test_results=passing_tests(),
     )
 

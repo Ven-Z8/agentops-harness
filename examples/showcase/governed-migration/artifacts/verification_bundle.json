@@ -1,0 +1,44 @@
+{
+  "checks": [
+    {
+      "cannot_verify": "Untested code paths, semantic intent, security, and performance. A green suite is not the full specification.",
+      "confidence": "high",
+      "detail": "2 command(s) exited 0.",
+      "name": "tests",
+      "verdict": "pass",
+      "verifies": "Behavioral correctness for the code paths the test commands exercise."
+    },
+    {
+      "cannot_verify": "Whether the change actually runs correctly; review is static judgement, not execution.",
+      "confidence": "medium",
+      "detail": "All validations passed. No issues found in the changed files or test results. The code appears correct, well-tested, and maintainable with no security concerns identified in the provided scope.",
+      "name": "code_review",
+      "verdict": "pass",
+      "verifies": "Code-quality and design issues detectable by reading the diff."
+    },
+    {
+      "cannot_verify": "Whether a low-risk-looking change is actually correct or complete.",
+      "confidence": "medium",
+      "detail": "score=18 level=low",
+      "name": "risk_guard",
+      "verdict": "pass",
+      "verifies": "Presence of high-risk change patterns (deletions, sensitive files)."
+    },
+    {
+      "cannot_verify": "Whether the underlying change is correct \u2014 only that the report does not overstate it.",
+      "confidence": "high",
+      "detail": "unsupported_claims=0",
+      "name": "evidence_guard",
+      "verdict": "pass",
+      "verifies": "That report claims are grounded in the git and test record."
+    }
+  ],
+  "remaining_risks": [
+    "2 changed file(s)",
+    "No tests changed"
+  ],
+  "untested_regions": [
+    "app/models.py changed but no test file was added or updated.",
+    "app/service.py changed but no test file was added or updated."
+  ]
+}

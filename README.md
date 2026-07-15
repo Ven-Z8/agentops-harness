@@ -4,6 +4,26 @@
 
 A model answers once and stops. A *coding agent* (Claude Code, Codex, OpenHands) loops — read, edit, run, retry — until a task is done. **A harness is everything around that loop that makes it finish the task.** AgentOps Harness is the *outer* harness: it doesn't run the edit loop itself, it **governs** a swappable worker that does, and hands the human a graded, cited evidence trail.
 
+![AgentOps 3D Cockpit replaying a governed Pydantic migration](docs/assets/cockpit-3d-showcase.png)
+
+## Run the portfolio showcase
+
+```bash
+make showcase
+```
+
+This imports a sanitized real OpenHands run, starts the normal FastAPI Cockpit, and
+opens the Governed Migration mission. It needs no API key and is labeled **Recorded**.
+
+The walkthrough is: **Plan** the blast radius, **Equip** the worker with a versioned
+capability pack, watch real tool activity at **Work**, inspect independent checks at
+**Guard**, and open the evidence bundle at **Prove**.
+
+AgentOps owns the outer intent and control loop, OpenHands owns the inner edit loop,
+and the repository graph grounds both. The 3D stage visualizes their persisted state;
+it never decides whether the run passed—stored Python governance and verification
+results remain the source of truth.
+
 ## The idea: a harness nests
 
 "Harness" isn't one thing — it's a relationship (*everything around a loop that makes it finish a task*), and it stacks. AgentOps owns the two outer layers; the model is rented in exactly one box.

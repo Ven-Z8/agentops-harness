@@ -1,0 +1,17 @@
+{
+  "decisions": [
+    {
+      "action": "edit app/models.py",
+      "reason": "Ordinary source change with no risk markers.",
+      "rule": "ordinary_source",
+      "tier": "auto"
+    },
+    {
+      "action": "edit app/service.py",
+      "reason": "Ordinary source change with no risk markers.",
+      "rule": "ordinary_source",
+      "tier": "auto"
+    }
+  ],
+  "enforced_reverts": []
+}

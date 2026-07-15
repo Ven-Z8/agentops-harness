@@ -1,0 +1,49 @@
+mission_id: governed-migration
+run_id: showcase-governed-migration
+source_run_id: 652d9a18c68548449efe2c015e95fea4
+target_fixture: examples/showcase/fixtures/pydantic-v1-app
+source_commit: 4ef832bcb945fa336082ab2c2f3b12c32ea52c2a
+captured_at: '2026-07-13T23:36:04.841762Z'
+pack:
+  name: pydantic-v2
+  domain: python-migration
+  version: 1.0.0
+  description: Migrate Pydantic v1 models and serialization APIs to supported v2 equivalents.
+  skills:
+  - migration-playbook.md
+  resolved_tools:
+  - terminal
+  - file_editor
+  - grep
+  - glob
+  hooks: []
+  manifest_sha256: 108b0fa3d7f3d26b347441eb33dc6b2e79d4a21e69614c075948466611007c01
+required_artifacts:
+- capability_pack.json
+- conflict_report.json
+- diff.patch
+- evidence_report.json
+- final_report.md
+- impacted_graph.json
+- openhands_events.jsonl
+- permission_report.json
+- product_review.json
+- repo_graph.json
+- repo_profile.json
+- risk_report.json
+- showcase_manifest.json
+- task_plan.yaml
+- test_results.json
+- trace.jsonl
+- verification_bundle.json
+- worker_loop_summary.json
+- worker_packet.md
+- worker_prompt.md
+- worker_result.json
+- worker_scorecard.json
+- workspace_report.json
+sanitation_notes:
+- Rewrote the source repository, capture storage, artifact directory, and run ID.
+- Neutralized worker host, user, and internal output-path metadata.
+- Rejected credentials, private provider state, and residual machine paths.
+- Copied only inspectable allowlisted artifacts; preserved observable event order.

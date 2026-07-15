@@ -16,7 +16,10 @@ from pathlib import Path
 
 import pytest
 
-_HAS_KEY = any(os.getenv(k) for k in ("ANTHROPIC_API_KEY", "LLM_API_KEY", "OPENAI_API_KEY"))
+from app.core.config import settings
+from app.core.workers.openhands_config import auth_available
+
+_HAS_KEY = auth_available(settings)
 
 pytestmark = pytest.mark.skipif(
     not (os.getenv("OPENHANDS_LIVE_TEST") and _HAS_KEY),

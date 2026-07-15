@@ -1,0 +1,49 @@
+{
+  "findings": [
+    {
+      "citation": "no agentops.goals.yaml",
+      "confidence": "high",
+      "lens": "goal_alignment",
+      "observation": "No intent graph found; product intent not evaluated.",
+      "recommendation": "Author agentops.goals.yaml to enable product review.",
+      "source_of_truth": "goal_model",
+      "verdict": "not_evaluated"
+    },
+    {
+      "citation": "no agentops.goals.yaml",
+      "confidence": "high",
+      "lens": "completeness",
+      "observation": "No intent graph found; product intent not evaluated.",
+      "recommendation": "Author agentops.goals.yaml to enable product review.",
+      "source_of_truth": "goal_model",
+      "verdict": "not_evaluated"
+    },
+    {
+      "citation": "no agentops.goals.yaml",
+      "confidence": "high",
+      "lens": "value",
+      "observation": "No intent graph found; product intent not evaluated.",
+      "recommendation": "Author agentops.goals.yaml to enable product review.",
+      "source_of_truth": "goal_model",
+      "verdict": "not_evaluated"
+    },
+    {
+      "citation": "no agentops.goals.yaml",
+      "confidence": "high",
+      "lens": "prioritization",
+      "observation": "No intent graph found; product intent not evaluated.",
+      "recommendation": "Author agentops.goals.yaml to enable product review.",
+      "source_of_truth": "goal_model",
+      "verdict": "not_evaluated"
+    }
+  ],
+  "overall_verdict": "not_evaluated",
+  "per_lens": {
+    "completeness": "not_evaluated",
+    "goal_alignment": "not_evaluated",
+    "prioritization": "not_evaluated",
+    "value": "not_evaluated"
+  },
+  "suggested_next": [],
+  "summary": "Product review skipped: no intent graph (agentops.goals.yaml)."
+}

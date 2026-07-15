@@ -40,6 +40,16 @@ def write_worker_summary(run_dir: Path, summary: WorkerLoopSummary) -> Path:
     return _write_json(_ensure_run_dir(run_dir) / "worker_loop_summary.json", summary)
 
 
+def read_worker_summary(run_dir: Path) -> WorkerLoopSummary | None:
+    path = run_dir / "worker_loop_summary.json"
+    if not path.is_file():
+        return None
+    try:
+        return WorkerLoopSummary.model_validate_json(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+
+
 def write_worker_result(run_dir: Path, result: ExternalEditResult) -> Path:
     return _write_json(_ensure_run_dir(run_dir) / "worker_result.json", result)
 

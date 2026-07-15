@@ -1,0 +1,17 @@
+{
+  "description": "Migrate Pydantic v1 models and serialization APIs to supported v2 equivalents.",
+  "domain": "python-migration",
+  "hooks": [],
+  "manifest_sha256": "108b0fa3d7f3d26b347441eb33dc6b2e79d4a21e69614c075948466611007c01",
+  "name": "pydantic-v2",
+  "resolved_tools": [
+    "terminal",
+    "file_editor",
+    "grep",
+    "glob"
+  ],
+  "skills": [
+    "migration-playbook.md"
+  ],
+  "version": "1.0.0"
+}

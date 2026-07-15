@@ -11,6 +11,7 @@ pytest.importorskip("openhands.sdk")
 from openhands.sdk import LLM  # noqa: E402
 
 from app.core.packs.loader import load_pack  # noqa: E402
+from app.core.workers.openhands_config import OPENHANDS_TOOL_NAMES  # noqa: E402
 from app.core.workers.openhands_runner import build_agent  # noqa: E402
 
 DUMMY_LLM = LLM(
@@ -84,6 +85,8 @@ def test_runner_returns_auth_error_when_sdk_present_but_no_key(monkeypatch) -> N
     monkeypatch.delenv("LLM_API_KEY", raising=False)
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.delenv("AGENTOPS_LLM_PROVIDER", raising=False)
+    monkeypatch.delenv("AGENTOPS_OPENROUTER_API_KEY", raising=False)
 
     from app.core.workers.openhands_runner import main
 
@@ -159,3 +162,112 @@ def test_runner_surfaces_summary_when_archetype_registration_fails(monkeypatch, 
 
     assert main() == 1  # EXIT_RUN_ERROR — caught and surfaced
     # (summary is printed to stdout; the run did not crash)
+
+
+def test_runner_passes_openrouter_transport_metadata_to_llm(monkeypatch, tmp_path) -> None:
+    captured = {}
+
+    def fake_llm(**kwargs):
+        captured.update(kwargs)
+        return object()
+
+    def stop_after_llm(*_args, **_kwargs):
+        raise RuntimeError("stop after llm construction")
+
+    monkeypatch.setattr("app.core.workers.openhands_runner.openhands_sdk_available", lambda: True)
+    monkeypatch.setattr("openhands.sdk.LLM", fake_llm)
+    monkeypatch.setattr("app.core.workers.openhands_runner.build_agent", stop_after_llm)
+    monkeypatch.delenv("OPENHANDS_MODEL", raising=False)
+    monkeypatch.delenv("LLM_API_KEY", raising=False)
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.setenv("AGENTOPS_LLM_PROVIDER", "openrouter")
+    monkeypatch.setenv("AGENTOPS_OPENROUTER_API_KEY", "openrouter-secret")
+    monkeypatch.setenv("AGENTOPS_OPENROUTER_MODEL", "deepseek/deepseek-v4-flash")
+    monkeypatch.setenv("AGENTOPS_OPENROUTER_BASE_URL", "https://router.example/v1")
+    monkeypatch.setenv("AGENTOPS_OPENROUTER_SITE_URL", "https://agentops.example")
+    monkeypatch.setenv("AGENTOPS_OPENROUTER_APP_TITLE", "AgentOps Portfolio")
+
+    from app.core.workers.openhands_runner import main
+
+    monkeypatch.setattr(sys, "argv", ["openhands_runner", str(tmp_path)])
+    monkeypatch.setattr(sys, "stdin", type("FakeStdin", (), {"read": lambda self: "task"})())
+
+    assert main() == 1
+    assert captured == {
+        "model": "openrouter/deepseek/deepseek-v4-flash",
+        "api_key": "openrouter-secret",
+        "base_url": "https://router.example/v1",
+        "openrouter_site_url": "https://agentops.example",
+        "openrouter_app_name": "AgentOps Portfolio",
+    }
+
+
+def test_docker_workspace_does_not_receive_llm_credentials(
+    monkeypatch,
+    tmp_path,
+    capsys,
+) -> None:
+    sentinel = "openrouter-sentinel-must-not-reach-tools"
+    captured: dict[str, object] = {}
+
+    class FakeWorkspace:
+        def __init__(self, **kwargs):
+            captured["workspace_kwargs"] = kwargs
+
+        def close(self) -> None:
+            captured["workspace_closed"] = True
+
+    class FakeConversation:
+        def __init__(self, **kwargs):
+            captured["conversation_kwargs"] = kwargs
+
+        def set_security_analyzer(self, analyzer) -> None:
+            captured["security_analyzer"] = analyzer
+
+        def send_message(self, task: str) -> None:
+            captured["task"] = task
+
+        def run(self) -> None:
+            captured["ran"] = True
+
+    def fake_llm(**kwargs):
+        captured["llm_kwargs"] = kwargs
+        return object()
+
+    monkeypatch.setattr("app.core.workers.openhands_runner.openhands_sdk_available", lambda: True)
+    monkeypatch.setattr("openhands.sdk.LLM", fake_llm)
+    monkeypatch.setattr("openhands.sdk.Conversation", FakeConversation)
+    monkeypatch.setattr("openhands.workspace.DockerWorkspace", FakeWorkspace)
+    monkeypatch.setattr(
+        "app.core.workers.openhands_runner.build_agent",
+        lambda llm, pack: (object(), list(OPENHANDS_TOOL_NAMES), []),
+    )
+    monkeypatch.delenv("OPENHANDS_MODEL", raising=False)
+    monkeypatch.delenv("LLM_API_KEY", raising=False)
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "ambient-anthropic")
+    monkeypatch.setenv("OPENAI_API_KEY", "ambient-openai")
+    monkeypatch.setenv("AGENTOPS_LLM_PROVIDER", "openrouter")
+    monkeypatch.setenv("AGENTOPS_OPENROUTER_API_KEY", sentinel)
+    monkeypatch.setenv("AGENTOPS_OPENROUTER_MODEL", "deepseek/deepseek-v4-flash")
+    monkeypatch.setenv("OPENHANDS_WORKSPACE", "docker")
+    event_log = tmp_path / "openhands_events.jsonl"
+    monkeypatch.setenv("OPENHANDS_EVENTS_PATH", str(event_log))
+
+    from app.core.workers.openhands_runner import main
+
+    monkeypatch.setattr(sys, "argv", ["openhands_runner", str(tmp_path)])
+    monkeypatch.setattr(sys, "stdin", type("FakeStdin", (), {"read": lambda self: "task"})())
+
+    assert main() == 0
+    output = capsys.readouterr()
+    llm_kwargs = captured["llm_kwargs"]
+    workspace_kwargs = captured["workspace_kwargs"]
+    assert isinstance(llm_kwargs, dict)
+    assert isinstance(workspace_kwargs, dict)
+    assert llm_kwargs["api_key"] == sentinel
+    assert workspace_kwargs["forward_env"] == ["OPENHANDS_MODEL"]
+    assert sentinel not in output.out
+    assert sentinel not in output.err
+    assert sentinel not in event_log.read_text(encoding="utf-8")
+    assert captured["workspace_closed"] is True

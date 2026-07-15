@@ -1,0 +1,418 @@
+{
+  "edges": [
+    {
+      "metadata": {},
+      "source": "file:app/models.py",
+      "target": "class:python:app.models.Config",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/models.py",
+      "target": "class:python:app.models.UserProfile",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/models.py",
+      "target": "function:python:app.models.normalize_email",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/models.py",
+      "target": "method:python:app.models.UserProfile.normalize_email",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/models.py",
+      "target": "import:python:pydantic.BaseModel",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/models.py",
+      "target": "import:python:pydantic.validator",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/service.py",
+      "target": "function:python:app.service.profile_from_record",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/service.py",
+      "target": "function:python:app.service.public_payload",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/service.py",
+      "target": "import:python:app.models.UserProfile",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:pyproject.toml",
+      "target": "dependency:python:pydantic",
+      "type": "declares_dependency"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_service.py",
+      "target": "function:python:tests.test_service.test_profile_from_record_reads_object_attributes",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_service.py",
+      "target": "function:python:tests.test_service.test_public_payload_normalizes_email_and_omits_none",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_service.py",
+      "target": "import:python:app.models.UserProfile",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_service.py",
+      "target": "import:python:app.service.profile_from_record",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_service.py",
+      "target": "import:python:app.service.public_payload",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_service.py",
+      "target": "import:python:types.SimpleNamespace",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_service.py",
+      "target": "file:app/service.py",
+      "type": "likely_tests"
+    },
+    {
+      "metadata": {},
+      "source": "folder:.",
+      "target": "file:.gitignore",
+      "type": "contains"
+    },
+    {
+      "metadata": {},
+      "source": "folder:.",
+      "target": "file:pyproject.toml",
+      "type": "contains"
+    },
+    {
+      "metadata": {},
+      "source": "folder:.",
+      "target": "file:uv.lock",
+      "type": "contains"
+    },
+    {
+      "metadata": {},
+      "source": "folder:.",
+      "target": "folder:app",
+      "type": "contains"
+    },
+    {
+      "metadata": {},
+      "source": "folder:.",
+      "target": "folder:tests",
+      "type": "contains"
+    },
+    {
+      "metadata": {},
+      "source": "folder:app",
+      "target": "file:app/__init__.py",
+      "type": "contains"
+    },
+    {
+      "metadata": {},
+      "source": "folder:app",
+      "target": "file:app/models.py",
+      "type": "contains"
+    },
+    {
+      "metadata": {},
+      "source": "folder:app",
+      "target": "file:app/service.py",
+      "type": "contains"
+    },
+    {
+      "metadata": {},
+      "source": "folder:tests",
+      "target": "file:tests/test_service.py",
+      "type": "contains"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "class:python:app.models.Config",
+      "language": "python",
+      "metadata": {
+        "line": 13,
+        "qualified_name": "app.models.Config"
+      },
+      "name": "Config",
+      "path": "app/models.py",
+      "type": "class"
+    },
+    {
+      "id": "class:python:app.models.UserProfile",
+      "language": "python",
+      "metadata": {
+        "line": 4,
+        "qualified_name": "app.models.UserProfile"
+      },
+      "name": "UserProfile",
+      "path": "app/models.py",
+      "type": "class"
+    },
+    {
+      "id": "dependency:python:pydantic",
+      "language": "python",
+      "metadata": {
+        "source": "pyproject.toml",
+        "version": null
+      },
+      "name": "pydantic",
+      "path": null,
+      "type": "dependency"
+    },
+    {
+      "id": "file:.gitignore",
+      "language": null,
+      "metadata": {},
+      "name": ".gitignore",
+      "path": ".gitignore",
+      "type": "file"
+    },
+    {
+      "id": "file:app/__init__.py",
+      "language": "python",
+      "metadata": {},
+      "name": "__init__.py",
+      "path": "app/__init__.py",
+      "type": "file"
+    },
+    {
+      "id": "file:app/models.py",
+      "language": "python",
+      "metadata": {},
+      "name": "models.py",
+      "path": "app/models.py",
+      "type": "file"
+    },
+    {
+      "id": "file:app/service.py",
+      "language": "python",
+      "metadata": {},
+      "name": "service.py",
+      "path": "app/service.py",
+      "type": "file"
+    },
+    {
+      "id": "file:pyproject.toml",
+      "language": null,
+      "metadata": {},
+      "name": "pyproject.toml",
+      "path": "pyproject.toml",
+      "type": "config"
+    },
+    {
+      "id": "file:tests/test_service.py",
+      "language": "python",
+      "metadata": {},
+      "name": "test_service.py",
+      "path": "tests/test_service.py",
+      "type": "test"
+    },
+    {
+      "id": "file:uv.lock",
+      "language": null,
+      "metadata": {},
+      "name": "uv.lock",
+      "path": "uv.lock",
+      "type": "file"
+    },
+    {
+      "id": "folder:.",
+      "language": null,
+      "metadata": {},
+      "name": ".",
+      "path": ".",
+      "type": "folder"
+    },
+    {
+      "id": "folder:app",
+      "language": null,
+      "metadata": {},
+      "name": "app",
+      "path": "app",
+      "type": "folder"
+    },
+    {
+      "id": "folder:tests",
+      "language": null,
+      "metadata": {},
+      "name": "tests",
+      "path": "tests",
+      "type": "folder"
+    },
+    {
+      "id": "function:python:app.models.normalize_email",
+      "language": "python",
+      "metadata": {
+        "line": 10,
+        "qualified_name": "app.models.normalize_email"
+      },
+      "name": "normalize_email",
+      "path": "app/models.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.service.profile_from_record",
+      "language": "python",
+      "metadata": {
+        "line": 8,
+        "qualified_name": "app.service.profile_from_record"
+      },
+      "name": "profile_from_record",
+      "path": "app/service.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.service.public_payload",
+      "language": "python",
+      "metadata": {
+        "line": 4,
+        "qualified_name": "app.service.public_payload"
+      },
+      "name": "public_payload",
+      "path": "app/service.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_service.test_profile_from_record_reads_object_attributes",
+      "language": "python",
+      "metadata": {
+        "line": 13,
+        "qualified_name": "tests.test_service.test_profile_from_record_reads_object_attributes"
+      },
+      "name": "test_profile_from_record_reads_object_attributes",
+      "path": "tests/test_service.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_service.test_public_payload_normalizes_email_and_omits_none",
+      "language": "python",
+      "metadata": {
+        "line": 7,
+        "qualified_name": "tests.test_service.test_public_payload_normalizes_email_and_omits_none"
+      },
+      "name": "test_public_payload_normalizes_email_and_omits_none",
+      "path": "tests/test_service.py",
+      "type": "function"
+    },
+    {
+      "id": "import:python:app.models.UserProfile",
+      "language": "python",
+      "metadata": {
+        "imported_from": "app.models"
+      },
+      "name": "app.models.UserProfile",
+      "path": null,
+      "type": "import"
+    },
+    {
+      "id": "import:python:app.service.profile_from_record",
+      "language": "python",
+      "metadata": {
+        "imported_from": "app.service"
+      },
+      "name": "app.service.profile_from_record",
+      "path": null,
+      "type": "import"
+    },
+    {
+      "id": "import:python:app.service.public_payload",
+      "language": "python",
+      "metadata": {
+        "imported_from": "app.service"
+      },
+      "name": "app.service.public_payload",
+      "path": null,
+      "type": "import"
+    },
+    {
+      "id": "import:python:pydantic.BaseModel",
+      "language": "python",
+      "metadata": {
+        "imported_from": "pydantic"
+      },
+      "name": "pydantic.BaseModel",
+      "path": null,
+      "type": "import"
+    },
+    {
+      "id": "import:python:pydantic.validator",
+      "language": "python",
+      "metadata": {
+        "imported_from": "pydantic"
+      },
+      "name": "pydantic.validator",
+      "path": null,
+      "type": "import"
+    },
+    {
+      "id": "import:python:types.SimpleNamespace",
+      "language": "python",
+      "metadata": {
+        "imported_from": "types"
+      },
+      "name": "types.SimpleNamespace",
+      "path": null,
+      "type": "import"
+    },
+    {
+      "id": "method:python:app.models.UserProfile.normalize_email",
+      "language": "python",
+      "metadata": {
+        "line": 10,
+        "qualified_name": "app.models.UserProfile.normalize_email"
+      },
+      "name": "normalize_email",
+      "path": "app/models.py",
+      "type": "method"
+    }
+  ],
+  "repo_path": "examples/showcase/fixtures/pydantic-v1-app",
+  "summary": {
+    "build_tools": [
+      "pyproject"
+    ],
+    "dependency_count": 1,
+    "frameworks": [],
+    "languages": [
+      "python"
+    ],
+    "risk_count": 0,
+    "source_file_count": 4,
+    "test_file_count": 1,
+    "test_frameworks": [
+      "pytest"
+    ]
+  }
+}

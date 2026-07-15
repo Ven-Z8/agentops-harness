@@ -1,0 +1,12 @@
+name: pydantic-v2
+domain: python-migration
+version: 1.0.0
+description: Migrate Pydantic v1 models and serialization APIs to supported v2 equivalents.
+skills:
+  - migration-playbook.md
+tools:
+  - terminal
+  - file_editor
+  - grep
+  - glob
+hooks: []

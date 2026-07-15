@@ -40,3 +40,14 @@ class CapabilityPack(BaseModel):
     manifest: PackManifest
     root: str
     skills: list[PackSkill] = Field(default_factory=list)
+
+
+class CapabilityPackProvenance(BaseModel):
+    name: str
+    domain: str
+    version: str
+    description: str = ""
+    skills: list[str] = Field(default_factory=list)
+    resolved_tools: list[str] = Field(default_factory=list)
+    hooks: list[str] = Field(default_factory=list)
+    manifest_sha256: str

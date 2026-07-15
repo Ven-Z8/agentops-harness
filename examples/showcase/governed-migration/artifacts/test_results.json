@@ -1,0 +1,18 @@
+{
+  "commands": [
+    {
+      "command": "uv run pytest -q",
+      "duration_seconds": 0.121,
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": "..                                                                       [100%]\n2 passed in 0.02s\n"
+    },
+    {
+      "command": "uv run ruff check .",
+      "duration_seconds": 0.021,
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": "All checks passed!\n"
+    }
+  ]
+}

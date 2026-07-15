@@ -1,0 +1,41 @@
+diff --git a/app/models.py b/app/models.py
+index 8c73068..339c1c3 100644
+--- a/app/models.py
++++ b/app/models.py
+@@ -1,4 +1,4 @@
+-from pydantic import BaseModel, validator
++from pydantic import BaseModel, ConfigDict, field_validator
+ 
+ 
+ class UserProfile(BaseModel):
+@@ -6,12 +6,9 @@ class UserProfile(BaseModel):
+     email: str
+     display_name: str | None = None
+ 
+-    @validator("email")
++    @field_validator("email")
++    @classmethod
+     def normalize_email(cls, value: str) -> str:
+         return value.strip().lower()
+ 
+-    class Config:
+-        orm_mode = True
+-        # Current Pydantic 2 no longer maps ``orm_mode`` to this runtime flag. Keep
+-        # the v1 seam above while allowing the legacy ``from_orm`` path to run.
+-        from_attributes = True
++    model_config = ConfigDict(from_attributes=True)
+diff --git a/app/service.py b/app/service.py
+index 06b43b3..2050b0b 100644
+--- a/app/service.py
++++ b/app/service.py
+@@ -2,8 +2,8 @@ from app.models import UserProfile
+ 
+ 
+ def public_payload(profile: UserProfile) -> dict[str, object]:
+-    return profile.dict(exclude_none=True)
++    return profile.model_dump(exclude_none=True)
+ 
+ 
+ def profile_from_record(record: object) -> UserProfile:
+-    return UserProfile.from_orm(record)
++    return UserProfile.model_validate(record)

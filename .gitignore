@@ -10,6 +10,7 @@ __pycache__/
 dist/
 build/
 *.egg-info/
+.worktrees/
 
 # Process/planning docs — local only (see public-repo policy)
 docs/superpowers/

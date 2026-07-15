@@ -1,0 +1,141 @@
+{
+  "changed_files": [
+    "app/models.py",
+    "app/service.py"
+  ],
+  "deleted_files": [],
+  "dependencies": [
+    "pydantic.BaseModel",
+    "pydantic.validator",
+    "app.models.UserProfile"
+  ],
+  "impacted_nodes": [
+    {
+      "id": "file:app/models.py",
+      "metadata": {},
+      "name": "models.py",
+      "path": "app/models.py",
+      "reason": "changed_file",
+      "type": "file"
+    },
+    {
+      "id": "class:python:app.models.Config",
+      "metadata": {
+        "line": 13,
+        "qualified_name": "app.models.Config"
+      },
+      "name": "Config",
+      "path": "app/models.py",
+      "reason": "defined_by_changed_file",
+      "type": "class"
+    },
+    {
+      "id": "class:python:app.models.UserProfile",
+      "metadata": {
+        "line": 4,
+        "qualified_name": "app.models.UserProfile"
+      },
+      "name": "UserProfile",
+      "path": "app/models.py",
+      "reason": "defined_by_changed_file",
+      "type": "class"
+    },
+    {
+      "id": "function:python:app.models.normalize_email",
+      "metadata": {
+        "line": 10,
+        "qualified_name": "app.models.normalize_email"
+      },
+      "name": "normalize_email",
+      "path": "app/models.py",
+      "reason": "defined_by_changed_file",
+      "type": "function"
+    },
+    {
+      "id": "method:python:app.models.UserProfile.normalize_email",
+      "metadata": {
+        "line": 10,
+        "qualified_name": "app.models.UserProfile.normalize_email"
+      },
+      "name": "normalize_email",
+      "path": "app/models.py",
+      "reason": "defined_by_changed_file",
+      "type": "method"
+    },
+    {
+      "id": "import:python:pydantic.BaseModel",
+      "metadata": {
+        "imported_from": "pydantic"
+      },
+      "name": "pydantic.BaseModel",
+      "path": null,
+      "reason": "imported_by_changed_file",
+      "type": "import"
+    },
+    {
+      "id": "import:python:pydantic.validator",
+      "metadata": {
+        "imported_from": "pydantic"
+      },
+      "name": "pydantic.validator",
+      "path": null,
+      "reason": "imported_by_changed_file",
+      "type": "import"
+    },
+    {
+      "id": "file:app/service.py",
+      "metadata": {},
+      "name": "service.py",
+      "path": "app/service.py",
+      "reason": "changed_file",
+      "type": "file"
+    },
+    {
+      "id": "function:python:app.service.profile_from_record",
+      "metadata": {
+        "line": 8,
+        "qualified_name": "app.service.profile_from_record"
+      },
+      "name": "profile_from_record",
+      "path": "app/service.py",
+      "reason": "defined_by_changed_file",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.service.public_payload",
+      "metadata": {
+        "line": 4,
+        "qualified_name": "app.service.public_payload"
+      },
+      "name": "public_payload",
+      "path": "app/service.py",
+      "reason": "defined_by_changed_file",
+      "type": "function"
+    },
+    {
+      "id": "import:python:app.models.UserProfile",
+      "metadata": {
+        "imported_from": "app.models"
+      },
+      "name": "app.models.UserProfile",
+      "path": null,
+      "reason": "imported_by_changed_file",
+      "type": "import"
+    }
+  ],
+  "impacted_routes": [],
+  "recommended_validation": [
+    {
+      "command": "uv run pytest tests/test_service.py -q",
+      "reason": "related_tests_from_repo_graph"
+    },
+    {
+      "command": "uv run ruff check .",
+      "reason": "style_validation_from_planner"
+    }
+  ],
+  "related_tests": [
+    "tests/test_service.py"
+  ],
+  "risk_notes": []
+}
