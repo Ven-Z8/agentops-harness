@@ -79,6 +79,8 @@ def test_current_snapshot_exposes_required_onboarding_context() -> None:
     assert "## Active blockers" in rendered
     assert "## Latest decisions and handoffs" in rendered
     assert "## Code graph freshness" in rendered
+    assert "Snapshot input revision:" in rendered
+    assert "Generated snapshot outputs are excluded" in rendered
     assert "uv run python scripts/project_control.py validate" in rendered
 
 
@@ -238,7 +240,7 @@ def test_snapshot_provenance_separates_baseline_snapshot_and_graph_revisions() -
     rendered = render_current(state, FIXED_TIME)
 
     assert "Baseline commit: `39c041f699d7909d1f6853a89bf2a86835a4acd4`" in rendered
-    assert "Snapshot source revision: `" + "c" * 40 + "`" in rendered
+    assert "Snapshot input revision: `" + "c" * 40 + "`" in rendered
     assert rendered.count("Graph provenance unavailable; freshness inconclusive.") == 1
 
 
@@ -392,6 +394,7 @@ def test_second_temp_prepare_failure_removes_first_temp_without_replacing_destin
     ("changed_path", "expect_change"),
     [
         ("coordination/BOARD.md", False),
+        ("coordination/CURRENT.md", False),
         ("coordination/project.yaml", True),
         ("app/project_control/snapshots.py", True),
     ],
@@ -411,6 +414,57 @@ def test_snapshot_source_revision_ignores_outputs_but_tracks_inputs_and_renderer
     after = _snapshot_source_revision(tmp_path)
 
     assert (after != before) is expect_change
+
+
+def test_snapshot_source_revision_uses_configured_alternate_roadmap(tmp_path: Path) -> None:
+    """A hard-coded roadmap path would miss a configured roadmap's committed changes."""
+    _init_snapshot_git_repository(tmp_path)
+    alternate = tmp_path / "alternate/roadmap.yaml"
+    alternate.parent.mkdir()
+    alternate.write_bytes((tmp_path / "coordination/roadmap/14-day-plan.yaml").read_bytes())
+    project_path = tmp_path / "coordination/project.yaml"
+    project_text = project_path.read_text(encoding="utf-8")
+    project_path.write_text(
+        project_text.replace("coordination/roadmap/14-day-plan.yaml", "alternate/roadmap.yaml"),
+        encoding="utf-8",
+    )
+    _git(tmp_path, "add", "coordination/project.yaml", "alternate/roadmap.yaml")
+    _git(tmp_path, "commit", "-m", "configure alternate roadmap")
+    before = _snapshot_source_revision(tmp_path)
+    alternate.write_text(alternate.read_text(encoding="utf-8") + "# changed\n", encoding="utf-8")
+    _git(tmp_path, "add", "alternate/roadmap.yaml")
+    _git(tmp_path, "commit", "-m", "change alternate roadmap")
+
+    assert _snapshot_source_revision(tmp_path) != before
+
+
+@pytest.mark.parametrize(
+    "dirty_path",
+    [
+        "coordination/roadmap/14-day-plan.yaml",
+        "app/project_control/snapshots.py",
+        "coordination/handoffs/2026-08-30-AO-D01-01-codex.md",
+        "coordination/decisions/ADR-001.md",
+        "coordination/codegraph/manifest.json",
+    ],
+)
+def test_dirty_snapshot_input_makes_provenance_unavailable(tmp_path: Path, dirty_path: str) -> None:
+    """A clean commit hash cannot describe any dirty input bytes used for rendering."""
+    _init_snapshot_git_repository(tmp_path)
+    dirty = tmp_path / dirty_path
+    dirty.parent.mkdir(parents=True, exist_ok=True)
+    dirty.write_text("dirty\n", encoding="utf-8")
+
+    assert _snapshot_source_revision(tmp_path) == "unavailable"
+
+
+def test_dirty_generated_outputs_do_not_invalidate_snapshot_provenance(tmp_path: Path) -> None:
+    _init_snapshot_git_repository(tmp_path)
+    before = _snapshot_source_revision(tmp_path)
+    (tmp_path / "coordination/CURRENT.md").write_text("dirty output\n", encoding="utf-8")
+    (tmp_path / "coordination/BOARD.md").write_text("dirty output\n", encoding="utf-8")
+
+    assert _snapshot_source_revision(tmp_path) == before
 
 
 def test_fixed_clock_snapshot_reproduces_committed_bytes_after_output_only_commit(
@@ -440,10 +494,14 @@ def test_fixed_clock_snapshot_reproduces_committed_bytes_after_output_only_commi
     [
         "coordination/handoffs/x>\n## forged",
         "javascript:alert(1)",
+        "javascript&colon;alert",
         "coordination/%2e%2e/BOARD.md",
         r"coordination\\handoffs\\x.md",
         "../coordination/handoffs/x.md",
         "/coordination/handoffs/x.md",
+        "coordination/handoffs/x\u0085.md",
+        "coordination/handoffs/x\u2028.md",
+        "coordination/handoffs/x\u2029.md",
     ],
 )
 def test_board_export_rejects_unsafe_relative_handoff_links(handoff: str) -> None:
@@ -475,7 +533,7 @@ def test_board_export_renders_safe_normalized_relative_handoff_link() -> None:
                     "title": "Safe title",
                     "status": "ready",
                     "priority": "P0",
-                    "handoff": "coordination/handoffs/2026-08-30-AO-D01-01-codex.md",
+                    "handoff": "coordination/handoffs/2026-08-30--AO-D01-01--codex.md",
                 }
             ],
         }
@@ -483,7 +541,7 @@ def test_board_export_renders_safe_normalized_relative_handoff_link() -> None:
 
     rendered = render_board(export, FIXED_TIME)
 
-    assert "[handoff](<coordination/handoffs/2026-08-30-AO-D01-01-codex.md>)" in rendered
+    assert "[handoff](<coordination/handoffs/2026-08-30--AO-D01-01--codex.md>)" in rendered
 
 
 def _init_snapshot_git_repository(root: Path) -> None:

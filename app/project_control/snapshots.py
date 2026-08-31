@@ -9,7 +9,7 @@ from pathlib import Path
 from tempfile import NamedTemporaryFile
 
 from app.project_control.artifacts import load_artifact_index
-from app.project_control.codegraph import validate_codegraph_freshness
+from app.project_control.codegraph import tracked_graph_inputs, validate_codegraph_freshness
 from app.project_control.decisions import load_recent_decisions
 from app.project_control.handoffs import load_latest_handoffs
 from app.project_control.io import load_yaml, resolve_inside
@@ -107,7 +107,8 @@ def render_board(export: BoardExport, now: datetime) -> str:
         "",
         f"- Generated at: {timestamp}",
         f"- GitHub project: {_url_link(export.project_url, export.project_url)}",
-        f"- Snapshot source revision: `{export.source_revision}`",
+        f"- Snapshot input revision: `{export.source_revision}`",
+        "- Generated snapshot outputs are excluded from this revision.",
         "",
         "## Phase summaries",
         "",
@@ -252,7 +253,9 @@ def render_current(state: ControlRoomState, now: datetime) -> str:
         "## Confirmed baseline",
         "",
         f"- Baseline commit: `{state.approved_baseline}`",
-        f"- Snapshot source revision: `{state.snapshot_source_revision}`",
+        f"- Snapshot input revision: `{state.snapshot_source_revision}`",
+        "- Generated snapshot outputs are excluded; unavailable means validated "
+        "inputs are dirty or provenance could not be resolved.",
         "",
         "## Active blockers",
         "",
@@ -310,41 +313,99 @@ def render_current(state: ControlRoomState, now: datetime) -> str:
     return "\n".join(lines).rstrip() + "\n"
 
 
-_SNAPSHOT_PROVENANCE_PATHS = (
-    "app/project_control/artifacts.py",
-    "app/project_control/codegraph.py",
-    "app/project_control/decisions.py",
-    "app/project_control/handoffs.py",
-    "app/project_control/io.py",
-    "app/project_control/models.py",
-    "app/project_control/roadmap.py",
-    "app/project_control/snapshots.py",
-    "coordination/project.yaml",
-    "coordination/roadmap/14-day-plan.yaml",
-    "coordination/artifacts/index.yaml",
-    "coordination/codegraph/manifest.json",
-    "coordination/decisions",
-    "coordination/handoffs",
-)
-
-
 def _snapshot_source_revision(root: Path) -> str:
-    """Return the latest commit affecting validated inputs and snapshot implementation.
+    """Return a clean revision for the resolved snapshot inputs, or ``unavailable``.
 
-    Generated snapshots and orchestration reports are deliberately excluded so
-    an output-only commit cannot make the provenance embedded in its outputs
-    change on the next fixed-clock generation.
+    Generated CURRENT/BOARD files and ignored orchestration reports are excluded
+    so an output-only commit cannot invalidate its own fixed-clock snapshots.
     """
-    result = subprocess.run(
-        ["git", "log", "-1", "--format=%H", "--", *_SNAPSHOT_PROVENANCE_PATHS],
-        cwd=root,
-        capture_output=True,
-        text=True,
-    )
+    try:
+        root = root.resolve(strict=True)
+        project_path = resolve_inside(root / "coordination" / "project.yaml", root)
+        project = load_yaml(project_path, ProjectConfig, root=root)
+        inputs = _snapshot_input_paths(root, project, project_path)
+        if _inputs_are_dirty(root, inputs):
+            return "unavailable"
+        result = subprocess.run(
+            ["git", "log", "-1", "--format=%H", "--", *sorted(inputs)],
+            cwd=root,
+            capture_output=True,
+            text=True,
+        )
+    except (OSError, ValueError, subprocess.SubprocessError):
+        return "unavailable"
     revision = result.stdout.strip()
     if result.returncode == 0 and re.fullmatch(r"[0-9a-f]{40}", revision):
         return revision
     return "unavailable"
+
+
+def _snapshot_input_paths(root: Path, project: ProjectConfig, project_path: Path) -> set[str]:
+    """Resolve every validated file that loading, rendering, or freshness consumes."""
+    control_root = project_path.relative_to(root).parent
+    manifest_path = Path(project.generated.codegraph) / "manifest.json"
+    paths = {
+        project_path.relative_to(root).as_posix(),
+        Path(project.roadmap.source).as_posix(),
+        (control_root / "artifacts" / "index.yaml").as_posix(),
+        manifest_path.as_posix(),
+    }
+    for directory_name in ("handoffs", "decisions"):
+        directory = control_root / directory_name
+        paths.update(_record_input_paths(root, directory))
+    for path in tracked_graph_inputs(root):
+        relative = path.as_posix()
+        if not _excluded_snapshot_output(relative, project):
+            paths.add(relative)
+    manifest_file = root / manifest_path
+    if manifest_file.exists():
+        resolved_manifest = resolve_inside(manifest_file, root)
+        manifest = GraphManifest.model_validate_json(
+            resolved_manifest.read_text(encoding="utf-8")
+        )
+        for included_path in manifest.included_paths:
+            resolved = resolve_inside(root / included_path, root)
+            if not resolved.is_file():
+                raise ValueError(f"Graph manifest input is not a regular file: {included_path}")
+            if not _excluded_snapshot_output(included_path, project):
+                paths.add(included_path)
+    return paths
+
+
+def _record_input_paths(root: Path, directory: Path) -> set[str]:
+    """List current and tracked handoff/decision Markdown files the loaders inspect."""
+    paths: set[str] = set()
+    result = subprocess.run(
+        ["git", "ls-files", "-z", "--", directory.as_posix()],
+        cwd=root,
+        capture_output=True,
+        check=True,
+    )
+    for value in result.stdout.split(b"\0"):
+        if value:
+            paths.add(value.decode("utf-8"))
+    location = root / directory
+    if location.exists():
+        resolve_inside(location, root)
+        for path in location.glob("*.md"):
+            resolve_inside(path, root)
+            paths.add(path.relative_to(root).as_posix())
+    return {path for path in paths if Path(path).name != "README.md"}
+
+
+def _excluded_snapshot_output(path: str, project: ProjectConfig) -> bool:
+    generated = {project.generated.current, project.generated.board}
+    return path in generated or path.startswith(".superpowers/sdd/")
+
+
+def _inputs_are_dirty(root: Path, paths: set[str]) -> bool:
+    result = subprocess.run(
+        ["git", "status", "--porcelain=v1", "-z", "--untracked-files=all", "--", *sorted(paths)],
+        cwd=root,
+        capture_output=True,
+        check=True,
+    )
+    return bool(result.stdout)
 
 
 def _load_state(root: Path, board_export: BoardExport | None) -> ControlRoomState:
@@ -401,9 +462,8 @@ def _initial_board(state: ControlRoomState, now: datetime) -> str:
         "",
         f"- Generated at: {timestamp}",
         "- GitHub project: not provisioned",
-        (
-            f"- Snapshot source revision: `{state.snapshot_source_revision}`"
-        ),
+        f"- Snapshot input revision: `{state.snapshot_source_revision}`",
+        "- Generated snapshot outputs are excluded from this revision.",
         "",
         "## Repository roadmap work",
         "",

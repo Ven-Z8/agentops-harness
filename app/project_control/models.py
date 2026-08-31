@@ -5,7 +5,7 @@ from datetime import datetime
 from enum import StrEnum
 from pathlib import PurePosixPath
 from typing import Literal
-from urllib.parse import unquote, urlsplit
+from urllib.parse import urlsplit
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -82,13 +82,14 @@ def _relative_repository_path(value: str) -> str:
 
 def _safe_relative_link_target(value: str) -> str:
     """Validate a normalized repository path before placing it in a Markdown link."""
-    if any(ord(character) < 33 or ord(character) == 127 for character in value):
-        raise ValueError("link target must be a single line without control characters")
-    if value != unquote(value) or "\\" in value:
-        raise ValueError("link target must not use encoded or escaped path syntax")
-    if any(character in value for character in ":<>[]()#?`"):
-        raise ValueError("link target contains unsafe Markdown destination syntax")
-    return _relative_repository_path(value)
+    if not value or not value.isascii():
+        raise ValueError("link target must use non-empty ASCII path segments")
+    segments = value.split("/")
+    if any(not re.fullmatch(r"[A-Za-z0-9._-]+", segment) for segment in segments):
+        raise ValueError("link target must use only safe ASCII repository path segments")
+    if any(segment in {".", ".."} for segment in segments):
+        raise ValueError("link target must not contain dot path segments")
+    return value
 
 
 def _relative_repository_paths(values: list[str]) -> list[str]:
