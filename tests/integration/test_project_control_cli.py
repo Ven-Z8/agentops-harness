@@ -8,6 +8,7 @@ from pathlib import Path
 import yaml
 
 from app.project_control.codegraph import build_codegraph
+from app.project_control.handoffs import latest_handoffs
 from app.project_control.roadmap import load_roadmap, render_roadmap
 from tests.helpers_project_control import seed_control_room
 
@@ -83,6 +84,35 @@ def test_validate_reports_every_invalid_path_without_traceback(tmp_path: Path) -
     assert "Traceback" not in result.stderr
 
 
+def test_malformed_project_yaml_is_invalid_for_validate_and_snapshot(tmp_path: Path) -> None:
+    project = tmp_path / "coordination/project.yaml"
+    project.parent.mkdir(parents=True)
+    project.write_text("schema_version: [unterminated\n", encoding="utf-8")
+
+    for command in ("validate", "snapshot"):
+        result = run_cli(command, cwd=tmp_path)
+
+        assert result.returncode == 2
+        assert "coordination/project.yaml" in result.stderr
+        assert "Traceback" not in result.stderr
+
+
+def test_validate_labels_malformed_roadmap_and_frontmatter_paths(tmp_path: Path) -> None:
+    _seed_cli_repository(tmp_path)
+    roadmap = tmp_path / "coordination/roadmap/14-day-plan.yaml"
+    roadmap.write_text("items: [unterminated\n", encoding="utf-8")
+    handoff = tmp_path / "coordination/handoffs/2026-08-30-AO-D01-01-codex.md"
+    handoff.parent.mkdir()
+    handoff.write_text("---\ntask_id: [unterminated\n---\n", encoding="utf-8")
+
+    result = run_cli("validate", cwd=tmp_path)
+
+    assert result.returncode == 2
+    assert "coordination/roadmap/14-day-plan.yaml" in result.stderr
+    assert "coordination/handoffs/2026-08-30-AO-D01-01-codex.md" in result.stderr
+    assert "Traceback" not in result.stderr
+
+
 def test_local_generation_and_handoff_commands_use_repository_state(tmp_path: Path) -> None:
     _seed_cli_repository(tmp_path)
 
@@ -104,6 +134,19 @@ def test_local_generation_and_handoff_commands_use_repository_state(tmp_path: Pa
     assert header["branch"] == "main"
     assert header["base_commit"] == _git(tmp_path, "rev-parse", "HEAD")
     assert header["head_commit"] == _git(tmp_path, "rev-parse", "HEAD")
+    assert latest_handoffs(tmp_path)["AO-D01-01"] == handoff_path
+
+
+def test_handoff_rejects_unsafe_identifiers_without_traceback(tmp_path: Path) -> None:
+    _seed_cli_repository(tmp_path)
+
+    for option, value in (("--task", "../AO-D01-01"), ("--harness", "bad\\slug")):
+        arguments = ["handoff", "--task", "AO-D01-01", "--harness", "codex"]
+        arguments[arguments.index(option) + 1] = value
+        result = run_cli(*arguments, cwd=tmp_path)
+
+        assert result.returncode == 2
+        assert "Traceback" not in result.stderr
 
 
 def test_expected_failures_map_to_stable_exit_codes_without_tracebacks(

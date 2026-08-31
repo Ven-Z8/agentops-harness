@@ -37,7 +37,10 @@ def resolve_inside(path: Path, root: Path) -> Path:
 
 def load_yaml(path: Path, model_type: type[T], *, root: Path) -> T:
     resolved = resolve_inside(path, root)
-    payload = yaml.safe_load(resolved.read_text(encoding="utf-8"))
+    try:
+        payload = yaml.safe_load(resolved.read_text(encoding="utf-8"))
+    except yaml.YAMLError as error:
+        raise InvalidControlRoom(f"Invalid YAML in {path}: {error}") from error
     if not isinstance(payload, dict):
         raise ValueError(f"Expected YAML mapping: {path}")
     return model_type.model_validate(payload)
@@ -54,7 +57,10 @@ def load_frontmatter(path: Path, model_type: type[T], *, root: Path) -> T:
     )
     if closing_index is None:
         raise InvalidControlRoom(f"Invalid frontmatter in {path}: missing closing delimiter")
-    payload = yaml.safe_load("".join(lines[1:closing_index]))
+    try:
+        payload = yaml.safe_load("".join(lines[1:closing_index]))
+    except yaml.YAMLError as error:
+        raise InvalidControlRoom(f"Invalid YAML frontmatter in {path}: {error}") from error
     if not isinstance(payload, dict) or not payload:
         raise InvalidControlRoom(f"Invalid frontmatter in {path}: expected non-empty mapping")
     return model_type.model_validate(payload)

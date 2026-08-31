@@ -43,11 +43,23 @@ def _nonempty(value: str) -> str:
 
 
 def _single_line_identifier(value: str) -> str:
-    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]*", value):
+    if value in {".", ".."} or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]*", value):
         raise ValueError(
             "must be a single-line identifier using letters, digits, dots, "
             "underscores, or hyphens"
         )
+    return value
+
+
+def _single_line_text(value: str) -> str:
+    _nonempty(value)
+    if any(
+        ord(character) < 32
+        or ord(character) == 127
+        or character in {"\u0085", "\u2028", "\u2029"}
+        for character in value
+    ):
+        raise ValueError("must be non-empty single-line text without control characters")
     return value
 
 
@@ -154,6 +166,11 @@ class ProjectConfig(StrictModel):
 
     @model_validator(mode="after")
     def validate_generated_output_layout(self) -> ProjectConfig:
+        if self.generated.current != "coordination/CURRENT.md":
+            raise ValueError("generated current path must be coordination/CURRENT.md")
+        if self.generated.board != "coordination/BOARD.md":
+            raise ValueError("generated board path must be coordination/BOARD.md")
+
         generated = {
             "board": PurePosixPath(self.generated.board),
             "current": PurePosixPath(self.generated.current),
@@ -185,9 +202,22 @@ class ProjectConfig(StrictModel):
             PurePosixPath("tests"),
             PurePosixPath("scripts"),
             PurePosixPath("coordination/project.yaml"),
+            PurePosixPath("coordination/README.md"),
+            PurePosixPath("coordination/PROJECT.md"),
+            PurePosixPath("coordination/roadmap"),
             roadmap,
             roadmap.parent,
-            *(coordination / name for name in ("artifacts", "decisions", "handoffs")),
+            *(
+                coordination / name
+                for name in (
+                    "artifacts",
+                    "decisions",
+                    "designs",
+                    "handoffs",
+                    "plans",
+                    "templates",
+                )
+            ),
         }
         for name, output in generated.items():
             for protected in protected_surfaces:
@@ -247,8 +277,8 @@ class RoadmapItem(StrictModel):
     source_documents: list[str]
     github: GitHubIssueReference
 
-    _validate_id_and_text = field_validator(
-        "id",
+    _validate_id = field_validator("id")(_single_line_identifier)
+    _validate_text = field_validator(
         "title",
         "blocker",
         "outcome",
@@ -268,6 +298,16 @@ class RoadmapItem(StrictModel):
     _validate_repository_paths = field_validator("likely_files", "source_documents")(
         _relative_repository_paths
     )
+
+    @field_validator("parent_id", "phase_id")
+    @classmethod
+    def validate_optional_reference(cls, value: str | None) -> str | None:
+        return None if value is None else _single_line_identifier(value)
+
+    @field_validator("dependencies")
+    @classmethod
+    def validate_dependency_references(cls, values: list[str]) -> list[str]:
+        return [_single_line_identifier(value) for value in values]
 
     @field_validator("test_first")
     @classmethod
@@ -356,7 +396,8 @@ class HandoffHeader(StrictModel):
     blocker: str | None = None
     required_authority: str | None = None
 
-    _validate_text = field_validator("task_id", "harness", "branch")(_nonempty)
+    _validate_identifiers = field_validator("task_id", "harness")(_single_line_identifier)
+    _validate_branch = field_validator("branch")(_single_line_text)
 
     @model_validator(mode="after")
     def enforce_terminal_semantics(self) -> HandoffHeader:

@@ -74,6 +74,60 @@ def test_project_config_rejects_generated_output_input_overlap(
         ProjectConfig.model_validate(payload)
 
 
+@pytest.mark.parametrize(
+    ("field_name", "destination"),
+    [
+        ("current", "coordination/README.md"),
+        ("current", "coordination/generated/CURRENT.md"),
+        ("board", "coordination/PROJECT.md"),
+        ("board", "coordination/generated/BOARD.md"),
+    ],
+)
+def test_project_config_requires_canonical_snapshot_destinations(
+    field_name: str,
+    destination: str,
+) -> None:
+    payload = valid_project_config()
+    payload["generated"][field_name] = destination
+
+    with pytest.raises(ValidationError, match="generated"):
+        ProjectConfig.model_validate(payload)
+
+
+@pytest.mark.parametrize(
+    "destination",
+    [
+        "coordination/project.yaml",
+        "coordination/README.md",
+        "coordination/PROJECT.md/graph",
+        "coordination/roadmap/graph",
+        "coordination/handoffs/graph",
+        "coordination/decisions/graph",
+        "coordination/artifacts/graph",
+        "coordination/templates/graph",
+        "coordination/designs/graph",
+        "coordination/plans/graph",
+    ],
+)
+def test_project_config_rejects_alternate_codegraph_authority_overlap(
+    destination: str,
+) -> None:
+    payload = valid_project_config()
+    payload["generated"]["codegraph"] = destination
+
+    with pytest.raises(ValidationError, match="generated"):
+        ProjectConfig.model_validate(payload)
+
+
+def test_project_config_accepts_safe_alternate_codegraph_directory() -> None:
+    payload = valid_project_config()
+    payload["generated"]["codegraph"] = "coordination/generated/graph"
+
+    config = ProjectConfig.model_validate(payload)
+
+    assert config.generated.codegraph == "coordination/generated/graph"
+
+
 def test_roadmap_rejects_duplicate_ids() -> None:
     payload = {
         "schema_version": 1,
@@ -163,6 +217,38 @@ def test_non_task_rejects_task_only_fields(kind: str) -> None:
         RoadmapItem.model_validate(item)
 
 
+@pytest.mark.parametrize(
+    "invalid_identifier",
+    [
+        "AO/D01",
+        r"AO\D01",
+        "AO-D01\nforged",
+        "AO-D01\x1f",
+        ".",
+        "..",
+        "AO-D01\u0085forged",
+        "AO-D01\u2028forged",
+        "AO-D01\u2029forged",
+    ],
+)
+@pytest.mark.parametrize("field_name", ["id", "parent_id", "phase_id", "dependencies"])
+def test_roadmap_identifiers_and_references_are_path_safe(
+    field_name: str,
+    invalid_identifier: str,
+) -> None:
+    item = valid_roadmap_item("AO-D01-01")
+    item[field_name] = (
+        [invalid_identifier] if field_name == "dependencies" else invalid_identifier
+    )
+
+    with pytest.raises(ValidationError, match="identifier"):
+        RoadmapItem.model_validate(item)
+
+
+def test_approved_roadmap_identifier_remains_valid() -> None:
+    assert RoadmapItem.model_validate(valid_roadmap_item("AO-D01-01")).id == "AO-D01-01"
+
+
 def test_load_frontmatter_rejects_missing_closing_delimiter(tmp_path: Path) -> None:
     path = tmp_path / "handoff.md"
     path.write_text("---\nschema_version: 1\n", encoding="utf-8")
@@ -247,6 +333,56 @@ def test_handoff_requires_full_commit_identifiers() -> None:
     }
 
     with pytest.raises(ValidationError):
+        HandoffHeader.model_validate(payload)
+
+
+@pytest.mark.parametrize("field_name", ["task_id", "harness"])
+@pytest.mark.parametrize(
+    "invalid_identifier",
+    ["bad/segment", r"bad\segment", "bad\nsegment", ".", "..", "bad\u2028segment"],
+)
+def test_handoff_identifiers_are_path_safe(
+    field_name: str,
+    invalid_identifier: str,
+) -> None:
+    payload = {
+        "schema_version": 1,
+        "task_id": "AO-D01-01",
+        "harness": "codex",
+        "status": "partial",
+        "started_at": "2026-08-30T15:00:00Z",
+        "updated_at": "2026-08-30T16:00:00Z",
+        "branch": "codex/AO-D01-01",
+        "base_commit": "1" * 40,
+        "head_commit": "2" * 40,
+        "verification": {"required": False, "state": "not_run", "commands": []},
+        "artifacts": [],
+        "decisions": [],
+    }
+    payload[field_name] = invalid_identifier
+
+    with pytest.raises(ValidationError, match="identifier"):
+        HandoffHeader.model_validate(payload)
+
+
+@pytest.mark.parametrize("branch", ["branch\nforged", "branch\x00forged", "branch\u2029forged"])
+def test_handoff_branch_rejects_control_and_line_separators(branch: str) -> None:
+    payload = {
+        "schema_version": 1,
+        "task_id": "AO-D01-01",
+        "harness": "codex",
+        "status": "partial",
+        "started_at": "2026-08-30T15:00:00Z",
+        "updated_at": "2026-08-30T16:00:00Z",
+        "branch": branch,
+        "base_commit": "1" * 40,
+        "head_commit": "2" * 40,
+        "verification": {"required": False, "state": "not_run", "commands": []},
+        "artifacts": [],
+        "decisions": [],
+    }
+
+    with pytest.raises(ValidationError, match="single-line"):
         HandoffHeader.model_validate(payload)
 
 
