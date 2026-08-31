@@ -522,7 +522,13 @@ class BoardItem(StrictModel):
         lambda value: None if value is None else _single_line_identifier(value)
     )
     _validate_handoff = field_validator("handoff")(
-        lambda value: None if value is None else _safe_relative_link_target(value)
+        lambda value: (
+            None
+            if value is None
+            else _https_url(value)
+            if value.startswith("https://")
+            else _safe_relative_link_target(value)
+        )
     )
 
     @field_validator("day")

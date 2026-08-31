@@ -18,11 +18,12 @@ from app.project_control.errors import (
     InvalidControlRoom,
     RemotePartialFailure,
 )
+from app.project_control.github import GitHubClient, SubprocessGhTransport
 from app.project_control.handoffs import create_handoff, load_latest_handoffs
 from app.project_control.io import load_frontmatter, load_yaml, resolve_inside
 from app.project_control.models import DecisionHeader, HandoffHeader, ProjectConfig
 from app.project_control.roadmap import load_roadmap, render_roadmap
-from app.project_control.snapshots import write_initial_snapshots
+from app.project_control.snapshots import write_initial_snapshots, write_snapshots
 
 
 def _repository_root() -> Path:
@@ -205,6 +206,26 @@ def _handoff_command(args: argparse.Namespace) -> int:
     return 0
 
 
+def _board_export_command(_args: argparse.Namespace) -> int:
+    root = _repository_root()
+    project = load_yaml(root / "coordination/project.yaml", ProjectConfig, root=root)
+    github_project = project.github_project
+    if github_project.number is None or github_project.url is None:
+        raise InvalidControlRoom(
+            "board-export requires a configured GitHub project number and url"
+        )
+    export = GitHubClient(SubprocessGhTransport()).export_project(
+        github_project.owner, github_project.number
+    )
+    if export.project_url != github_project.url:
+        raise InvalidControlRoom(
+            "GitHub export project URL does not match coordination/project.yaml"
+        )
+    write_snapshots(root, export, datetime.now(UTC))
+    print(f"Board export written ({len(export.items)} items).")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Manage the local Project Control Room.")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -222,6 +243,11 @@ def build_parser() -> argparse.ArgumentParser:
     handoff.add_argument("--task", required=True, help="Stable roadmap task ID.")
     handoff.add_argument("--harness", required=True, help="Lowercase harness slug.")
     handoff.set_defaults(handler=_handoff_command)
+
+    board_export = subparsers.add_parser(
+        "board-export", help="Export the configured GitHub Project read-only."
+    )
+    board_export.set_defaults(handler=_board_export_command)
     return parser
 
 

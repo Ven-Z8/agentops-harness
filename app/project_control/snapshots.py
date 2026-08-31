@@ -57,6 +57,8 @@ def _roadmap_board_sort_key(item: RoadmapItem) -> tuple[int, int, int, str]:
 def _local_link(value: str | None, label: str) -> str:
     if not value:
         return "None"
+    if value.startswith("https://"):
+        return f"[{_markdown(label)}](<{_https_url(value)}>)"
     return f"[{_markdown(label)}](<{_safe_relative_link_target(value)}>)"
 
 
