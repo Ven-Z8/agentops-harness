@@ -156,6 +156,58 @@ def test_planned_roadmap_item_allows_missing_pytest_target(tmp_path: Path) -> No
     assert load_roadmap(tmp_path).items[0].verification_readiness == "planned"
 
 
+def test_available_roadmap_item_rejects_missing_tests_directory(tmp_path: Path) -> None:
+    project = valid_project_config()
+    item = valid_roadmap_item("AO-D01-01")
+    item["verification_readiness"] = "available"
+    item["verification_commands"] = ["uv run pytest tests -q"]
+    (tmp_path / "coordination/roadmap").mkdir(parents=True)
+    (tmp_path / "coordination/project.yaml").write_text(yaml.safe_dump(project), encoding="utf-8")
+    (tmp_path / "coordination/roadmap/14-day-plan.yaml").write_text(
+        yaml.safe_dump({"schema_version": 1, "roadmap_id": "AO-14D", "items": [item]}),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="available.*tests"):
+        load_roadmap(tmp_path)
+
+
+@pytest.mark.parametrize("target", ["tests", "tests/unit"])
+def test_available_roadmap_item_accepts_existing_pytest_directory(
+    tmp_path: Path, target: str
+) -> None:
+    project = valid_project_config()
+    item = valid_roadmap_item("AO-D01-01")
+    item["verification_readiness"] = "available"
+    item["verification_commands"] = [f"uv run pytest {target} -q"]
+    (tmp_path / target).mkdir(parents=True)
+    (tmp_path / "coordination/roadmap").mkdir(parents=True)
+    (tmp_path / "coordination/project.yaml").write_text(yaml.safe_dump(project), encoding="utf-8")
+    (tmp_path / "coordination/roadmap/14-day-plan.yaml").write_text(
+        yaml.safe_dump({"schema_version": 1, "roadmap_id": "AO-14D", "items": [item]}),
+        encoding="utf-8",
+    )
+
+    assert load_roadmap(tmp_path).items[0].verification_readiness == "available"
+
+
+def test_available_roadmap_item_accepts_pytest_node_selector(tmp_path: Path) -> None:
+    project = valid_project_config()
+    item = valid_roadmap_item("AO-D01-01")
+    item["verification_readiness"] = "available"
+    item["verification_commands"] = ["uv run pytest tests/test_x.py::test_name -q"]
+    (tmp_path / "tests").mkdir()
+    (tmp_path / "tests/test_x.py").touch()
+    (tmp_path / "coordination/roadmap").mkdir(parents=True)
+    (tmp_path / "coordination/project.yaml").write_text(yaml.safe_dump(project), encoding="utf-8")
+    (tmp_path / "coordination/roadmap/14-day-plan.yaml").write_text(
+        yaml.safe_dump({"schema_version": 1, "roadmap_id": "AO-14D", "items": [item]}),
+        encoding="utf-8",
+    )
+
+    assert load_roadmap(tmp_path).items[0].verification_readiness == "available"
+
+
 def test_needs_revalidation_records_are_planned(repo_root: Path) -> None:
     roadmap = load_roadmap(repo_root)
 

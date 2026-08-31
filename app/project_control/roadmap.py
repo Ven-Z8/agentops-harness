@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from shlex import split as shell_split
 
 from app.project_control.io import load_yaml, resolve_inside
@@ -25,10 +25,19 @@ def load_roadmap(root: Path) -> Roadmap:
                 continue
             for argument in arguments[3:]:
                 test_path = argument.split("::", maxsplit=1)[0]
-                if not test_path.startswith("tests/"):
+                if test_path != "tests" and not test_path.startswith("tests/"):
                     continue
+                normalized_path = PurePosixPath(test_path)
+                if (
+                    normalized_path.is_absolute()
+                    or ".." in normalized_path.parts
+                    or str(normalized_path) != test_path
+                ):
+                    raise ValueError(
+                        f"available verification command has invalid test path: {test_path}"
+                    )
                 resolved = resolve_inside(root / test_path, root)
-                if not resolved.is_file():
+                if not resolved.exists():
                     raise ValueError(
                         f"available verification command for {item.id} references missing test: "
                         f"{test_path}"
