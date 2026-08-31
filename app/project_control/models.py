@@ -43,16 +43,24 @@ def _nonempty(value: str) -> str:
 def _relative_repository_path(value: str) -> str:
     if not value or value != value.strip():
         raise ValueError("repository path must be a non-empty normalized relative path")
-    path = PurePosixPath(value)
+    directory_marker = value.endswith("/")
+    normalized_value = value[:-1] if directory_marker else value
+    path = PurePosixPath(normalized_value)
     if path.is_absolute() or ".." in path.parts or "." in path.parts:
         raise ValueError("repository path must be normalized and remain inside the worktree")
-    if str(path) != value:
+    if str(path) != normalized_value:
         raise ValueError("repository path must be normalized")
     return value
 
 
 def _relative_repository_paths(values: list[str]) -> list[str]:
     return [_relative_repository_path(value) for value in values]
+
+
+def _nonempty_text_list(values: list[str]) -> list[str]:
+    if not values:
+        raise ValueError("must not be empty")
+    return [_nonempty(value) for value in values]
 
 
 class ProjectIdentity(StrictModel):
@@ -140,7 +148,7 @@ class RoadmapItem(StrictModel):
     acceptance_criteria: list[str]
     required_evidence: list[str]
     likely_files: list[str]
-    test_first: str
+    test_first: str | None
     terminal_semantics: str
     compatibility: str
     verification_commands: list[str]
@@ -154,14 +162,27 @@ class RoadmapItem(StrictModel):
         "title",
         "blocker",
         "outcome",
-        "test_first",
         "terminal_semantics",
         "compatibility",
         "rollback",
     )(_nonempty)
+    _validate_required_text_lists = field_validator(
+        "scope",
+        "non_goals",
+        "acceptance_criteria",
+        "required_evidence",
+        "verification_commands",
+        "risks",
+        "source_documents",
+    )(_nonempty_text_list)
     _validate_repository_paths = field_validator("likely_files", "source_documents")(
         _relative_repository_paths
     )
+
+    @field_validator("test_first")
+    @classmethod
+    def validate_test_first(cls, value: str | None) -> str | None:
+        return None if value is None else _nonempty(value)
 
     @field_validator("day")
     @classmethod

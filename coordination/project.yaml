@@ -1,0 +1,17 @@
+schema_version: 1
+project:
+  id: agentops-harness
+  name: AgentOps Research Control Plane
+  repository: Ven-Z8/agentops-harness
+  default_branch: main
+roadmap:
+  id: AO-14D
+  source: coordination/roadmap/14-day-plan.yaml
+github_project:
+  owner: Ven-Z8
+  number: null
+  url: null
+generated:
+  board: coordination/BOARD.md
+  current: coordination/CURRENT.md
+  codegraph: coordination/codegraph
