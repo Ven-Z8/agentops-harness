@@ -127,7 +127,7 @@ class RoadmapConfig(StrictModel):
     id: str
     source: str
 
-    _validate_id = field_validator("id")(_nonempty)
+    _validate_id = field_validator("id")(_single_line_identifier)
     _validate_source = field_validator("source")(_relative_repository_path)
 
 
@@ -337,6 +337,8 @@ class Roadmap(StrictModel):
     schema_version: Literal[1]
     roadmap_id: str = Field(min_length=1)
     items: list[RoadmapItem] = Field(min_length=1)
+
+    _validate_roadmap_id = field_validator("roadmap_id")(_single_line_identifier)
 
     @model_validator(mode="after")
     def validate_dependencies(self) -> Roadmap:

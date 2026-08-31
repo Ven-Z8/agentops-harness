@@ -5,6 +5,7 @@ import sys
 from datetime import UTC, datetime
 from pathlib import Path
 
+import pytest
 import yaml
 
 from app.project_control.codegraph import build_codegraph
@@ -15,6 +16,17 @@ from tests.helpers_project_control import seed_control_room
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SCRIPT = REPO_ROOT / "scripts/project_control.py"
 FIXED_TIME = datetime(2026, 8, 30, 18, 0, tzinfo=UTC)
+UNSAFE_ROADMAP_IDS = [
+    "AO/14D",
+    r"AO\14D",
+    "AO-14D\nforged",
+    "AO-14D\x1f",
+    "AO-14D\u0085forged",
+    "AO-14D\u2028forged",
+    "AO-14D\u2029forged",
+    ".",
+    "..",
+]
 
 
 def run_cli(*args: str, cwd: Path = REPO_ROOT) -> subprocess.CompletedProcess[str]:
@@ -110,6 +122,61 @@ def test_validate_labels_malformed_roadmap_and_frontmatter_paths(tmp_path: Path)
     assert result.returncode == 2
     assert "coordination/roadmap/14-day-plan.yaml" in result.stderr
     assert "coordination/handoffs/2026-08-30-AO-D01-01-codex.md" in result.stderr
+    assert "Traceback" not in result.stderr
+
+
+@pytest.mark.parametrize(
+    ("target", "path_label"),
+    [
+        ("project", "coordination/project.yaml"),
+        ("roadmap", "coordination/roadmap/14-day-plan.yaml"),
+    ],
+)
+def test_validate_rejects_unsafe_root_roadmap_identifiers_without_traceback(
+    tmp_path: Path,
+    target: str,
+    path_label: str,
+) -> None:
+    _seed_cli_repository(tmp_path)
+    project_path = tmp_path / "coordination/project.yaml"
+    roadmap_path = tmp_path / "coordination/roadmap/14-day-plan.yaml"
+    project_payload = yaml.safe_load(project_path.read_text(encoding="utf-8"))
+    roadmap_payload = yaml.safe_load(roadmap_path.read_text(encoding="utf-8"))
+
+    for invalid_identifier in UNSAFE_ROADMAP_IDS:
+        candidate = dict(project_payload if target == "project" else roadmap_payload)
+        if target == "project":
+            candidate["roadmap"] = dict(project_payload["roadmap"])
+            candidate["roadmap"]["id"] = invalid_identifier
+            project_path.write_text(
+                yaml.safe_dump(candidate, allow_unicode=True),
+                encoding="utf-8",
+            )
+        else:
+            candidate["roadmap_id"] = invalid_identifier
+            roadmap_path.write_text(
+                yaml.safe_dump(candidate, allow_unicode=True),
+                encoding="utf-8",
+            )
+
+        result = run_cli("validate", cwd=tmp_path)
+
+        assert result.returncode == 2
+        assert path_label in result.stderr
+        assert "Traceback" not in result.stderr
+
+
+def test_validate_preserves_project_and_roadmap_id_consistency_check(tmp_path: Path) -> None:
+    _seed_cli_repository(tmp_path)
+    project_path = tmp_path / "coordination/project.yaml"
+    payload = yaml.safe_load(project_path.read_text(encoding="utf-8"))
+    payload["roadmap"]["id"] = "AO-OTHER"
+    project_path.write_text(yaml.safe_dump(payload), encoding="utf-8")
+
+    result = run_cli("validate", cwd=tmp_path)
+
+    assert result.returncode == 2
+    assert "Roadmap ID does not match project configuration" in result.stderr
     assert "Traceback" not in result.stderr
 
 

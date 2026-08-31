@@ -17,6 +17,18 @@ from app.project_control.models import (
 )
 from tests.helpers_project_control import valid_project_config, valid_roadmap_item
 
+UNSAFE_ROADMAP_IDS = [
+    "AO/14D",
+    r"AO\14D",
+    "AO-14D\nforged",
+    "AO-14D\x1f",
+    "AO-14D\u0085forged",
+    "AO-14D\u2028forged",
+    "AO-14D\u2029forged",
+    ".",
+    "..",
+]
+
 
 def test_project_config_rejects_unknown_keys(tmp_path: Path) -> None:
     payload = valid_project_config()
@@ -126,6 +138,40 @@ def test_project_config_accepts_safe_alternate_codegraph_directory() -> None:
     config = ProjectConfig.model_validate(payload)
 
     assert config.generated.codegraph == "coordination/generated/graph"
+
+
+@pytest.mark.parametrize("invalid_identifier", UNSAFE_ROADMAP_IDS)
+def test_project_config_roadmap_id_is_path_safe(invalid_identifier: str) -> None:
+    payload = valid_project_config()
+    payload["roadmap"]["id"] = invalid_identifier
+
+    with pytest.raises(ValidationError, match="identifier"):
+        ProjectConfig.model_validate(payload)
+
+
+@pytest.mark.parametrize("invalid_identifier", UNSAFE_ROADMAP_IDS)
+def test_roadmap_root_id_is_path_safe(invalid_identifier: str) -> None:
+    payload = {
+        "schema_version": 1,
+        "roadmap_id": invalid_identifier,
+        "items": [valid_roadmap_item("AO-D01-01")],
+    }
+
+    with pytest.raises(ValidationError, match="identifier"):
+        Roadmap.model_validate(payload)
+
+
+def test_approved_root_roadmap_identifier_remains_valid() -> None:
+    config = ProjectConfig.model_validate(valid_project_config())
+    roadmap = Roadmap.model_validate(
+        {
+            "schema_version": 1,
+            "roadmap_id": "AO-14D",
+            "items": [valid_roadmap_item("AO-D01-01")],
+        }
+    )
+
+    assert config.roadmap.id == roadmap.roadmap_id == "AO-14D"
 
 
 def test_roadmap_rejects_duplicate_ids() -> None:
