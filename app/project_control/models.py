@@ -383,11 +383,39 @@ class BoardItem(StrictModel):
     dependency: str | None = None
     handoff: str | None = None
 
+    _validate_text = field_validator("task_id", "title")(_nonempty)
+
+    @field_validator("day")
+    @classmethod
+    def validate_day(cls, value: int | None) -> int | None:
+        if value is not None and not 1 <= value <= 14:
+            raise ValueError("day must be between 1 and 14")
+        return value
+
+    @model_validator(mode="after")
+    def require_issue_reference_parts_together(self) -> BoardItem:
+        if (self.issue_number is None) != (self.issue_url is None):
+            raise ValueError("Board issue number and url must be populated together")
+        if self.issue_number is not None and self.issue_number < 1:
+            raise ValueError("Board issue number must be positive")
+        if self.issue_url is not None and not self.issue_url.startswith("https://"):
+            raise ValueError("Board issue url must be an https URL")
+        return self
+
 
 class BoardExport(StrictModel):
     project_url: str
     items: list[BoardItem]
     source_revision: str | None = None
+
+    _validate_project_url = field_validator("project_url")(_nonempty)
+
+    @field_validator("project_url")
+    @classmethod
+    def validate_project_url(cls, value: str) -> str:
+        if not value.startswith("https://"):
+            raise ValueError("Board project url must be an https URL")
+        return value
 
 
 class ControlRoomState(StrictModel):
