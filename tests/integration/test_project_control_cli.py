@@ -128,7 +128,6 @@ def test_board_export_refuses_null_config_and_preserves_both_snapshots(
     assert board.read_text(encoding="utf-8") == "last board\n"
 
 
-
 def test_validate_reports_every_invalid_path_without_traceback(tmp_path: Path) -> None:
     _seed_cli_repository(tmp_path)
     (tmp_path / "coordination/roadmap/14-day-plan.md").write_text("stale\n", encoding="utf-8")
@@ -239,9 +238,9 @@ def test_local_generation_and_handoff_commands_use_repository_state(tmp_path: Pa
     assert "Fresh: the manifest source-tree digest matches tracked inputs." in (
         tmp_path / "coordination/CURRENT.md"
     ).read_text(encoding="utf-8")
-    assert "Planned after Task 6" not in (
-        tmp_path / "coordination/CURRENT.md"
-    ).read_text(encoding="utf-8")
+    assert "Planned after Task 6" not in (tmp_path / "coordination/CURRENT.md").read_text(
+        encoding="utf-8"
+    )
     handoff_path = next((tmp_path / "coordination/handoffs").glob("*-AO-D01-01-codex.md"))
     header = yaml.safe_load(handoff_path.read_text(encoding="utf-8").split("---")[1])
     assert header["branch"] == "main"
@@ -279,6 +278,7 @@ def test_expected_failures_map_to_stable_exit_codes_without_tracebacks(
         (RemotePartialFailure("unfinished"), 4, "remote reconciliation incomplete"),
     ]
     for error, expected_code, expected_message in cases:
+
         def fail(_args, *, raised=error):
             raise raised
 

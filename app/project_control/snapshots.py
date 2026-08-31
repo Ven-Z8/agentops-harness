@@ -70,8 +70,7 @@ def _url_link(value: str | None, label: str) -> str:
 
 def _markdown(value: str) -> str:
     single_line = "".join(
-        " " if ord(character) < 32 or ord(character) == 127 else character
-        for character in value
+        " " if ord(character) < 32 or ord(character) == 127 else character for character in value
     )
     value = " ".join(single_line.split())
     for character in "\\|[]()<>#*_`":
@@ -281,8 +280,7 @@ def render_current(state: ControlRoomState, now: datetime) -> str:
         for decision_id, decision in decisions:
             label = f"Decision {decision_id}"
             lines.append(
-                f"- {_local_link(state.decision_paths.get(decision_id), label)}: "
-                f"{decision.status}"
+                f"- {_local_link(state.decision_paths.get(decision_id), label)}: {decision.status}"
             )
     if state.handoffs:
         for task_id, handoff in sorted(
@@ -362,9 +360,7 @@ def _snapshot_input_paths(root: Path, project: ProjectConfig, project_path: Path
     manifest_file = root / manifest_path
     if manifest_file.exists():
         resolved_manifest = resolve_inside(manifest_file, root)
-        manifest = GraphManifest.model_validate_json(
-            resolved_manifest.read_text(encoding="utf-8")
-        )
+        manifest = GraphManifest.model_validate_json(resolved_manifest.read_text(encoding="utf-8"))
         for included_path in manifest.included_paths:
             resolved = resolve_inside(root / included_path, root)
             if not resolved.is_file():
@@ -483,8 +479,7 @@ def _initial_board(state: ControlRoomState, now: datetime) -> str:
     lines.extend(["", "## Phase summaries", ""])
     phase_items = [item for item in items if item.kind == "phase"]
     lines.extend(
-        f"- {_markdown(item.id)}: {item.status} — {_markdown(item.title)}"
-        for item in phase_items
+        f"- {_markdown(item.id)}: {item.status} — {_markdown(item.title)}" for item in phase_items
     )
     if not phase_items:
         lines.append("- None recorded.")

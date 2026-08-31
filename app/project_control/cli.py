@@ -67,11 +67,14 @@ def _validate_frontmatter_records(
         if path.name == "README.md":
             continue
         label = _relative_label(root, path)
-        if _record_issue(
-            issues,
-            label,
-            lambda path=path: load_frontmatter(path, model_type, root=root),
-        ) is None:
+        if (
+            _record_issue(
+                issues,
+                label,
+                lambda path=path: load_frontmatter(path, model_type, root=root),
+            )
+            is None
+        ):
             valid = False
     return valid
 
@@ -211,9 +214,7 @@ def _board_export_command(_args: argparse.Namespace) -> int:
     project = load_yaml(root / "coordination/project.yaml", ProjectConfig, root=root)
     github_project = project.github_project
     if github_project.number is None or github_project.url is None:
-        raise InvalidControlRoom(
-            "board-export requires a configured GitHub project number and url"
-        )
+        raise InvalidControlRoom("board-export requires a configured GitHub project number and url")
     export = GitHubClient(SubprocessGhTransport()).export_project(
         github_project.owner, github_project.number
     )

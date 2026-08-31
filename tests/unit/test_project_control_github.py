@@ -142,9 +142,8 @@ def test_export_fetches_all_pages_and_advances_cursor() -> None:
 def test_export_rejects_invalid_or_incomplete_graphql_state(response) -> None:
     responses = [response]
     project = response.get("data", {}).get("user", {}).get("projectV2")
-    if (
-        isinstance(project, dict)
-        and project.get("items", {}).get("pageInfo", {}).get("hasNextPage")
+    if isinstance(project, dict) and project.get("items", {}).get("pageInfo", {}).get(
+        "hasNextPage"
     ):
         responses.append(project_response(cursor="CURSOR_1", has_next=True, items=[]))
 

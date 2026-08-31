@@ -45,8 +45,7 @@ def _nonempty(value: str) -> str:
 def _single_line_identifier(value: str) -> str:
     if value in {".", ".."} or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]*", value):
         raise ValueError(
-            "must be a single-line identifier using letters, digits, dots, "
-            "underscores, or hyphens"
+            "must be a single-line identifier using letters, digits, dots, underscores, or hyphens"
         )
     return value
 
@@ -54,9 +53,7 @@ def _single_line_identifier(value: str) -> str:
 def _single_line_text(value: str) -> str:
     _nonempty(value)
     if any(
-        ord(character) < 32
-        or ord(character) == 127
-        or character in {"\u0085", "\u2028", "\u2029"}
+        ord(character) < 32 or ord(character) == 127 or character in {"\u0085", "\u2028", "\u2029"}
         for character in value
     ):
         raise ValueError("must be non-empty single-line text without control characters")
@@ -466,7 +463,11 @@ class ArtifactRecord(StrictModel):
         else:
             if not self.locator or not self.locator.strip():
                 raise ValueError("available artifact requires a locator")
-        if self.availability == "remote" and self.locator and not self.locator.startswith("https://"):
+        if (
+            self.availability == "remote"
+            and self.locator
+            and not self.locator.startswith("https://")
+        ):
             raise ValueError("remote artifact requires a durable https locator")
         if self.availability == "repository" and self.locator:
             _relative_repository_path(self.locator)
