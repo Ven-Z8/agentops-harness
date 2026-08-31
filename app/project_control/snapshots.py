@@ -305,8 +305,8 @@ def render_current(state: ControlRoomState, now: datetime) -> str:
             "",
             "```bash",
             "git status --short",
-            "# Planned after Task 6: uv run python scripts/project_control.py validate",
-            "# Planned after Task 6: uv run python scripts/project_control.py snapshot",
+            "uv run python scripts/project_control.py validate",
+            "uv run python scripts/project_control.py snapshot",
             "```",
         ]
     )

@@ -11,3 +11,7 @@ class InvalidControlRoom(ControlRoomError):
 
 class DependencyUnavailable(ControlRoomError):
     """Raised when an optional local dependency cannot be used safely."""
+
+
+class RemotePartialFailure(ControlRoomError):
+    """Raised when a remote reconciliation completed only partially."""

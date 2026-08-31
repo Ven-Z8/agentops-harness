@@ -2,6 +2,10 @@
 
 **A local-first control harness that wraps any coding agent with planning, validation, governance, and evidence — so a CEO/CTO can govern what gets built, not just generate code.**
 
+## Project Control Room
+
+Agents and contributors start with [the shared Project Control Room](coordination/README.md).
+
 A model answers once and stops. A *coding agent* (Claude Code, Codex, OpenHands) loops — read, edit, run, retry — until a task is done. **A harness is everything around that loop that makes it finish the task.** AgentOps Harness is the *outer* harness: it doesn't run the edit loop itself, it **governs** a swappable worker that does, and hands the human a graded, cited evidence trail.
 
 ![AgentOps 3D Cockpit replaying a governed Pydantic migration](docs/assets/cockpit-3d-showcase.png)
