@@ -381,6 +381,7 @@ class BoardItem(StrictModel):
     evidence: EvidenceState = EvidenceState.MISSING
     harness: str | None = None
     dependency: str | None = None
+    blocker: str | None = None
     handoff: str | None = None
 
     _validate_text = field_validator("task_id", "title")(_nonempty)
@@ -406,7 +407,7 @@ class BoardItem(StrictModel):
 class BoardExport(StrictModel):
     project_url: str
     items: list[BoardItem]
-    source_revision: str | None = None
+    source_revision: str = "unavailable"
 
     _validate_project_url = field_validator("project_url")(_nonempty)
 
@@ -415,6 +416,13 @@ class BoardExport(StrictModel):
     def validate_project_url(cls, value: str) -> str:
         if not value.startswith("https://"):
             raise ValueError("Board project url must be an https URL")
+        return value
+
+    @field_validator("source_revision")
+    @classmethod
+    def validate_source_revision(cls, value: str) -> str:
+        if value != "unavailable" and not __import__("re").fullmatch(r"[0-9a-f]{40}", value):
+            raise ValueError("Board source revision must be a full commit SHA or unavailable")
         return value
 
 
@@ -426,3 +434,16 @@ class ControlRoomState(StrictModel):
     board_export: BoardExport | None = None
     handoffs: dict[str, HandoffHeader] = Field(default_factory=dict)
     decisions: dict[str, DecisionHeader] = Field(default_factory=dict)
+    handoff_paths: dict[str, str] = Field(default_factory=dict)
+    decision_paths: dict[str, str] = Field(default_factory=dict)
+    approved_baseline: Literal["39c041f699d7909d1f6853a89bf2a86835a4acd4"] = (
+        "39c041f699d7909d1f6853a89bf2a86835a4acd4"
+    )
+    snapshot_source_revision: str = "unavailable"
+
+    @field_validator("snapshot_source_revision")
+    @classmethod
+    def validate_snapshot_source_revision(cls, value: str) -> str:
+        if value != "unavailable" and not __import__("re").fullmatch(r"[0-9a-f]{40}", value):
+            raise ValueError("Snapshot source revision must be a full commit SHA or unavailable")
+        return value

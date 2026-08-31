@@ -6,15 +6,16 @@
 
 ## Current phase
 
-- AO-P1: Trust and Benchmark Integrity
+- AO-P1: Trust and Benchmark Integrity (roadmap fallback)
 
 ## Immediate objective
 
-- AO-D01: Day 1 produces confirmed, fail-closed status and boundary work with reproducible evidence.
+- AO-D01: Day 1 produces confirmed, fail-closed status and boundary work with reproducible evidence. (roadmap fallback)
 
 ## Confirmed baseline
 
-- Baseline commit: `1c59f358e2ce5a0efb96910b7b755090eca5f94b`
+- Baseline commit: `39c041f699d7909d1f6853a89bf2a86835a4acd4`
+- Snapshot source revision: `39152139089640de9071c120d7bcc06e25814c02`
 
 ## Active blockers
 
@@ -61,6 +62,6 @@
 
 ```bash
 git status --short
-uv run python scripts/project_control.py validate
-uv run python scripts/project_control.py snapshot
+# Planned after Task 6: uv run python scripts/project_control.py validate
+# Planned after Task 6: uv run python scripts/project_control.py snapshot
 ```

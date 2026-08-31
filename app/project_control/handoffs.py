@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -19,6 +20,12 @@ _HANDOFF_SECTIONS = (
     "Known risks or surprises",
     "Exact next action",
 )
+
+
+@dataclass(frozen=True)
+class HandoffRecord:
+    header: HandoffHeader
+    path: str
 
 
 def _require_roadmap_task(root: Path, task_id: str) -> None:
@@ -100,6 +107,8 @@ def latest_handoffs(root: Path) -> dict[str, Path]:
     resolve_inside(handoffs_directory, root)
 
     for path in sorted(handoffs_directory.glob("*.md")):
+        if path.name == "README.md":
+            continue
         header = load_frontmatter(path, HandoffHeader, root=root)
         expected_name = _expected_handoff_name(header)
         if path.name != expected_name:
@@ -112,3 +121,11 @@ def latest_handoffs(root: Path) -> dict[str, Path]:
         if previous is None or candidate > (previous[0], previous[1].name):
             latest[header.task_id] = (header.updated_at, path)
     return {task_id: record[1] for task_id, record in latest.items()}
+
+
+def load_latest_handoffs(root: Path) -> dict[str, HandoffRecord]:
+    """Return latest validated handoffs with normalized repository-relative paths."""
+    return {
+        task_id: HandoffRecord(load_frontmatter(path, HandoffHeader, root=root), path.relative_to(root).as_posix())
+        for task_id, path in latest_handoffs(root).items()
+    }

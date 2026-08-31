@@ -2,20 +2,21 @@
 
 from __future__ import annotations
 
-import re
+import subprocess
 from datetime import UTC, datetime
 from pathlib import Path
+from tempfile import NamedTemporaryFile
 
 from app.project_control.artifacts import load_artifact_index
 from app.project_control.codegraph import validate_codegraph_freshness
-from app.project_control.handoffs import _expected_handoff_name
-from app.project_control.io import atomic_write, load_frontmatter, load_yaml, resolve_inside
+from app.project_control.decisions import load_recent_decisions
+from app.project_control.handoffs import load_latest_handoffs
+from app.project_control.io import load_yaml, resolve_inside
 from app.project_control.models import (
     BoardExport,
     BoardItem,
     ControlRoomState,
     GraphManifest,
-    HandoffHeader,
     ProjectConfig,
     RoadmapItem,
 )
@@ -23,7 +24,6 @@ from app.project_control.roadmap import load_roadmap
 
 STATUS_ORDER = {"blocked": 0, "in-progress": 1, "ready": 2, "planned": 3, "done": 4}
 PRIORITY_ORDER = {"P0": 0, "P1": 1, "P2": 2, "P3": 3}
-_HANDOFF_NAME = re.compile(r"^\d{4}-\d{2}-\d{2}-.+\.md$")
 
 
 def _timestamp(now: datetime) -> str:
@@ -52,7 +52,14 @@ def _roadmap_board_sort_key(item: RoadmapItem) -> tuple[int, int, int, str]:
 
 
 def _link(value: str | None, label: str) -> str:
-    return f"[{label}]({value})" if value else "None"
+    if not value:
+        return "None"
+    safe_label = label.replace("\\", "\\\\").replace("[", "\\[").replace("]", "\\]")
+    return f"[{safe_label}](<{value}>)"
+
+
+def _markdown(value: str) -> str:
+    return value.replace("\\", "\\\\").replace("|", "\\|").replace("[", "\\[").replace("]", "\\]")
 
 
 def _phase_summaries(items: list[BoardItem]) -> list[str]:
@@ -85,7 +92,7 @@ def render_board(export: BoardExport, now: datetime) -> str:
         "",
         f"- Generated at: {timestamp}",
         f"- GitHub project: {_link(export.project_url, export.project_url)}",
-        f"- Source revision: `{export.source_revision or 'not supplied'}`",
+        f"- Snapshot source revision: `{export.source_revision}`",
         "",
         "## Phase summaries",
         "",
@@ -118,7 +125,7 @@ def render_board(export: BoardExport, now: datetime) -> str:
             "| "
             + " | ".join(
                 [
-                    f"{item.task_id}: {item.title}",
+                    f"{item.task_id}: {_markdown(item.title)}",
                     str(item.status),
                     item.priority,
                     str(item.day) if item.day is not None else "—",
@@ -168,9 +175,10 @@ def _immediate_objective(state: ControlRoomState, phase: RoadmapItem | None) -> 
 
 def _codegraph_status(state: ControlRoomState) -> str:
     if state.graph_manifest is None:
-        return "Inconclusive: no validated code-graph manifest is available."
+        return "Graph input provenance: unavailable; freshness is inconclusive."
     return (
-        "Inconclusive: manifest provenance is available, but freshness must be validated "
+        f"Graph input provenance: `{state.graph_manifest.source_commit}`; freshness is "
+        "inconclusive until validated "
         "against the current source tree before relying on it."
     )
 
@@ -180,11 +188,19 @@ def render_current(state: ControlRoomState, now: datetime) -> str:
     timestamp = _timestamp(now)
     phase = _current_phase(state)
     objective = _immediate_objective(state, phase)
-    baseline = state.graph_manifest.source_commit if state.graph_manifest else "inconclusive"
-    blockers = sorted(
-        (item for item in state.roadmap.items if item.status != "done" and item.blocker != "none"),
-        key=_roadmap_board_sort_key,
-    )
+    live = sorted(state.board_export.items, key=board_sort_key) if state.board_export else []
+    if live:
+        active = [item for item in live if item.status != "done"]
+        phase_id = next((item.phase_id for item in active if item.phase_id), "Unassigned")
+        phase_text = f"- {phase_id} (live board)"
+        objective_text = (
+            f"- {active[0].task_id}: {_markdown(active[0].title)}" if active else "- None"
+        )
+        blockers = [item for item in active if item.status == "blocked"]
+    else:
+        phase_text = f"- {phase.id}: {phase.title} (roadmap fallback)" if phase else "- Inconclusive."
+        objective_text = f"- {objective.id}: {objective.outcome} (roadmap fallback)" if objective else "- Inconclusive."
+        blockers = sorted((item for item in state.roadmap.items if item.status != "done" and item.blocker != "none"), key=_roadmap_board_sort_key)
     lines = [
         "# Current Project State",
         "",
@@ -194,44 +210,39 @@ def render_current(state: ControlRoomState, now: datetime) -> str:
         "",
         "## Current phase",
         "",
-        f"- {phase.id}: {phase.title}" if phase else "- Inconclusive: no active phase is recorded.",
+        phase_text,
         "",
         "## Immediate objective",
         "",
-        f"- {objective.id}: {objective.outcome}"
-        if objective
-        else "- Inconclusive: no active outcome or task is recorded.",
+        objective_text,
         "",
         "## Confirmed baseline",
         "",
-        (
-            f"- Baseline commit: `{baseline}`"
-            if baseline != "inconclusive"
-            else "- Baseline commit: inconclusive; no code-graph source revision is available."
-        ),
+        f"- Baseline commit: `{state.approved_baseline}`",
+        f"- Snapshot source revision: `{state.snapshot_source_revision}`",
         "",
         "## Active blockers",
         "",
     ]
-    lines.extend(f"- {item.id}: {item.blocker}" for item in blockers)
+    lines.extend(
+        f"- {item.task_id}: {item.blocker or item.dependency or 'not specified'}"
+        if isinstance(item, BoardItem)
+        else f"- {item.id}: {item.blocker}"
+        for item in blockers
+    )
     if not blockers:
         lines.append("- None recorded.")
     lines.extend(["", "## Latest decisions and handoffs", ""])
     if state.decisions:
-        for decision_id, decision in sorted(state.decisions.items()):
-            lines.append(
-                f"- Decision {decision_id}: {decision.status} "
-                f"({decision.date.astimezone(UTC).date()})"
-            )
+        for decision_id, decision in sorted(state.decisions.items(), key=lambda item: (item[1].date, item[0]), reverse=True):
+            lines.append(f"- {_link(state.decision_paths.get(decision_id), f'Decision {decision_id}')}: {decision.status}")
     if state.handoffs:
         for task_id, handoff in sorted(
             state.handoffs.items(),
             key=lambda record: (record[1].updated_at, record[0]),
             reverse=True,
         ):
-            lines.append(
-                f"- Handoff {task_id}: {handoff.status} at {_timestamp(handoff.updated_at)}"
-            )
+            lines.append(f"- {_link(state.handoff_paths.get(task_id), f'Handoff {task_id}')}: {handoff.status}")
     if not state.decisions and not state.handoffs:
         lines.append("- None recorded.")
     lines.extend(
@@ -245,31 +256,17 @@ def render_current(state: ControlRoomState, now: datetime) -> str:
             "",
             "```bash",
             "git status --short",
-            "uv run python scripts/project_control.py validate",
-            "uv run python scripts/project_control.py snapshot",
+            "# Planned after Task 6: uv run python scripts/project_control.py validate",
+            "# Planned after Task 6: uv run python scripts/project_control.py snapshot",
             "```",
         ]
     )
     return "\n".join(lines).rstrip() + "\n"
 
 
-def _latest_handoffs(root: Path) -> dict[str, HandoffHeader]:
-    directory = root / "coordination" / "handoffs"
-    if not directory.exists():
-        return {}
-    resolve_inside(directory, root)
-    latest: dict[str, tuple[datetime, str, HandoffHeader]] = {}
-    for path in sorted(directory.glob("*.md")):
-        if not _HANDOFF_NAME.fullmatch(path.name):
-            continue
-        header = load_frontmatter(path, HandoffHeader, root=root)
-        if _expected_handoff_name(header) != path.name:
-            raise ValueError(f"Handoff filename does not match header: {path.name}")
-        candidate = (header.updated_at, path.name, header)
-        previous = latest.get(header.task_id)
-        if previous is None or candidate[:2] > previous[:2]:
-            latest[header.task_id] = candidate
-    return {task_id: record[2] for task_id, record in latest.items()}
+def _snapshot_source_revision(root: Path) -> str:
+    result = subprocess.run(["git", "rev-parse", "HEAD"], cwd=root, capture_output=True, text=True)
+    return result.stdout.strip() if result.returncode == 0 else "unavailable"
 
 
 def _load_state(root: Path, board_export: BoardExport | None) -> ControlRoomState:
@@ -282,19 +279,25 @@ def _load_state(root: Path, board_export: BoardExport | None) -> ControlRoomStat
     if manifest_path.exists():
         resolved_manifest = resolve_inside(manifest_path, root)
         manifest = GraphManifest.model_validate_json(resolved_manifest.read_text(encoding="utf-8"))
+    handoffs = load_latest_handoffs(root)
+    decisions = load_recent_decisions(root)
     return ControlRoomState(
         project=project,
         roadmap=roadmap,
         artifacts=artifacts,
         graph_manifest=manifest,
         board_export=board_export,
-        handoffs=_latest_handoffs(root),
+        handoffs={task_id: record.header for task_id, record in handoffs.items()},
+        handoff_paths={task_id: record.path for task_id, record in handoffs.items()},
+        decisions={record.header.decision_id: record.header for record in decisions},
+        decision_paths={record.header.decision_id: record.path for record in decisions},
+        snapshot_source_revision=_snapshot_source_revision(root),
     )
 
 
 def _codegraph_freshness(root: Path, state: ControlRoomState) -> str:
     if state.graph_manifest is None:
-        return "Inconclusive: no validated code-graph manifest is available."
+        return "Graph input provenance: unavailable; freshness is inconclusive."
     try:
         validate_codegraph_freshness(root)
     except ValueError as error:
@@ -321,8 +324,7 @@ def _initial_board(state: ControlRoomState, now: datetime) -> str:
         f"- Generated at: {timestamp}",
         "- GitHub project: not provisioned",
         (
-            "- Source revision: "
-            f"`{state.graph_manifest.source_commit if state.graph_manifest else 'inconclusive'}`"
+            f"- Snapshot source revision: `{state.snapshot_source_revision}`"
         ),
         "",
         "## Repository roadmap work",
@@ -335,7 +337,7 @@ def _initial_board(state: ControlRoomState, now: datetime) -> str:
         lines.append(
             f"| {item.id}: {item.title} | {item.phase_id or '—'} | {item.status} | "
             f"{item.priority} | {item.day if item.day is not None else '—'} | not provisioned | "
-            f"{'recorded' if handoff else 'None'} |"
+            f"{_link(state.handoff_paths.get(item.id), 'handoff') if handoff else 'None'} |"
         )
     lines.extend(["", "## Phase summaries", ""])
     phase_items = [item for item in items if item.kind == "phase"]
@@ -365,8 +367,7 @@ def write_snapshots(root: Path, board_export: BoardExport | dict, now: datetime)
     state = _load_state(root, export)
     current = _render_current_with_freshness(state, now, _codegraph_freshness(root, state))
     board = render_board(export, now)
-    atomic_write(root / state.project.generated.current, current, root=root)
-    atomic_write(root / state.project.generated.board, board, root=root)
+    _replace_pair(root, state.project.generated.current, current, state.project.generated.board, board)
 
 
 def write_initial_snapshots(root: Path, now: datetime) -> None:
@@ -375,5 +376,26 @@ def write_initial_snapshots(root: Path, now: datetime) -> None:
     state = _load_state(root, None)
     current = _render_current_with_freshness(state, now, _codegraph_freshness(root, state))
     board = _initial_board(state, now)
-    atomic_write(root / state.project.generated.current, current, root=root)
-    atomic_write(root / state.project.generated.board, board, root=root)
+    _replace_pair(root, state.project.generated.current, current, state.project.generated.board, board)
+
+
+def _prepare(root: Path, path: str, content: str) -> tuple[Path, Path]:
+    destination = resolve_inside(root / path, root)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    with NamedTemporaryFile("w", encoding="utf-8", dir=destination.parent, delete=False) as handle:
+        handle.write(content)
+        return destination, Path(handle.name)
+
+
+def _replace_pair(root: Path, current_path: str, current: str, board_path: str, board: str) -> None:
+    resolve_inside(root / current_path, root)
+    resolve_inside(root / board_path, root)
+    prepared: list[tuple[Path, Path]] = []
+    try:
+        prepared = [_prepare(root, current_path, current), _prepare(root, board_path, board)]
+        for destination, temporary in prepared:
+            temporary.replace(destination)
+    except Exception:
+        for _, temporary in prepared:
+            temporary.unlink(missing_ok=True)
+        raise
