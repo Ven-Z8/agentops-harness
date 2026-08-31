@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+import shutil
 import subprocess
 from datetime import UTC, datetime
 from pathlib import Path
@@ -11,6 +12,7 @@ from tempfile import NamedTemporaryFile
 from app.project_control.artifacts import load_artifact_index
 from app.project_control.codegraph import tracked_graph_inputs, validate_codegraph_freshness
 from app.project_control.decisions import load_recent_decisions
+from app.project_control.errors import InvalidControlRoom
 from app.project_control.handoffs import load_latest_handoffs
 from app.project_control.io import load_yaml, resolve_inside
 from app.project_control.models import (
@@ -542,12 +544,42 @@ def _replace_pair(root: Path, current_path: str, current: str, board_path: str, 
     resolve_inside(root / current_path, root)
     resolve_inside(root / board_path, root)
     prepared: list[tuple[Path, Path]] = []
+    backups: list[tuple[Path, Path | None]] = []
     try:
         prepared.append(_prepare(root, current_path, current))
         prepared.append(_prepare(root, board_path, board))
-        for destination, temporary in prepared:
-            temporary.replace(destination)
-    except Exception:
+        for destination, _ in prepared:
+            backup: Path | None = None
+            if destination.exists():
+                with NamedTemporaryFile("wb", dir=destination.parent, delete=False) as handle:
+                    backup = Path(handle.name)
+                shutil.copyfile(destination, backup)
+            backups.append((destination, backup))
+        try:
+            for destination, temporary in prepared:
+                temporary.replace(destination)
+        except Exception as error:
+            rollback_errors: list[str] = []
+            for destination, backup in backups:
+                try:
+                    if backup is None:
+                        if destination.exists():
+                            destination.unlink()
+                    else:
+                        shutil.copyfile(backup, destination)
+                except Exception as rollback_error:
+                    rollback_errors.append(str(rollback_error))
+            if rollback_errors:
+                raise InvalidControlRoom(
+                    "snapshot replacement failed and rollback was partial: "
+                    + "; ".join(rollback_errors)
+                ) from error
+            raise InvalidControlRoom(
+                "snapshot replacement failed; previous snapshots were restored"
+            ) from error
+    finally:
         for _, temporary in prepared:
             temporary.unlink(missing_ok=True)
-        raise
+        for _, backup in backups:
+            if backup is not None:
+                backup.unlink(missing_ok=True)

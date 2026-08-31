@@ -222,6 +222,10 @@ def _board_export_command(_args: argparse.Namespace) -> int:
         raise InvalidControlRoom(
             "GitHub export project URL does not match coordination/project.yaml"
         )
+    if export.repository != project.project.repository:
+        raise InvalidControlRoom(
+            "GitHub export issue repository does not match coordination/project.yaml"
+        )
     write_snapshots(root, export, datetime.now(UTC))
     print(f"Board export written ({len(export.items)} items).")
     return 0

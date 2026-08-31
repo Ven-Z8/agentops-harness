@@ -9,6 +9,7 @@ from pydantic import ValidationError
 
 import app.project_control.snapshots as snapshots
 from app.project_control.codegraph import build_codegraph
+from app.project_control.errors import InvalidControlRoom
 from app.project_control.models import BoardExport
 from app.project_control.snapshots import (
     _snapshot_source_revision,
@@ -106,13 +107,11 @@ def test_initial_snapshots_are_stable_and_identify_unprovisioned_project(tmp_pat
 
     write_initial_snapshots(tmp_path, FIXED_TIME)
     first = {
-        name: (tmp_path / "coordination" / name).read_bytes()
-        for name in ("CURRENT.md", "BOARD.md")
+        name: (tmp_path / "coordination" / name).read_bytes() for name in ("CURRENT.md", "BOARD.md")
     }
     write_initial_snapshots(tmp_path, FIXED_TIME)
     second = {
-        name: (tmp_path / "coordination" / name).read_bytes()
-        for name in ("CURRENT.md", "BOARD.md")
+        name: (tmp_path / "coordination" / name).read_bytes() for name in ("CURRENT.md", "BOARD.md")
     }
 
     assert first == second
@@ -188,7 +187,10 @@ def test_current_and_initial_board_render_repository_record_links(tmp_path: Path
         "---\n"
         "schema_version: 1\ntask_id: AO-D01-01\nharness: codex\nstatus: partial\n"
         "started_at: 2026-08-30T15:00:00Z\nupdated_at: 2026-08-30T16:00:00Z\n"
-        "branch: codex/AO-D01-01\nbase_commit: '1" + "1" * 39 + "'\nhead_commit: '2" + "2" * 39
+        "branch: codex/AO-D01-01\nbase_commit: '1"
+        + "1" * 39
+        + "'\nhead_commit: '2"
+        + "2" * 39
         + "'\nverification: {state: not_run, commands: []}\nartifacts: []\ndecisions: []\n---\n",
         encoding="utf-8",
     )
@@ -234,9 +236,7 @@ def test_snapshot_record_loading_rejects_unknown_or_malformed_handoffs(tmp_path:
 
 def test_snapshot_provenance_separates_baseline_snapshot_and_graph_revisions() -> None:
     """Using graph provenance as the project baseline would misstate the approved source."""
-    state = make_control_room_state().model_copy(
-        update={"snapshot_source_revision": "c" * 40}
-    )
+    state = make_control_room_state().model_copy(update={"snapshot_source_revision": "c" * 40})
 
     rendered = render_current(state, FIXED_TIME)
 
@@ -391,6 +391,105 @@ def test_second_temp_prepare_failure_removes_first_temp_without_replacing_destin
     assert all(not temporary.exists() for temporary in prepared)
 
 
+def test_second_replace_failure_restores_both_existing_snapshots(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    current = tmp_path / "coordination/CURRENT.md"
+    board = tmp_path / "coordination/BOARD.md"
+    current.parent.mkdir(parents=True)
+    current.write_text("old current\n", encoding="utf-8")
+    board.write_text("old board\n", encoding="utf-8")
+    real_replace = Path.replace
+    calls = 0
+
+    def fail_second(source: Path, destination: Path) -> Path:
+        nonlocal calls
+        calls += 1
+        if calls == 2:
+            raise OSError("injected second replace failure")
+        return real_replace(source, destination)
+
+    monkeypatch.setattr(Path, "replace", fail_second)
+    with pytest.raises(InvalidControlRoom, match="restored"):
+        snapshots._replace_pair(
+            tmp_path,
+            "coordination/CURRENT.md",
+            "new current\n",
+            "coordination/BOARD.md",
+            "new board\n",
+        )
+
+    assert current.read_text(encoding="utf-8") == "old current\n"
+    assert board.read_text(encoding="utf-8") == "old board\n"
+
+
+def test_second_replace_failure_keeps_both_initially_absent(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    real_replace = Path.replace
+    calls = 0
+
+    def fail_second(source: Path, destination: Path) -> Path:
+        nonlocal calls
+        calls += 1
+        if calls == 2:
+            raise OSError("injected second replace failure")
+        return real_replace(source, destination)
+
+    monkeypatch.setattr(Path, "replace", fail_second)
+    with pytest.raises(InvalidControlRoom, match="restored"):
+        snapshots._replace_pair(
+            tmp_path,
+            "coordination/CURRENT.md",
+            "new current\n",
+            "coordination/BOARD.md",
+            "new board\n",
+        )
+
+    assert not (tmp_path / "coordination/CURRENT.md").exists()
+    assert not (tmp_path / "coordination/BOARD.md").exists()
+
+
+def test_replace_failure_reports_partial_state_when_rollback_fails(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    current = tmp_path / "coordination/CURRENT.md"
+    board = tmp_path / "coordination/BOARD.md"
+    current.parent.mkdir(parents=True)
+    current.write_text("old current\n", encoding="utf-8")
+    board.write_text("old board\n", encoding="utf-8")
+    real_replace = Path.replace
+    real_copyfile = snapshots.shutil.copyfile
+    replace_calls = 0
+    copy_calls = 0
+
+    def fail_second_replace(source: Path, destination: Path) -> Path:
+        nonlocal replace_calls
+        replace_calls += 1
+        if replace_calls == 2:
+            raise OSError("injected second replace failure")
+        return real_replace(source, destination)
+
+    def fail_restore(source: Path, destination: Path) -> Path:
+        nonlocal copy_calls
+        copy_calls += 1
+        if copy_calls == 3:
+            raise OSError("injected rollback failure")
+        return real_copyfile(source, destination)
+
+    monkeypatch.setattr(Path, "replace", fail_second_replace)
+    monkeypatch.setattr(snapshots.shutil, "copyfile", fail_restore)
+
+    with pytest.raises(InvalidControlRoom, match="rollback was partial"):
+        snapshots._replace_pair(
+            tmp_path,
+            "coordination/CURRENT.md",
+            "new current\n",
+            "coordination/BOARD.md",
+            "new board\n",
+        )
+
+
 @pytest.mark.parametrize(
     ("changed_path", "expect_change"),
     [
@@ -508,9 +607,10 @@ def test_fresh_codegraph_stays_fresh_across_two_fixed_clock_snapshot_generations
         for path in ("coordination/CURRENT.md", "coordination/BOARD.md")
     }
 
-    assert b"Fresh: the manifest source-tree digest matches tracked inputs." in first[
-        "coordination/CURRENT.md"
-    ]
+    assert (
+        b"Fresh: the manifest source-tree digest matches tracked inputs."
+        in first["coordination/CURRENT.md"]
+    )
     assert first == second
 
 

@@ -55,9 +55,22 @@ def issue_item(
             "number": number,
             "title": title,
             "url": f"https://github.com/Ven-Z8/agentops-harness/issues/{number}",
+            "repository": {"nameWithOwner": "Ven-Z8/agentops-harness"},
             "body": f"Task ID: {task_id}\n",
         },
-        "fieldValues": {"nodes": fields or []},
+        "fieldValues": {
+            "nodes": [
+                {
+                    "id": f"PVTFV_{number}_{index}",
+                    **field,
+                    "field": {
+                        "id": f"PVT_FIELD_{field['field']['name']}",
+                        **field["field"],
+                    },
+                }
+                for index, field in enumerate(fields or [], start=1)
+            ]
+        },
     }
 
 
@@ -209,6 +222,122 @@ def test_subprocess_transport_refuses_mutation_text_without_invoking_gh(monkeypa
 
     with pytest.raises(InvalidControlRoom, match="read-only"):
         SubprocessGhTransport().graphql("mutation { deleteProject }", {})
+
+
+@pytest.mark.parametrize(
+    ("path", "value"),
+    [
+        (("data", "user", "projectV2", "items", "pageInfo", "hasNextPage"), "false"),
+        (("data", "user", "projectV2", "items", "nodes", 0, "content", "number"), "1"),
+        (("data", "user", "projectV2", "items", "nodes", 0, "id"), 1),
+        (
+            ("data", "user", "projectV2", "items", "nodes", 0, "fieldValues", "nodes", 0, "number"),
+            True,
+        ),
+    ],
+)
+def test_export_rejects_graphql_scalar_type_substitution(path, value) -> None:
+    response = project_response(
+        items=[issue_item(fields=[{"field": {"name": "Day"}, "number": 2}])]
+    )
+    target = response
+    for part in path[:-1]:
+        target = target[part]
+    target[path[-1]] = value
+
+    with pytest.raises(InvalidControlRoom, match="schema"):
+        GitHubClient(FakeTransport([response])).export_project("Ven-Z8", 1)
+
+
+def test_export_rejects_unknown_custom_definition_and_allows_known_builtin() -> None:
+    unknown = project_response(items=[issue_item()])
+    unknown["data"]["user"]["projectV2"]["fields"] = {
+        "nodes": [
+            {
+                "id": "F_UNKNOWN",
+                "name": "Mystery",
+                "__typename": "ProjectV2Field",
+                "dataType": "TEXT",
+            }
+        ]
+    }
+    with pytest.raises(InvalidControlRoom, match="unknown field"):
+        GitHubClient(FakeTransport([unknown])).export_project("Ven-Z8", 1)
+
+    builtin = project_response(items=[issue_item()])
+    builtin["data"]["user"]["projectV2"]["fields"] = {
+        "nodes": [
+            {
+                "id": "F_LABELS",
+                "name": "Labels",
+                "__typename": "ProjectV2Field",
+                "dataType": "LABELS",
+            }
+        ]
+    }
+    assert GitHubClient(FakeTransport([builtin])).export_project("Ven-Z8", 1).items
+
+
+def test_export_rejects_missing_duplicate_option_ids_and_empty_option_value() -> None:
+    for options in (
+        [{"name": "P0"}],
+        [{"id": "O1", "name": "P0"}, {"id": "O1", "name": "P1"}],
+        [{"id": "O1", "name": "P0"}, {"id": "O2", "name": "P0"}],
+    ):
+        response = project_response(
+            items=[issue_item(fields=[{"field": {"name": "Priority"}, "name": "P0"}])]
+        )
+        response["data"]["user"]["projectV2"]["fields"] = {
+            "nodes": [
+                {
+                    "id": "F_PRIORITY",
+                    "name": "Priority",
+                    "__typename": "ProjectV2SingleSelectField",
+                    "options": options,
+                }
+            ]
+        }
+        with pytest.raises(InvalidControlRoom):
+            GitHubClient(FakeTransport([response])).export_project("Ven-Z8", 1)
+
+
+def test_export_rejects_wrong_definition_type() -> None:
+    response = project_response(
+        items=[issue_item(fields=[{"field": {"name": "Priority"}, "name": "P0"}])]
+    )
+    response["data"]["user"]["projectV2"]["fields"] = {
+        "nodes": [
+            {
+                "id": "F_PRIORITY",
+                "name": "Priority",
+                "__typename": "ProjectV2Field",
+                "dataType": "TEXT",
+            }
+        ]
+    }
+    with pytest.raises(InvalidControlRoom, match="type"):
+        GitHubClient(FakeTransport([response])).export_project("Ven-Z8", 1)
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://evil.test/Ven-Z8/agentops-harness/issues/1",
+        "https://github.com/Ven-Z8/agentops-harness/issues/2",
+        "https://github.com/Ven-Z8/agentops-harness/issues/1?x=1",
+        "https://github.com/Ven-Z8/agentops-harness/issues/1#fragment",
+    ],
+)
+def test_export_rejects_noncanonical_issue_url(url: str) -> None:
+    response = project_response(items=[issue_item()])
+    response["data"]["user"]["projectV2"]["items"]["nodes"][0]["content"]["url"] = url
+    with pytest.raises(InvalidControlRoom, match="canonical"):
+        GitHubClient(FakeTransport([response])).export_project("Ven-Z8", 1)
+
+
+def test_export_accepts_canonical_issue_url() -> None:
+    export = GitHubClient(FakeTransport([PROJECT_RESPONSE])).export_project("Ven-Z8", 1)
+    assert export.repository == "Ven-Z8/agentops-harness"
 
 
 @pytest.mark.parametrize("error", [FileNotFoundError(), subprocess.CalledProcessError(1, ["gh"])])

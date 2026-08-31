@@ -18,7 +18,7 @@ class GhTransport(Protocol):
 
 
 class _StrictResponse(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", strict=True, populate_by_name=True)
 
 
 class _GraphQLError(_StrictResponse):
@@ -26,13 +26,15 @@ class _GraphQLError(_StrictResponse):
 
 
 class _Option(_StrictResponse):
-    id: str | None = None
+    id: str = Field(min_length=1)
     name: str = Field(min_length=1)
 
 
 class _FieldDefinition(_StrictResponse):
-    id: str | None = None
+    id: str = Field(min_length=1)
     name: str = Field(min_length=1)
+    typename: str = Field(alias="__typename", min_length=1)
+    dataType: str | None = None
     options: list[_Option] = []
 
 
@@ -46,10 +48,12 @@ class _PageInfo(_StrictResponse):
 
 
 class _FieldRef(_StrictResponse):
+    id: str = Field(min_length=1)
     name: str = Field(min_length=1)
 
 
 class _FieldValue(_StrictResponse):
+    id: str = Field(min_length=1)
     field: _FieldRef | None = None
     name: str | None = None
     text: str | None = None
@@ -63,10 +67,18 @@ class _FieldValues(_StrictResponse):
     nodes: list[_FieldValue]
 
 
+class _Repository(_StrictResponse):
+    nameWithOwner: str = Field(
+        min_length=3,
+        pattern=r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$",
+    )
+
+
 class _Issue(_StrictResponse):
     number: int = Field(gt=0)
     title: str = Field(min_length=1)
     url: str
+    repository: _Repository
     body: str
 
 
@@ -113,10 +125,9 @@ query ProjectBoard($owner: String!, $number: Int!, $after: String) {
       url
       fields(first: 100) {
         nodes {
-          ... on ProjectV2Field { id name }
-          ... on ProjectV2SingleSelectField {
-            id name options { id name }
-          }
+          __typename
+          ... on ProjectV2Field { id name dataType }
+          ... on ProjectV2SingleSelectField { id name options { id name } }
           ... on ProjectV2IterationField { id name }
         }
       }
@@ -124,24 +135,40 @@ query ProjectBoard($owner: String!, $number: Int!, $after: String) {
         nodes {
           id
           content {
-            ... on Issue { number title url body }
+            ... on Issue {
+              number title url body
+              repository { nameWithOwner }
+            }
           }
           fieldValues(first: 100) {
             nodes {
+              id
               ... on ProjectV2ItemFieldSingleSelectValue {
-                field { ... on ProjectV2Field { name } ... on ProjectV2SingleSelectField { name } }
+                field {
+                  ... on ProjectV2Field { id name }
+                  ... on ProjectV2SingleSelectField { id name }
+                }
                 name
               }
               ... on ProjectV2ItemFieldTextValue {
-                field { ... on ProjectV2Field { name } ... on ProjectV2SingleSelectField { name } }
+                field {
+                  ... on ProjectV2Field { id name }
+                  ... on ProjectV2SingleSelectField { id name }
+                }
                 text
               }
               ... on ProjectV2ItemFieldNumberValue {
-                field { ... on ProjectV2Field { name } ... on ProjectV2SingleSelectField { name } }
+                field {
+                  ... on ProjectV2Field { id name }
+                  ... on ProjectV2SingleSelectField { id name }
+                }
                 number
               }
               ... on ProjectV2ItemFieldDateValue {
-                field { ... on ProjectV2Field { name } ... on ProjectV2SingleSelectField { name } }
+                field {
+                  ... on ProjectV2Field { id name }
+                  ... on ProjectV2SingleSelectField { id name }
+                }
                 date
               }
             }
@@ -168,6 +195,25 @@ _KNOWN_FIELDS = {
     "Blocker",
     "Handoff",
     "Target date",
+}
+_IGNORED_BUILT_INS = {"Title", "Assignees", "Labels", "Milestone", "Repository", "Reviewers"}
+_CONTROL_FIELD_TYPES = {
+    "Status": {"ProjectV2SingleSelectField"},
+    "Priority": {"ProjectV2SingleSelectField"},
+    "Day": {"ProjectV2Field"},
+    "Phase": {"ProjectV2SingleSelectField"},
+    "Evidence": {"ProjectV2SingleSelectField"},
+    "Harness": {"ProjectV2Field"},
+    "Dependency": {"ProjectV2Field"},
+    "Blocker": {"ProjectV2Field"},
+    "Handoff": {"ProjectV2Field"},
+}
+_CONTROL_FIELD_DATA_TYPES = {
+    "Day": {"NUMBER"},
+    "Harness": {"TEXT"},
+    "Dependency": {"TEXT"},
+    "Blocker": {"TEXT"},
+    "Handoff": {"TEXT"},
 }
 _STATUS = {
     "Inbox": "planned",
@@ -208,10 +254,15 @@ def _response(value: dict[str, object]) -> _GraphQLResponse:
     return parsed
 
 
-def _field_value(value: _FieldValue, definitions: dict[str, set[str]]) -> tuple[str, object]:
+def _field_value(
+    value: _FieldValue,
+    definitions: dict[str, tuple[str, set[str]]],
+) -> tuple[str, object] | None:
     if value.field is None or not value.field.name.strip():
         raise InvalidControlRoom("GitHub project field value is missing its field name")
     name = value.field.name
+    if name in _IGNORED_BUILT_INS:
+        return None
     if name not in _KNOWN_FIELDS:
         raise InvalidControlRoom(f"GitHub project contains unknown field: {name}")
 
@@ -227,7 +278,8 @@ def _field_value(value: _FieldValue, definitions: dict[str, set[str]]) -> tuple[
     if len(present) != 1:
         raise InvalidControlRoom(f"GitHub field {name!r} has an unsupported value shape")
     kind, field_value = present[0]
-    if definitions.get(name) and kind == "name" and field_value not in definitions[name]:
+    definition = definitions.get(name)
+    if definition and kind == "name" and field_value not in definition[1]:
         raise InvalidControlRoom(f"GitHub field {name!r} has an unknown option: {field_value}")
     if name in {"Status", "Priority", "Phase", "Evidence", "Workstream", "Type", "Risk"}:
         if kind != "name":
@@ -250,6 +302,14 @@ def _phase_id(value: str) -> str:
     raise InvalidControlRoom(f"GitHub field 'Phase' has an unknown option: {value}")
 
 
+def _validate_canonical_issue(issue: _Issue) -> None:
+    expected = f"https://github.com/{issue.repository.nameWithOwner}/issues/{issue.number}"
+    if issue.url != expected:
+        raise InvalidControlRoom(
+            f"GitHub issue URL is not canonical for {issue.repository.nameWithOwner}: {issue.url}"
+        )
+
+
 def _board_item(
     item: _Item,
     definitions: dict[str, set[str]],
@@ -261,6 +321,7 @@ def _board_item(
     seen_item_ids.add(item.id)
     if item.content is None:
         raise InvalidControlRoom("GitHub project item has unsupported or missing content")
+    _validate_canonical_issue(item.content)
     task_id = extract_task_id(item.content.body)
     if task_id in seen_task_ids:
         raise InvalidControlRoom(f"GitHub project contains duplicate stable task ID: {task_id}")
@@ -268,7 +329,10 @@ def _board_item(
 
     values: dict[str, object] = {}
     for field_value in item.fieldValues.nodes:
-        name, value = _field_value(field_value, definitions)
+        mapped = _field_value(field_value, definitions)
+        if mapped is None:
+            continue
+        name, value = mapped
         if name in values:
             raise InvalidControlRoom(f"GitHub issue has duplicate value for field: {name}")
         values[name] = value
@@ -367,6 +431,7 @@ class GitHubClient:
         seen_item_ids: set[str] = set()
         seen_task_ids: set[str] = set()
         project: _Project | None = None
+        project_repository: str | None = None
         exported: list[BoardItem] = []
         while True:
             try:
@@ -383,13 +448,57 @@ class GitHubClient:
                 project = current
             elif current.id != project.id or current.url != project.url:
                 raise InvalidControlRoom("GitHub project identity changed during pagination")
-            definitions: dict[str, set[str]] = {}
+            for raw_item in current.items.nodes:
+                if raw_item.content is None:
+                    raise InvalidControlRoom(
+                        "GitHub project item has unsupported or missing content"
+                    )
+                page_repository = raw_item.content.repository.nameWithOwner
+                if project_repository is None:
+                    project_repository = page_repository
+                if page_repository != project_repository:
+                    raise InvalidControlRoom("GitHub issue repository changed during pagination")
+            definitions: dict[str, tuple[str, set[str]]] = {}
             for definition in current.fields.nodes:
                 if definition.name in definitions:
                     raise InvalidControlRoom(
                         f"GitHub project has duplicate field: {definition.name}"
                     )
-                definitions[definition.name] = {option.name for option in definition.options}
+                if definition.name not in _KNOWN_FIELDS | _IGNORED_BUILT_INS:
+                    raise InvalidControlRoom(
+                        f"GitHub project contains unknown field/custom field: {definition.name}"
+                    )
+                option_ids = [option.id for option in definition.options]
+                option_names = [option.name for option in definition.options]
+                if len(option_ids) != len(set(option_ids)):
+                    raise InvalidControlRoom(
+                        f"GitHub field {definition.name!r} has duplicate option IDs"
+                    )
+                if len(option_names) != len(set(option_names)):
+                    raise InvalidControlRoom(
+                        f"GitHub field {definition.name!r} has duplicate option names"
+                    )
+                expected_types = _CONTROL_FIELD_TYPES.get(definition.name)
+                if expected_types and definition.typename not in expected_types:
+                    raise InvalidControlRoom(
+                        f"GitHub field {definition.name!r} has wrong definition type"
+                    )
+                expected_data_types = _CONTROL_FIELD_DATA_TYPES.get(definition.name)
+                if (
+                    expected_data_types
+                    and definition.dataType is not None
+                    and definition.dataType not in expected_data_types
+                ):
+                    raise InvalidControlRoom(
+                        f"GitHub field {definition.name!r} has wrong definition data type"
+                    )
+                definitions[definition.name] = (definition.typename, set(option_names))
+            defined_controls = definitions.keys() & _CONTROL_FIELD_TYPES.keys()
+            if defined_controls and defined_controls != _CONTROL_FIELD_TYPES.keys():
+                missing = sorted(_CONTROL_FIELD_TYPES.keys() - defined_controls)
+                raise InvalidControlRoom(
+                    f"GitHub project is missing required control fields: {', '.join(missing)}"
+                )
             exported.extend(
                 _board_item(item, definitions, seen_item_ids, seen_task_ids)
                 for item in current.items.nodes
@@ -406,6 +515,10 @@ class GitHubClient:
 
         assert project is not None
         try:
-            return BoardExport(project_url=project.url, items=exported)
+            return BoardExport(
+                project_url=project.url,
+                repository=project_repository,
+                items=exported,
+            )
         except ValidationError as error:
             raise InvalidControlRoom(f"GitHub board export is invalid: {error}") from error

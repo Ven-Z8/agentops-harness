@@ -553,12 +553,20 @@ class BoardItem(StrictModel):
 class BoardExport(StrictModel):
     project_url: str
     items: list[BoardItem]
+    repository: str | None = None
     source_revision: str = "unavailable"
 
     @field_validator("project_url")
     @classmethod
     def validate_project_url(cls, value: str) -> str:
         return _https_url(value)
+
+    @field_validator("repository")
+    @classmethod
+    def validate_repository(cls, value: str | None) -> str | None:
+        if value is not None and not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", value):
+            raise ValueError("Board repository must be a canonical owner/name")
+        return value
 
     @field_validator("source_revision")
     @classmethod

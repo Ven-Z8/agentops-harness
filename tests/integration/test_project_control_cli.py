@@ -128,6 +128,38 @@ def test_board_export_refuses_null_config_and_preserves_both_snapshots(
     assert board.read_text(encoding="utf-8") == "last board\n"
 
 
+def test_board_export_refuses_cross_repository_items_before_writes(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from app.project_control import cli
+    from tests.unit.test_project_control_github import PROJECT_RESPONSE, FakeTransport
+
+    _seed_cli_repository(tmp_path)
+    project_path = tmp_path / "coordination/project.yaml"
+    project_payload = yaml.safe_load(project_path.read_text(encoding="utf-8"))
+    project_payload["github_project"] = {
+        "owner": "Ven-Z8",
+        "number": 1,
+        "url": "https://github.com/users/Ven-Z8/projects/1",
+    }
+    project_path.write_text(yaml.safe_dump(project_payload), encoding="utf-8")
+    current = tmp_path / "coordination/CURRENT.md"
+    board = tmp_path / "coordination/BOARD.md"
+    current.write_text("last current\n", encoding="utf-8")
+    board.write_text("last board\n", encoding="utf-8")
+    response = yaml.safe_load(yaml.safe_dump(PROJECT_RESPONSE))
+    response["data"]["user"]["projectV2"]["items"]["nodes"][0]["content"]["repository"][
+        "nameWithOwner"
+    ] = "Ven-Z8/other-repository"
+    transport = FakeTransport([response])
+    monkeypatch.setattr(cli, "_repository_root", lambda: tmp_path)
+    monkeypatch.setattr(cli, "SubprocessGhTransport", lambda: transport, raising=False)
+
+    assert cli.main(["board-export"]) == 2
+    assert current.read_text(encoding="utf-8") == "last current\n"
+    assert board.read_text(encoding="utf-8") == "last board\n"
+
+
 def test_validate_reports_every_invalid_path_without_traceback(tmp_path: Path) -> None:
     _seed_cli_repository(tmp_path)
     (tmp_path / "coordination/roadmap/14-day-plan.md").write_text("stale\n", encoding="utf-8")
