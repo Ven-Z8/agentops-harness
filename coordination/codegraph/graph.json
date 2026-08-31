@@ -11871,6 +11871,18 @@
     {
       "metadata": {},
       "source": "file:tests/integration/test_project_control_cli.py",
+      "target": "function:python:tests.integration.test_project_control_cli.test_validate_preserves_project_and_roadmap_id_consistency_check",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/integration/test_project_control_cli.py",
+      "target": "function:python:tests.integration.test_project_control_cli.test_validate_rejects_unsafe_root_roadmap_identifiers_without_traceback",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/integration/test_project_control_cli.py",
       "target": "function:python:tests.integration.test_project_control_cli.test_validate_reports_every_invalid_path_without_traceback",
       "type": "defines"
     },
@@ -11944,6 +11956,12 @@
       "metadata": {},
       "source": "file:tests/integration/test_project_control_cli.py",
       "target": "import:python:pathlib.Path",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/integration/test_project_control_cli.py",
+      "target": "import:python:pytest",
       "type": "imports"
     },
     {
@@ -18459,6 +18477,12 @@
     {
       "metadata": {},
       "source": "file:tests/unit/test_project_control_schema.py",
+      "target": "function:python:tests.unit.test_project_control_schema.test_approved_root_roadmap_identifier_remains_valid",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_schema.py",
       "target": "function:python:tests.unit.test_project_control_schema.test_atomic_write_creates_an_in_root_file",
       "type": "defines"
     },
@@ -18561,6 +18585,12 @@
     {
       "metadata": {},
       "source": "file:tests/unit/test_project_control_schema.py",
+      "target": "function:python:tests.unit.test_project_control_schema.test_project_config_roadmap_id_is_path_safe",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_schema.py",
       "target": "function:python:tests.unit.test_project_control_schema.test_required_unavailable_artifact_cannot_claim_verified_evidence",
       "type": "defines"
     },
@@ -18598,6 +18628,12 @@
       "metadata": {},
       "source": "file:tests/unit/test_project_control_schema.py",
       "target": "function:python:tests.unit.test_project_control_schema.test_roadmap_rejects_self_dependencies",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_schema.py",
+      "target": "function:python:tests.unit.test_project_control_schema.test_roadmap_root_id_is_path_safe",
       "type": "defines"
     },
     {
@@ -22085,7 +22121,7 @@
       "id": "class:python:app.project_control.models.ArtifactIndex",
       "language": "python",
       "metadata": {
-        "line": 476,
+        "line": 478,
         "qualified_name": "app.project_control.models.ArtifactIndex"
       },
       "name": "ArtifactIndex",
@@ -22096,7 +22132,7 @@
       "id": "class:python:app.project_control.models.ArtifactRecord",
       "language": "python",
       "metadata": {
-        "line": 442,
+        "line": 444,
         "qualified_name": "app.project_control.models.ArtifactRecord"
       },
       "name": "ArtifactRecord",
@@ -22107,7 +22143,7 @@
       "id": "class:python:app.project_control.models.BoardExport",
       "language": "python",
       "metadata": {
-        "line": 544,
+        "line": 546,
         "qualified_name": "app.project_control.models.BoardExport"
       },
       "name": "BoardExport",
@@ -22118,7 +22154,7 @@
       "id": "class:python:app.project_control.models.BoardItem",
       "language": "python",
       "metadata": {
-        "line": 502,
+        "line": 504,
         "qualified_name": "app.project_control.models.BoardItem"
       },
       "name": "BoardItem",
@@ -22129,7 +22165,7 @@
       "id": "class:python:app.project_control.models.ControlRoomState",
       "language": "python",
       "metadata": {
-        "line": 562,
+        "line": 564,
         "qualified_name": "app.project_control.models.ControlRoomState"
       },
       "name": "ControlRoomState",
@@ -22140,7 +22176,7 @@
       "id": "class:python:app.project_control.models.DecisionHeader",
       "language": "python",
       "metadata": {
-        "line": 420,
+        "line": 422,
         "qualified_name": "app.project_control.models.DecisionHeader"
       },
       "name": "DecisionHeader",
@@ -22195,7 +22231,7 @@
       "id": "class:python:app.project_control.models.GraphManifest",
       "language": "python",
       "metadata": {
-        "line": 488,
+        "line": 490,
         "qualified_name": "app.project_control.models.GraphManifest"
       },
       "name": "GraphManifest",
@@ -22206,7 +22242,7 @@
       "id": "class:python:app.project_control.models.HandoffHeader",
       "language": "python",
       "metadata": {
-        "line": 383,
+        "line": 385,
         "qualified_name": "app.project_control.models.HandoffHeader"
       },
       "name": "HandoffHeader",
@@ -22217,7 +22253,7 @@
       "id": "class:python:app.project_control.models.HandoffVerification",
       "language": "python",
       "metadata": {
-        "line": 377,
+        "line": 379,
         "qualified_name": "app.project_control.models.HandoffVerification"
       },
       "name": "HandoffVerification",
@@ -31213,7 +31249,7 @@
       "id": "function:python:app.project_control.models.enforce_terminal_semantics",
       "language": "python",
       "metadata": {
-        "line": 403,
+        "line": 405,
         "qualified_name": "app.project_control.models.enforce_terminal_semantics"
       },
       "name": "enforce_terminal_semantics",
@@ -31224,7 +31260,7 @@
       "id": "function:python:app.project_control.models.require_issue_reference_parts_together",
       "language": "python",
       "metadata": {
-        "line": 534,
+        "line": 536,
         "qualified_name": "app.project_control.models.require_issue_reference_parts_together"
       },
       "name": "require_issue_reference_parts_together",
@@ -31257,7 +31293,7 @@
       "id": "function:python:app.project_control.models.validate_dependencies",
       "language": "python",
       "metadata": {
-        "line": 342,
+        "line": 344,
         "qualified_name": "app.project_control.models.validate_dependencies"
       },
       "name": "validate_dependencies",
@@ -31279,7 +31315,7 @@
       "id": "function:python:app.project_control.models.validate_evidence",
       "language": "python",
       "metadata": {
-        "line": 458,
+        "line": 460,
         "qualified_name": "app.project_control.models.validate_evidence"
       },
       "name": "validate_evidence",
@@ -31312,7 +31348,7 @@
       "id": "function:python:app.project_control.models.validate_project_url",
       "language": "python",
       "metadata": {
-        "line": 551,
+        "line": 553,
         "qualified_name": "app.project_control.models.validate_project_url"
       },
       "name": "validate_project_url",
@@ -31323,7 +31359,7 @@
       "id": "function:python:app.project_control.models.validate_snapshot_source_revision",
       "language": "python",
       "metadata": {
-        "line": 579,
+        "line": 581,
         "qualified_name": "app.project_control.models.validate_snapshot_source_revision"
       },
       "name": "validate_snapshot_source_revision",
@@ -31334,7 +31370,7 @@
       "id": "function:python:app.project_control.models.validate_source_revision",
       "language": "python",
       "metadata": {
-        "line": 556,
+        "line": 558,
         "qualified_name": "app.project_control.models.validate_source_revision"
       },
       "name": "validate_source_revision",
@@ -31345,7 +31381,7 @@
       "id": "function:python:app.project_control.models.validate_supersession",
       "language": "python",
       "metadata": {
-        "line": 432,
+        "line": 434,
         "qualified_name": "app.project_control.models.validate_supersession"
       },
       "name": "validate_supersession",
@@ -31378,7 +31414,7 @@
       "id": "function:python:app.project_control.models.validate_unique_ids",
       "language": "python",
       "metadata": {
-        "line": 481,
+        "line": 483,
         "qualified_name": "app.project_control.models.validate_unique_ids"
       },
       "name": "validate_unique_ids",
@@ -31389,7 +31425,7 @@
       "id": "function:python:app.project_control.models.visit",
       "language": "python",
       "metadata": {
-        "line": 361,
+        "line": 363,
         "qualified_name": "app.project_control.models.visit"
       },
       "name": "visit",
@@ -32588,7 +32624,7 @@
       "id": "function:python:tests.integration.test_project_control_cli._git",
       "language": "python",
       "metadata": {
-        "line": 30,
+        "line": 42,
         "qualified_name": "tests.integration.test_project_control_cli._git"
       },
       "name": "_git",
@@ -32599,7 +32635,7 @@
       "id": "function:python:tests.integration.test_project_control_cli._seed_cli_repository",
       "language": "python",
       "metadata": {
-        "line": 40,
+        "line": 52,
         "qualified_name": "tests.integration.test_project_control_cli._seed_cli_repository"
       },
       "name": "_seed_cli_repository",
@@ -32610,7 +32646,7 @@
       "id": "function:python:tests.integration.test_project_control_cli.fail",
       "language": "python",
       "metadata": {
-        "line": 169,
+        "line": 236,
         "qualified_name": "tests.integration.test_project_control_cli.fail"
       },
       "name": "fail",
@@ -32621,7 +32657,7 @@
       "id": "function:python:tests.integration.test_project_control_cli.run_cli",
       "language": "python",
       "metadata": {
-        "line": 20,
+        "line": 32,
         "qualified_name": "tests.integration.test_project_control_cli.run_cli"
       },
       "name": "run_cli",
@@ -32632,7 +32668,7 @@
       "id": "function:python:tests.integration.test_project_control_cli.test_cli_help_lists_all_local_commands",
       "language": "python",
       "metadata": {
-        "line": 66,
+        "line": 78,
         "qualified_name": "tests.integration.test_project_control_cli.test_cli_help_lists_all_local_commands"
       },
       "name": "test_cli_help_lists_all_local_commands",
@@ -32643,7 +32679,7 @@
       "id": "function:python:tests.integration.test_project_control_cli.test_coordination_index_links_every_authoritative_surface",
       "language": "python",
       "metadata": {
-        "line": 196,
+        "line": 263,
         "qualified_name": "tests.integration.test_project_control_cli.test_coordination_index_links_every_authoritative_surface"
       },
       "name": "test_coordination_index_links_every_authoritative_surface",
@@ -32654,7 +32690,7 @@
       "id": "function:python:tests.integration.test_project_control_cli.test_expected_failures_map_to_stable_exit_codes_without_tracebacks",
       "language": "python",
       "metadata": {
-        "line": 152,
+        "line": 219,
         "qualified_name": "tests.integration.test_project_control_cli.test_expected_failures_map_to_stable_exit_codes_without_tracebacks"
       },
       "name": "test_expected_failures_map_to_stable_exit_codes_without_tracebacks",
@@ -32665,7 +32701,7 @@
       "id": "function:python:tests.integration.test_project_control_cli.test_handoff_rejects_unsafe_identifiers_without_traceback",
       "language": "python",
       "metadata": {
-        "line": 140,
+        "line": 207,
         "qualified_name": "tests.integration.test_project_control_cli.test_handoff_rejects_unsafe_identifiers_without_traceback"
       },
       "name": "test_handoff_rejects_unsafe_identifiers_without_traceback",
@@ -32676,7 +32712,7 @@
       "id": "function:python:tests.integration.test_project_control_cli.test_local_generation_and_handoff_commands_use_repository_state",
       "language": "python",
       "metadata": {
-        "line": 116,
+        "line": 183,
         "qualified_name": "tests.integration.test_project_control_cli.test_local_generation_and_handoff_commands_use_repository_state"
       },
       "name": "test_local_generation_and_handoff_commands_use_repository_state",
@@ -32687,7 +32723,7 @@
       "id": "function:python:tests.integration.test_project_control_cli.test_malformed_project_yaml_is_invalid_for_validate_and_snapshot",
       "language": "python",
       "metadata": {
-        "line": 87,
+        "line": 99,
         "qualified_name": "tests.integration.test_project_control_cli.test_malformed_project_yaml_is_invalid_for_validate_and_snapshot"
       },
       "name": "test_malformed_project_yaml_is_invalid_for_validate_and_snapshot",
@@ -32698,7 +32734,7 @@
       "id": "function:python:tests.integration.test_project_control_cli.test_project_boundary_preserves_vlm_vla_limitations",
       "language": "python",
       "metadata": {
-        "line": 215,
+        "line": 282,
         "qualified_name": "tests.integration.test_project_control_cli.test_project_boundary_preserves_vlm_vla_limitations"
       },
       "name": "test_project_boundary_preserves_vlm_vla_limitations",
@@ -32709,7 +32745,7 @@
       "id": "function:python:tests.integration.test_project_control_cli.test_root_agents_file_links_control_room_in_one_hop",
       "language": "python",
       "metadata": {
-        "line": 186,
+        "line": 253,
         "qualified_name": "tests.integration.test_project_control_cli.test_root_agents_file_links_control_room_in_one_hop"
       },
       "name": "test_root_agents_file_links_control_room_in_one_hop",
@@ -32720,7 +32756,7 @@
       "id": "function:python:tests.integration.test_project_control_cli.test_usage_errors_return_two_without_traceback",
       "language": "python",
       "metadata": {
-        "line": 179,
+        "line": 246,
         "qualified_name": "tests.integration.test_project_control_cli.test_usage_errors_return_two_without_traceback"
       },
       "name": "test_usage_errors_return_two_without_traceback",
@@ -32731,7 +32767,7 @@
       "id": "function:python:tests.integration.test_project_control_cli.test_validate_command_succeeds_on_committed_control_room",
       "language": "python",
       "metadata": {
-        "line": 59,
+        "line": 71,
         "qualified_name": "tests.integration.test_project_control_cli.test_validate_command_succeeds_on_committed_control_room"
       },
       "name": "test_validate_command_succeeds_on_committed_control_room",
@@ -32742,7 +32778,7 @@
       "id": "function:python:tests.integration.test_project_control_cli.test_validate_labels_malformed_roadmap_and_frontmatter_paths",
       "language": "python",
       "metadata": {
-        "line": 100,
+        "line": 112,
         "qualified_name": "tests.integration.test_project_control_cli.test_validate_labels_malformed_roadmap_and_frontmatter_paths"
       },
       "name": "test_validate_labels_malformed_roadmap_and_frontmatter_paths",
@@ -32750,10 +32786,32 @@
       "type": "function"
     },
     {
+      "id": "function:python:tests.integration.test_project_control_cli.test_validate_preserves_project_and_roadmap_id_consistency_check",
+      "language": "python",
+      "metadata": {
+        "line": 169,
+        "qualified_name": "tests.integration.test_project_control_cli.test_validate_preserves_project_and_roadmap_id_consistency_check"
+      },
+      "name": "test_validate_preserves_project_and_roadmap_id_consistency_check",
+      "path": "tests/integration/test_project_control_cli.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.integration.test_project_control_cli.test_validate_rejects_unsafe_root_roadmap_identifiers_without_traceback",
+      "language": "python",
+      "metadata": {
+        "line": 135,
+        "qualified_name": "tests.integration.test_project_control_cli.test_validate_rejects_unsafe_root_roadmap_identifiers_without_traceback"
+      },
+      "name": "test_validate_rejects_unsafe_root_roadmap_identifiers_without_traceback",
+      "path": "tests/integration/test_project_control_cli.py",
+      "type": "function"
+    },
+    {
       "id": "function:python:tests.integration.test_project_control_cli.test_validate_reports_every_invalid_path_without_traceback",
       "language": "python",
       "metadata": {
-        "line": 74,
+        "line": 86,
         "qualified_name": "tests.integration.test_project_control_cli.test_validate_reports_every_invalid_path_without_traceback"
       },
       "name": "test_validate_reports_every_invalid_path_without_traceback",
@@ -37934,7 +37992,7 @@
       "id": "function:python:tests.unit.test_project_control_schema.test_approved_roadmap_identifier_remains_valid",
       "language": "python",
       "metadata": {
-        "line": 248,
+        "line": 294,
         "qualified_name": "tests.unit.test_project_control_schema.test_approved_roadmap_identifier_remains_valid"
       },
       "name": "test_approved_roadmap_identifier_remains_valid",
@@ -37942,10 +38000,21 @@
       "type": "function"
     },
     {
+      "id": "function:python:tests.unit.test_project_control_schema.test_approved_root_roadmap_identifier_remains_valid",
+      "language": "python",
+      "metadata": {
+        "line": 164,
+        "qualified_name": "tests.unit.test_project_control_schema.test_approved_root_roadmap_identifier_remains_valid"
+      },
+      "name": "test_approved_root_roadmap_identifier_remains_valid",
+      "path": "tests/unit/test_project_control_schema.py",
+      "type": "function"
+    },
+    {
       "id": "function:python:tests.unit.test_project_control_schema.test_atomic_write_creates_an_in_root_file",
       "language": "python",
       "metadata": {
-        "line": 174,
+        "line": 220,
         "qualified_name": "tests.unit.test_project_control_schema.test_atomic_write_creates_an_in_root_file"
       },
       "name": "test_atomic_write_creates_an_in_root_file",
@@ -37956,7 +38025,7 @@
       "id": "function:python:tests.unit.test_project_control_schema.test_atomic_write_rejects_parent_escape",
       "language": "python",
       "metadata": {
-        "line": 169,
+        "line": 215,
         "qualified_name": "tests.unit.test_project_control_schema.test_atomic_write_rejects_parent_escape"
       },
       "name": "test_atomic_write_rejects_parent_escape",
@@ -37967,7 +38036,7 @@
       "id": "function:python:tests.unit.test_project_control_schema.test_blocked_handoff_requires_blocker_and_authority",
       "language": "python",
       "metadata": {
-        "line": 282,
+        "line": 328,
         "qualified_name": "tests.unit.test_project_control_schema.test_blocked_handoff_requires_blocker_and_authority"
       },
       "name": "test_blocked_handoff_requires_blocker_and_authority",
@@ -37978,7 +38047,7 @@
       "id": "function:python:tests.unit.test_project_control_schema.test_completed_handoff_with_required_verification_rejects_non_passing_state",
       "language": "python",
       "metadata": {
-        "line": 260,
+        "line": 306,
         "qualified_name": "tests.unit.test_project_control_schema.test_completed_handoff_with_required_verification_rejects_non_passing_state"
       },
       "name": "test_completed_handoff_with_required_verification_rejects_non_passing_state",
@@ -37989,7 +38058,7 @@
       "id": "function:python:tests.unit.test_project_control_schema.test_graph_manifest_rejects_non_normalized_included_paths",
       "language": "python",
       "metadata": {
-        "line": 402,
+        "line": 448,
         "qualified_name": "tests.unit.test_project_control_schema.test_graph_manifest_rejects_non_normalized_included_paths"
       },
       "name": "test_graph_manifest_rejects_non_normalized_included_paths",
@@ -38000,7 +38069,7 @@
       "id": "function:python:tests.unit.test_project_control_schema.test_handoff_branch_rejects_control_and_line_separators",
       "language": "python",
       "metadata": {
-        "line": 369,
+        "line": 415,
         "qualified_name": "tests.unit.test_project_control_schema.test_handoff_branch_rejects_control_and_line_separators"
       },
       "name": "test_handoff_branch_rejects_control_and_line_separators",
@@ -38011,7 +38080,7 @@
       "id": "function:python:tests.unit.test_project_control_schema.test_handoff_identifiers_are_path_safe",
       "language": "python",
       "metadata": {
-        "line": 344,
+        "line": 390,
         "qualified_name": "tests.unit.test_project_control_schema.test_handoff_identifiers_are_path_safe"
       },
       "name": "test_handoff_identifiers_are_path_safe",
@@ -38022,7 +38091,7 @@
       "id": "function:python:tests.unit.test_project_control_schema.test_handoff_requires_full_commit_identifiers",
       "language": "python",
       "metadata": {
-        "line": 319,
+        "line": 365,
         "qualified_name": "tests.unit.test_project_control_schema.test_handoff_requires_full_commit_identifiers"
       },
       "name": "test_handoff_requires_full_commit_identifiers",
@@ -38033,7 +38102,7 @@
       "id": "function:python:tests.unit.test_project_control_schema.test_load_frontmatter_rejects_missing_closing_delimiter",
       "language": "python",
       "metadata": {
-        "line": 252,
+        "line": 298,
         "qualified_name": "tests.unit.test_project_control_schema.test_load_frontmatter_rejects_missing_closing_delimiter"
       },
       "name": "test_load_frontmatter_rejects_missing_closing_delimiter",
@@ -38044,7 +38113,7 @@
       "id": "function:python:tests.unit.test_project_control_schema.test_load_yaml_rejects_parent_escape",
       "language": "python",
       "metadata": {
-        "line": 161,
+        "line": 207,
         "qualified_name": "tests.unit.test_project_control_schema.test_load_yaml_rejects_parent_escape"
       },
       "name": "test_load_yaml_rejects_parent_escape",
@@ -38055,7 +38124,7 @@
       "id": "function:python:tests.unit.test_project_control_schema.test_load_yaml_rejects_symlink_input",
       "language": "python",
       "metadata": {
-        "line": 151,
+        "line": 197,
         "qualified_name": "tests.unit.test_project_control_schema.test_load_yaml_rejects_symlink_input"
       },
       "name": "test_load_yaml_rejects_symlink_input",
@@ -38066,7 +38135,7 @@
       "id": "function:python:tests.unit.test_project_control_schema.test_non_task_rejects_task_only_fields",
       "language": "python",
       "metadata": {
-        "line": 212,
+        "line": 258,
         "qualified_name": "tests.unit.test_project_control_schema.test_non_task_rejects_task_only_fields"
       },
       "name": "test_non_task_rejects_task_only_fields",
@@ -38077,7 +38146,7 @@
       "id": "function:python:tests.unit.test_project_control_schema.test_project_config_accepts_safe_alternate_codegraph_directory",
       "language": "python",
       "metadata": {
-        "line": 122,
+        "line": 134,
         "qualified_name": "tests.unit.test_project_control_schema.test_project_config_accepts_safe_alternate_codegraph_directory"
       },
       "name": "test_project_config_accepts_safe_alternate_codegraph_directory",
@@ -38088,7 +38157,7 @@
       "id": "function:python:tests.unit.test_project_control_schema.test_project_config_rejects_alternate_codegraph_authority_overlap",
       "language": "python",
       "metadata": {
-        "line": 112,
+        "line": 124,
         "qualified_name": "tests.unit.test_project_control_schema.test_project_config_rejects_alternate_codegraph_authority_overlap"
       },
       "name": "test_project_config_rejects_alternate_codegraph_authority_overlap",
@@ -38099,7 +38168,7 @@
       "id": "function:python:tests.unit.test_project_control_schema.test_project_config_rejects_generated_output_input_overlap",
       "language": "python",
       "metadata": {
-        "line": 66,
+        "line": 78,
         "qualified_name": "tests.unit.test_project_control_schema.test_project_config_rejects_generated_output_input_overlap"
       },
       "name": "test_project_config_rejects_generated_output_input_overlap",
@@ -38110,7 +38179,7 @@
       "id": "function:python:tests.unit.test_project_control_schema.test_project_config_rejects_unknown_keys",
       "language": "python",
       "metadata": {
-        "line": 21,
+        "line": 33,
         "qualified_name": "tests.unit.test_project_control_schema.test_project_config_rejects_unknown_keys"
       },
       "name": "test_project_config_rejects_unknown_keys",
@@ -38121,7 +38190,7 @@
       "id": "function:python:tests.unit.test_project_control_schema.test_project_config_requires_canonical_snapshot_destinations",
       "language": "python",
       "metadata": {
-        "line": 86,
+        "line": 98,
         "qualified_name": "tests.unit.test_project_control_schema.test_project_config_requires_canonical_snapshot_destinations"
       },
       "name": "test_project_config_requires_canonical_snapshot_destinations",
@@ -38129,10 +38198,21 @@
       "type": "function"
     },
     {
+      "id": "function:python:tests.unit.test_project_control_schema.test_project_config_roadmap_id_is_path_safe",
+      "language": "python",
+      "metadata": {
+        "line": 144,
+        "qualified_name": "tests.unit.test_project_control_schema.test_project_config_roadmap_id_is_path_safe"
+      },
+      "name": "test_project_config_roadmap_id_is_path_safe",
+      "path": "tests/unit/test_project_control_schema.py",
+      "type": "function"
+    },
+    {
       "id": "function:python:tests.unit.test_project_control_schema.test_required_unavailable_artifact_cannot_claim_verified_evidence",
       "language": "python",
       "metadata": {
-        "line": 302,
+        "line": 348,
         "qualified_name": "tests.unit.test_project_control_schema.test_required_unavailable_artifact_cannot_claim_verified_evidence"
       },
       "name": "test_required_unavailable_artifact_cannot_claim_verified_evidence",
@@ -38143,7 +38223,7 @@
       "id": "function:python:tests.unit.test_project_control_schema.test_roadmap_identifiers_and_references_are_path_safe",
       "language": "python",
       "metadata": {
-        "line": 235,
+        "line": 281,
         "qualified_name": "tests.unit.test_project_control_schema.test_roadmap_identifiers_and_references_are_path_safe"
       },
       "name": "test_roadmap_identifiers_and_references_are_path_safe",
@@ -38154,7 +38234,7 @@
       "id": "function:python:tests.unit.test_project_control_schema.test_roadmap_rejects_dependency_cycles",
       "language": "python",
       "metadata": {
-        "line": 190,
+        "line": 236,
         "qualified_name": "tests.unit.test_project_control_schema.test_roadmap_rejects_dependency_cycles"
       },
       "name": "test_roadmap_rejects_dependency_cycles",
@@ -38165,7 +38245,7 @@
       "id": "function:python:tests.unit.test_project_control_schema.test_roadmap_rejects_duplicate_ids",
       "language": "python",
       "metadata": {
-        "line": 131,
+        "line": 177,
         "qualified_name": "tests.unit.test_project_control_schema.test_roadmap_rejects_duplicate_ids"
       },
       "name": "test_roadmap_rejects_duplicate_ids",
@@ -38176,7 +38256,7 @@
       "id": "function:python:tests.unit.test_project_control_schema.test_roadmap_rejects_missing_dependency",
       "language": "python",
       "metadata": {
-        "line": 142,
+        "line": 188,
         "qualified_name": "tests.unit.test_project_control_schema.test_roadmap_rejects_missing_dependency"
       },
       "name": "test_roadmap_rejects_missing_dependency",
@@ -38187,7 +38267,7 @@
       "id": "function:python:tests.unit.test_project_control_schema.test_roadmap_rejects_non_normalized_repository_path_lists",
       "language": "python",
       "metadata": {
-        "line": 391,
+        "line": 437,
         "qualified_name": "tests.unit.test_project_control_schema.test_roadmap_rejects_non_normalized_repository_path_lists"
       },
       "name": "test_roadmap_rejects_non_normalized_repository_path_lists",
@@ -38198,7 +38278,7 @@
       "id": "function:python:tests.unit.test_project_control_schema.test_roadmap_rejects_self_dependencies",
       "language": "python",
       "metadata": {
-        "line": 182,
+        "line": 228,
         "qualified_name": "tests.unit.test_project_control_schema.test_roadmap_rejects_self_dependencies"
       },
       "name": "test_roadmap_rejects_self_dependencies",
@@ -38206,10 +38286,21 @@
       "type": "function"
     },
     {
+      "id": "function:python:tests.unit.test_project_control_schema.test_roadmap_root_id_is_path_safe",
+      "language": "python",
+      "metadata": {
+        "line": 153,
+        "qualified_name": "tests.unit.test_project_control_schema.test_roadmap_root_id_is_path_safe"
+      },
+      "name": "test_roadmap_root_id_is_path_safe",
+      "path": "tests/unit/test_project_control_schema.py",
+      "type": "function"
+    },
+    {
       "id": "function:python:tests.unit.test_project_control_schema.test_task_requires_test_target_and_likely_files",
       "language": "python",
       "metadata": {
-        "line": 203,
+        "line": 249,
         "qualified_name": "tests.unit.test_project_control_schema.test_task_requires_test_target_and_likely_files"
       },
       "name": "test_task_requires_test_target_and_likely_files",
@@ -44696,7 +44787,7 @@
       "id": "method:python:app.project_control.models.ArtifactIndex.validate_unique_ids",
       "language": "python",
       "metadata": {
-        "line": 481,
+        "line": 483,
         "qualified_name": "app.project_control.models.ArtifactIndex.validate_unique_ids"
       },
       "name": "validate_unique_ids",
@@ -44707,7 +44798,7 @@
       "id": "method:python:app.project_control.models.ArtifactRecord.validate_evidence",
       "language": "python",
       "metadata": {
-        "line": 458,
+        "line": 460,
         "qualified_name": "app.project_control.models.ArtifactRecord.validate_evidence"
       },
       "name": "validate_evidence",
@@ -44718,7 +44809,7 @@
       "id": "method:python:app.project_control.models.BoardExport.validate_project_url",
       "language": "python",
       "metadata": {
-        "line": 551,
+        "line": 553,
         "qualified_name": "app.project_control.models.BoardExport.validate_project_url"
       },
       "name": "validate_project_url",
@@ -44729,7 +44820,7 @@
       "id": "method:python:app.project_control.models.BoardExport.validate_source_revision",
       "language": "python",
       "metadata": {
-        "line": 556,
+        "line": 558,
         "qualified_name": "app.project_control.models.BoardExport.validate_source_revision"
       },
       "name": "validate_source_revision",
@@ -44740,7 +44831,7 @@
       "id": "method:python:app.project_control.models.BoardItem.require_issue_reference_parts_together",
       "language": "python",
       "metadata": {
-        "line": 534,
+        "line": 536,
         "qualified_name": "app.project_control.models.BoardItem.require_issue_reference_parts_together"
       },
       "name": "require_issue_reference_parts_together",
@@ -44751,7 +44842,7 @@
       "id": "method:python:app.project_control.models.BoardItem.validate_day",
       "language": "python",
       "metadata": {
-        "line": 528,
+        "line": 530,
         "qualified_name": "app.project_control.models.BoardItem.validate_day"
       },
       "name": "validate_day",
@@ -44762,7 +44853,7 @@
       "id": "method:python:app.project_control.models.ControlRoomState.validate_snapshot_source_revision",
       "language": "python",
       "metadata": {
-        "line": 579,
+        "line": 581,
         "qualified_name": "app.project_control.models.ControlRoomState.validate_snapshot_source_revision"
       },
       "name": "validate_snapshot_source_revision",
@@ -44773,7 +44864,7 @@
       "id": "method:python:app.project_control.models.DecisionHeader.validate_supersession",
       "language": "python",
       "metadata": {
-        "line": 432,
+        "line": 434,
         "qualified_name": "app.project_control.models.DecisionHeader.validate_supersession"
       },
       "name": "validate_supersession",
@@ -44806,7 +44897,7 @@
       "id": "method:python:app.project_control.models.HandoffHeader.enforce_terminal_semantics",
       "language": "python",
       "metadata": {
-        "line": 403,
+        "line": 405,
         "qualified_name": "app.project_control.models.HandoffHeader.enforce_terminal_semantics"
       },
       "name": "enforce_terminal_semantics",
@@ -44828,7 +44919,7 @@
       "id": "method:python:app.project_control.models.Roadmap.validate_dependencies",
       "language": "python",
       "metadata": {
-        "line": 342,
+        "line": 344,
         "qualified_name": "app.project_control.models.Roadmap.validate_dependencies"
       },
       "name": "validate_dependencies",
