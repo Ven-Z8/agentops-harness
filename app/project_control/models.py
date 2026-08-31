@@ -644,7 +644,7 @@ class RemoteField(StrictModel):
 
 class RemoteProjectItem(StrictModel):
     id: str = Field(min_length=1, pattern=r"^[A-Za-z0-9_:-]+$")
-    task_id: str = Field(min_length=1)
+    task_id: str = Field(min_length=1, pattern=r"^AO-(?:14D|P[1-6]|D\d{2}(?:-\d{2})?)$")
     field_values: dict[str, RemoteFieldValue] = Field(default_factory=dict)
 
 

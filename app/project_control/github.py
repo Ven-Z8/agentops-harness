@@ -239,7 +239,10 @@ query DiscoverProjects(
     projectsV2(first: 100, after: $after) {
       nodes {
         id number title url
-        fields(first: 100) { nodes { id name options { id name } } }
+        fields(first: 100) {
+          nodes { id name dataType options { id name } }
+          pageInfo { hasNextPage endCursor }
+        }
         views(first: 100) { nodes { id name } pageInfo { hasNextPage endCursor } }
         items(first: 100) {
           nodes {
@@ -1335,14 +1338,20 @@ def _parse_discovered_project(
     ):
         raise InvalidControlRoom("GitHub discovery fields or items are malformed")
     field_nodes = fields_raw.get("nodes")
+    field_page_info = fields_raw.get("pageInfo")
     item_nodes = items_raw.get("nodes")
     item_page_info = items_raw.get("pageInfo")
     if (
         not isinstance(field_nodes, list)
+        or not isinstance(field_page_info, dict)
         or not isinstance(item_nodes, list)
         or not isinstance(item_page_info, dict)
     ):
         raise InvalidControlRoom("GitHub discovery fields or items nodes are malformed")
+    if not isinstance(field_page_info.get("hasNextPage"), bool):
+        raise InvalidControlRoom("GitHub discovery field pageInfo is malformed")
+    if field_page_info["hasNextPage"] and not isinstance(field_page_info.get("endCursor"), str):
+        raise InvalidControlRoom("GitHub discovery field pageInfo hasNextPage without cursor")
     if not isinstance(item_page_info.get("hasNextPage"), bool):
         raise InvalidControlRoom("GitHub discovery item pageInfo is malformed")
     if item_page_info["hasNextPage"] and not isinstance(item_page_info.get("endCursor"), str):
