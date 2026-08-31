@@ -13,6 +13,7 @@ from app.project_control.models import (
     HandoffHeader,
     ProjectConfig,
     Roadmap,
+    RoadmapItem,
 )
 from tests.helpers_project_control import valid_project_config, valid_roadmap_item
 
@@ -96,6 +97,24 @@ def test_roadmap_rejects_dependency_cycles() -> None:
         Roadmap.model_validate(
             {"schema_version": 1, "roadmap_id": "AO-14D", "items": [first, second]}
         )
+
+
+@pytest.mark.parametrize("field_name, value", [("test_first", None), ("likely_files", [])])
+def test_task_requires_test_target_and_likely_files(field_name: str, value: object) -> None:
+    item = valid_roadmap_item("AO-D01-01")
+    item[field_name] = value
+
+    with pytest.raises(ValidationError, match="task"):
+        RoadmapItem.model_validate(item)
+
+
+@pytest.mark.parametrize("kind", ["roadmap", "phase", "outcome", "decision", "research"])
+def test_non_task_rejects_task_only_fields(kind: str) -> None:
+    item = valid_roadmap_item("AO-X")
+    item["kind"] = kind
+
+    with pytest.raises(ValidationError, match="task-only"):
+        RoadmapItem.model_validate(item)
 
 
 def test_load_frontmatter_rejects_missing_closing_delimiter(tmp_path: Path) -> None:

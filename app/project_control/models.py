@@ -191,6 +191,17 @@ class RoadmapItem(StrictModel):
             raise ValueError("day must be between 1 and 14")
         return value
 
+    @model_validator(mode="after")
+    def validate_task_only_fields(self) -> RoadmapItem:
+        if self.kind == "task":
+            if self.test_first is None:
+                raise ValueError("task requires a non-null test_first")
+            if not self.likely_files:
+                raise ValueError("task requires non-empty likely_files")
+        elif self.test_first is not None or self.likely_files:
+            raise ValueError("non-task records reject task-only fields")
+        return self
+
 
 class Roadmap(StrictModel):
     schema_version: Literal[1]

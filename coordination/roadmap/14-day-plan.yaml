@@ -39,6 +39,7 @@ items:
     non_goals: [Implement deferred Phase 2 work, Change runtime behavior through coordination records.]
     acceptance_criteria: [Day 1 and Day 2 records are confirmed and reviewable, Phase gate evidence is explicit.]
     required_evidence: [Validated child task records, Phase gate verification results.]
+    verification_commands: [uv run pytest tests/test_langgraph_workflow.py tests/test_workload.py tests/test_permission_gate.py tests/test_sandbox_worker_type_guard.py -q, uv run ruff check app/core app/agents app/schemas]
     terminal_semantics: Failed, blocked, or inconclusive Phase 1 work prevents opening its downstream gate and cannot imply completion.
     compatibility: Additive phase metadata preserves existing configuration and CLI contracts.
     risks: [False-success phase status could authorize unsafe downstream work, Existing evidence references must remain readable.]
@@ -58,6 +59,7 @@ items:
     dependencies: [AO-P1]
     acceptance_criteria: [Revalidation records current evidence, Any implemented scope is approved from that evidence.]
     required_evidence: [Phase 1 gate result, Current repository and test evidence.]
+    verification_commands: [uv run pytest tests/test_experiment_identity.py tests/test_deepeval_adapter.py tests/test_benchmark.py -q, uv run ruff check app/core/benchmark.py app/schemas/benchmark.py]
     terminal_semantics: Failed, blocked, or inconclusive revalidation prevents Phase 2 promotion and cannot imply kernel readiness.
     compatibility: Any future persisted-schema or provider migration is deferred until revalidation confirms it.
     risks: [Stale assumptions can cause false success, Future schema changes require backward-compatible readers.]
@@ -77,6 +79,7 @@ items:
     dependencies: [AO-P2]
     acceptance_criteria: [Current provider and budget evidence is documented, Promotion criteria are explicit.]
     required_evidence: [Phase 2 gate result, Current training-contract evidence.]
+    verification_commands: [uv run pytest tests/test_training_contracts.py tests/test_governed_training.py tests/test_training_promotion.py -q, uv run ruff check app/core app/schemas]
     terminal_semantics: Failed, blocked, or inconclusive training evidence prevents promotion and cannot imply governed readiness.
     compatibility: Future provider or persisted-run changes require explicit migration after revalidation.
     risks: [Unvalidated training claims create false success, Provider changes can break existing records.]
@@ -96,6 +99,7 @@ items:
     dependencies: [AO-P2]
     acceptance_criteria: [Compatibility seams are evidenced, Revalidation distinguishes proposed from verified behavior.]
     required_evidence: [Kernel contract evidence, Focused compatibility checks.]
+    verification_commands: [uv run pytest tests/test_capability_pack.py tests/test_strategy_pack.py -q, uv run ruff check app/core/packs app/schemas/pack.py]
     terminal_semantics: Failed, blocked, or inconclusive seam validation cannot imply swappability or completion.
     compatibility: Future pack migrations remain additive until contract revalidation confirms their shape.
     risks: [False-success capability claims can hide incompatible packs, Contract migration can break consumers.]
@@ -115,6 +119,7 @@ items:
     dependencies: [AO-P2]
     acceptance_criteria: [Provider and simulator seams have current evidence, Reference workflow claims remain reproducible.]
     required_evidence: [Kernel contract evidence, Current provider or simulator verification.]
+    verification_commands: [uv run pytest tests/test_vlm_reference_workflow.py tests/test_vla_provider_seam.py -q, uv run ruff check app/core app/schemas]
     terminal_semantics: Failed, blocked, or inconclusive reference-path evidence cannot imply supported VLM or VLA completion.
     compatibility: Future provider configuration changes require explicit migration and compatibility review.
     risks: [Stale provider assumptions create false success, Interface changes can break existing configurations.]
@@ -134,6 +139,7 @@ items:
     dependencies: [AO-P3, AO-P4, AO-P5]
     acceptance_criteria: [All release gates have current evidence, Published limitations match verified results.]
     required_evidence: [Preceding phase gates, Reproducible release verification.]
+    verification_commands: [uv run pytest tests/test_release_hygiene.py tests/test_v0_1_reproduction.py -q, npm test]
     terminal_semantics: Failed, blocked, or inconclusive release gates prevent publication and cannot imply v0.1 completion.
     compatibility: Release metadata changes require documented package and documentation migration effects.
     risks: [False-success release claims mislead users, Package changes can break installation compatibility.]
@@ -152,6 +158,7 @@ items:
     dependencies: [AO-P1]
     acceptance_criteria: [All Day 1 child records name focused tests, Day 1 completion requires evidence from each child slice.]
     required_evidence: [Validated Day 1 task records, Focused test and status evidence.]
+    verification_commands: [uv run pytest tests/test_langgraph_workflow.py tests/test_boundary_kind_validation.py tests/test_workload.py -q, uv run ruff check app/core app/agents app/schemas]
     terminal_semantics: Failed, blocked, or inconclusive Day 1 tasks prevent the day outcome from being completed.
     compatibility: Day 1 changes require explicit persisted-schema, configuration, or CLI migration review.
     risks: [False-success terminal states can promote failed work, Existing records may need compatible readers.]
@@ -252,6 +259,7 @@ items:
     dependencies: [AO-D01]
     acceptance_criteria: [Each Day 2 child has a focused test target, Day completion is based on required evidence.]
     required_evidence: [Validated Day 2 task records, Focused test and release-gate evidence.]
+    verification_commands: [uv run pytest tests/test_permission_gate.py tests/test_sandbox_worker_type_guard.py tests/test_worker_grounding.py tests/test_release_hygiene.py -q, npm test]
     terminal_semantics: Failed, blocked, or inconclusive Day 2 tasks prevent the day outcome from being completed.
     compatibility: Day 2 changes require explicit permission, sandbox, CI, or documentation migration review.
     risks: [False-success security claims can expose unsafe work, Existing configurations and docs require compatible transitions.]
@@ -378,6 +386,7 @@ items:
     dependencies: [AO-D02]
     acceptance_criteria: [Current run identity evidence is captured, Any schema work has an explicit migration plan.]
     required_evidence: [Current run-record inspection, Phase 1 gate evidence.]
+    verification_commands: [uv run pytest tests/test_experiment_identity.py -q, uv run ruff check app/schemas/benchmark.py app/core/benchmark.py]
     terminal_semantics: Failed, blocked, or inconclusive revalidation prevents completed identity claims.
     compatibility: Potential persisted-run migration remains deferred pending confirmed current evidence.
     risks: [Stale defect claims create false success, Schema changes can break legacy readers.]
@@ -399,6 +408,7 @@ items:
     dependencies: [AO-D03]
     acceptance_criteria: [Current provider boundaries are evidenced, Any adapter proposal preserves provider isolation.]
     required_evidence: [Current interface inspection, Focused adapter-contract evidence if approved.]
+    verification_commands: [uv run pytest tests/test_deepeval_adapter.py -q, uv run ruff check app/core/benchmark.py app/schemas/benchmark.py]
     terminal_semantics: Failed, blocked, or inconclusive adapter evidence prevents a supported-provider claim.
     compatibility: Future provider configuration migration is explicit and deferred until revalidation.
     risks: [Provider leakage creates false success, Existing configurations can be incompatible with new adapters.]
@@ -420,6 +430,7 @@ items:
     dependencies: [AO-D04]
     acceptance_criteria: [Split handling is evidenced before comparison, Promotion criteria reject incomplete evidence.]
     required_evidence: [Current benchmark inspection, Verified comparison output if work is approved.]
+    verification_commands: [uv run pytest tests/test_benchmark.py -q, uv run ruff check app/core/benchmark.py app/schemas/benchmark.py]
     terminal_semantics: Failed, blocked, or inconclusive comparison evidence prevents promotion and completion.
     compatibility: Future benchmark-record changes require explicit reader and CLI migration review.
     risks: [Split leakage creates false success, Existing benchmark records may need compatible readers.]
@@ -441,6 +452,7 @@ items:
     dependencies: [AO-D05]
     acceptance_criteria: [Provider and budget boundaries have current evidence, Proposed controls identify approval gates.]
     required_evidence: [Phase 2 gate result, Current provider and budget inspection.]
+    verification_commands: [uv run pytest tests/test_training_contracts.py -q, uv run ruff check app/core app/schemas]
     terminal_semantics: Failed, blocked, or inconclusive contract evidence prevents governed-training completion.
     compatibility: Future provider, CLI, and persisted-record migrations require explicit compatibility review.
     risks: [Unvalidated controls create false success, Provider changes can break existing configurations.]
@@ -462,6 +474,7 @@ items:
     dependencies: [AO-D06]
     acceptance_criteria: [Any run has declared budget and provider evidence, Reproducibility result is explicit.]
     required_evidence: [Approved run contract, Captured run and verification output.]
+    verification_commands: [uv run pytest tests/test_governed_training.py -q, uv run ruff check app/core app/schemas]
     terminal_semantics: Failed, blocked, or inconclusive run evidence prevents training completion and promotion.
     compatibility: Future training-record migration preserves existing run evidence and configuration semantics.
     risks: [Partial runs can create false success, Provider and record changes may break compatibility.]
@@ -483,6 +496,7 @@ items:
     dependencies: [AO-D07]
     acceptance_criteria: [Comparison inputs are documented, Promotion or non-promotion is evidence-backed.]
     required_evidence: [Current training comparison, Explicit decision record.]
+    verification_commands: [uv run pytest tests/test_training_promotion.py -q, uv run ruff check app/core app/schemas]
     terminal_semantics: Failed, blocked, or inconclusive comparison prevents promotion and cannot imply completion.
     compatibility: Decision and persisted-run migrations remain explicit and additive.
     risks: [Incomplete comparison creates false success, Record-format changes can break existing readers.]
@@ -504,6 +518,7 @@ items:
     dependencies: [AO-D08]
     acceptance_criteria: [Current seam evidence is recorded, Any validated pack reports its compatibility limits.]
     required_evidence: [Kernel-contract evidence, Focused pack validation output.]
+    verification_commands: [uv run pytest tests/test_capability_pack.py -q, uv run ruff check app/core/packs app/schemas/pack.py]
     terminal_semantics: Failed, blocked, or inconclusive validation prevents a swappable-pack completion claim.
     compatibility: Future pack configuration migration is explicit and preserves supported contracts.
     risks: [Assumed compatibility creates false success, Pack contract changes can break consumers.]
@@ -525,6 +540,7 @@ items:
     dependencies: [AO-D09]
     acceptance_criteria: [Current outer-loop seam is evidenced, Validated strategy limits are recorded.]
     required_evidence: [Kernel-contract evidence, Focused strategy-pack verification.]
+    verification_commands: [uv run pytest tests/test_strategy_pack.py -q, uv run ruff check app/core/packs app/schemas/pack.py]
     terminal_semantics: Failed, blocked, or inconclusive validation prevents a swappable-strategy completion claim.
     compatibility: Strategy-pack migration remains explicit and additive for existing loop consumers.
     risks: [Unverified substitution creates false success, Contract changes can break existing strategies.]
@@ -546,6 +562,7 @@ items:
     dependencies: [AO-D10]
     acceptance_criteria: [Workflow inputs and output evidence are captured, Reproducibility result is explicit.]
     required_evidence: [Current VLM interface evidence, Captured reproducibility verification.]
+    verification_commands: [uv run pytest tests/test_vlm_reference_workflow.py -q, uv run ruff check app/core app/schemas]
     terminal_semantics: Failed, blocked, or inconclusive workflow evidence prevents a VLM completion claim.
     compatibility: Future VLM configuration migration is documented and preserves existing provider settings.
     risks: [A one-off result creates false success, Provider changes can break existing workflows.]
@@ -567,6 +584,7 @@ items:
     dependencies: [AO-D11]
     acceptance_criteria: [Provider and simulator assumptions are tested, Seam limitations are recorded.]
     required_evidence: [Current interface inspection, Focused seam verification output.]
+    verification_commands: [uv run pytest tests/test_vla_provider_seam.py -q, uv run ruff check app/core app/schemas]
     terminal_semantics: Failed, blocked, or inconclusive seam evidence prevents VLA readiness and completion claims.
     compatibility: Provider and simulator configuration migration remains explicit and backward compatible.
     risks: [Assumed seam compatibility creates false success, Interface changes can break existing configurations.]
@@ -588,6 +606,7 @@ items:
     dependencies: [AO-D12]
     acceptance_criteria: [Each gate has current evidence, Incomplete gates remain explicit.]
     required_evidence: [Current license and package inspection, Documentation and release-gate verification.]
+    verification_commands: [uv run pytest tests/test_release_hygiene.py -q, npm test]
     terminal_semantics: Failed, blocked, or inconclusive gate evidence prevents release completion and publication.
     compatibility: Package and documentation migration effects are documented before release changes.
     risks: [Incomplete gates create false-success release claims, Metadata changes can break existing installation guidance.]
@@ -609,6 +628,7 @@ items:
     dependencies: [AO-D13]
     acceptance_criteria: [Reproduction result is captured, Published limitations match the evidence.]
     required_evidence: [End-to-end reproduction output, Reviewed limitations record.]
+    verification_commands: [uv run pytest tests/test_v0_1_reproduction.py -q, npm test]
     terminal_semantics: Failed, blocked, or inconclusive reproduction prevents release completion and cannot imply v0.1 success.
     compatibility: Publication, package, and documentation changes identify explicit migration effects for users.
     risks: [Partial evidence creates false-success publication, Release changes can break user installation expectations.]

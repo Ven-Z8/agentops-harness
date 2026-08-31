@@ -86,8 +86,8 @@ Failed, blocked, or inconclusive Phase 1 work prevents opening its downstream ga
 ## Compatibility
 Additive phase metadata preserves existing configuration and CLI contracts.
 ## Verification commands
-- uv run pytest tests/unit/test_project_control_schema.py tests/unit/test_project_control_rendering.py -q
-- uv run ruff check app/project_control
+- uv run pytest tests/test_langgraph_workflow.py tests/test_workload.py tests/test_permission_gate.py tests/test_sandbox_worker_type_guard.py -q
+- uv run ruff check app/core app/agents app/schemas
 ## Risks
 - False-success phase status could authorize unsafe downstream work
 - Existing evidence references must remain readable.
@@ -133,8 +133,8 @@ Failed, blocked, or inconclusive revalidation prevents Phase 2 promotion and can
 ## Compatibility
 Any future persisted-schema or provider migration is deferred until revalidation confirms it.
 ## Verification commands
-- uv run pytest tests/unit/test_project_control_schema.py tests/unit/test_project_control_rendering.py -q
-- uv run ruff check app/project_control
+- uv run pytest tests/test_experiment_identity.py tests/test_deepeval_adapter.py tests/test_benchmark.py -q
+- uv run ruff check app/core/benchmark.py app/schemas/benchmark.py
 ## Risks
 - Stale assumptions can cause false success
 - Future schema changes require backward-compatible readers.
@@ -180,8 +180,8 @@ Failed, blocked, or inconclusive training evidence prevents promotion and cannot
 ## Compatibility
 Future provider or persisted-run changes require explicit migration after revalidation.
 ## Verification commands
-- uv run pytest tests/unit/test_project_control_schema.py tests/unit/test_project_control_rendering.py -q
-- uv run ruff check app/project_control
+- uv run pytest tests/test_training_contracts.py tests/test_governed_training.py tests/test_training_promotion.py -q
+- uv run ruff check app/core app/schemas
 ## Risks
 - Unvalidated training claims create false success
 - Provider changes can break existing records.
@@ -227,8 +227,8 @@ Failed, blocked, or inconclusive seam validation cannot imply swappability or co
 ## Compatibility
 Future pack migrations remain additive until contract revalidation confirms their shape.
 ## Verification commands
-- uv run pytest tests/unit/test_project_control_schema.py tests/unit/test_project_control_rendering.py -q
-- uv run ruff check app/project_control
+- uv run pytest tests/test_capability_pack.py tests/test_strategy_pack.py -q
+- uv run ruff check app/core/packs app/schemas/pack.py
 ## Risks
 - False-success capability claims can hide incompatible packs
 - Contract migration can break consumers.
@@ -274,8 +274,8 @@ Failed, blocked, or inconclusive reference-path evidence cannot imply supported 
 ## Compatibility
 Future provider configuration changes require explicit migration and compatibility review.
 ## Verification commands
-- uv run pytest tests/unit/test_project_control_schema.py tests/unit/test_project_control_rendering.py -q
-- uv run ruff check app/project_control
+- uv run pytest tests/test_vlm_reference_workflow.py tests/test_vla_provider_seam.py -q
+- uv run ruff check app/core app/schemas
 ## Risks
 - Stale provider assumptions create false success
 - Interface changes can break existing configurations.
@@ -323,8 +323,8 @@ Failed, blocked, or inconclusive release gates prevent publication and cannot im
 ## Compatibility
 Release metadata changes require documented package and documentation migration effects.
 ## Verification commands
-- uv run pytest tests/unit/test_project_control_schema.py tests/unit/test_project_control_rendering.py -q
-- uv run ruff check app/project_control
+- uv run pytest tests/test_release_hygiene.py tests/test_v0_1_reproduction.py -q
+- npm test
 ## Risks
 - False-success release claims mislead users
 - Package changes can break installation compatibility.
@@ -370,8 +370,8 @@ Failed, blocked, or inconclusive Day 1 tasks prevent the day outcome from being 
 ## Compatibility
 Day 1 changes require explicit persisted-schema, configuration, or CLI migration review.
 ## Verification commands
-- uv run pytest tests/unit/test_project_control_schema.py tests/unit/test_project_control_rendering.py -q
-- uv run ruff check app/project_control
+- uv run pytest tests/test_langgraph_workflow.py tests/test_boundary_kind_validation.py tests/test_workload.py -q
+- uv run ruff check app/core app/agents app/schemas
 ## Risks
 - False-success terminal states can promote failed work
 - Existing records may need compatible readers.
@@ -629,8 +629,8 @@ Failed, blocked, or inconclusive Day 2 tasks prevent the day outcome from being 
 ## Compatibility
 Day 2 changes require explicit permission, sandbox, CI, or documentation migration review.
 ## Verification commands
-- uv run pytest tests/unit/test_project_control_schema.py tests/unit/test_project_control_rendering.py -q
-- uv run ruff check app/project_control
+- uv run pytest tests/test_permission_gate.py tests/test_sandbox_worker_type_guard.py tests/test_worker_grounding.py tests/test_release_hygiene.py -q
+- npm test
 ## Risks
 - False-success security claims can expose unsafe work
 - Existing configurations and docs require compatible transitions.
@@ -939,8 +939,8 @@ Failed, blocked, or inconclusive revalidation prevents completed identity claims
 ## Compatibility
 Potential persisted-run migration remains deferred pending confirmed current evidence.
 ## Verification commands
-- uv run pytest tests/unit/test_project_control_schema.py tests/unit/test_project_control_rendering.py -q
-- uv run ruff check app/project_control
+- uv run pytest tests/test_experiment_identity.py -q
+- uv run ruff check app/schemas/benchmark.py app/core/benchmark.py
 ## Risks
 - Stale defect claims create false success
 - Schema changes can break legacy readers.
@@ -986,8 +986,8 @@ Failed, blocked, or inconclusive adapter evidence prevents a supported-provider 
 ## Compatibility
 Future provider configuration migration is explicit and deferred until revalidation.
 ## Verification commands
-- uv run pytest tests/unit/test_project_control_schema.py tests/unit/test_project_control_rendering.py -q
-- uv run ruff check app/project_control
+- uv run pytest tests/test_deepeval_adapter.py -q
+- uv run ruff check app/core/benchmark.py app/schemas/benchmark.py
 ## Risks
 - Provider leakage creates false success
 - Existing configurations can be incompatible with new adapters.
@@ -1033,8 +1033,8 @@ Failed, blocked, or inconclusive comparison evidence prevents promotion and comp
 ## Compatibility
 Future benchmark-record changes require explicit reader and CLI migration review.
 ## Verification commands
-- uv run pytest tests/unit/test_project_control_schema.py tests/unit/test_project_control_rendering.py -q
-- uv run ruff check app/project_control
+- uv run pytest tests/test_benchmark.py -q
+- uv run ruff check app/core/benchmark.py app/schemas/benchmark.py
 ## Risks
 - Split leakage creates false success
 - Existing benchmark records may need compatible readers.
@@ -1080,8 +1080,8 @@ Failed, blocked, or inconclusive contract evidence prevents governed-training co
 ## Compatibility
 Future provider, CLI, and persisted-record migrations require explicit compatibility review.
 ## Verification commands
-- uv run pytest tests/unit/test_project_control_schema.py tests/unit/test_project_control_rendering.py -q
-- uv run ruff check app/project_control
+- uv run pytest tests/test_training_contracts.py -q
+- uv run ruff check app/core app/schemas
 ## Risks
 - Unvalidated controls create false success
 - Provider changes can break existing configurations.
@@ -1127,8 +1127,8 @@ Failed, blocked, or inconclusive run evidence prevents training completion and p
 ## Compatibility
 Future training-record migration preserves existing run evidence and configuration semantics.
 ## Verification commands
-- uv run pytest tests/unit/test_project_control_schema.py tests/unit/test_project_control_rendering.py -q
-- uv run ruff check app/project_control
+- uv run pytest tests/test_governed_training.py -q
+- uv run ruff check app/core app/schemas
 ## Risks
 - Partial runs can create false success
 - Provider and record changes may break compatibility.
@@ -1174,8 +1174,8 @@ Failed, blocked, or inconclusive comparison prevents promotion and cannot imply 
 ## Compatibility
 Decision and persisted-run migrations remain explicit and additive.
 ## Verification commands
-- uv run pytest tests/unit/test_project_control_schema.py tests/unit/test_project_control_rendering.py -q
-- uv run ruff check app/project_control
+- uv run pytest tests/test_training_promotion.py -q
+- uv run ruff check app/core app/schemas
 ## Risks
 - Incomplete comparison creates false success
 - Record-format changes can break existing readers.
@@ -1221,8 +1221,8 @@ Failed, blocked, or inconclusive validation prevents a swappable-pack completion
 ## Compatibility
 Future pack configuration migration is explicit and preserves supported contracts.
 ## Verification commands
-- uv run pytest tests/unit/test_project_control_schema.py tests/unit/test_project_control_rendering.py -q
-- uv run ruff check app/project_control
+- uv run pytest tests/test_capability_pack.py -q
+- uv run ruff check app/core/packs app/schemas/pack.py
 ## Risks
 - Assumed compatibility creates false success
 - Pack contract changes can break consumers.
@@ -1268,8 +1268,8 @@ Failed, blocked, or inconclusive validation prevents a swappable-strategy comple
 ## Compatibility
 Strategy-pack migration remains explicit and additive for existing loop consumers.
 ## Verification commands
-- uv run pytest tests/unit/test_project_control_schema.py tests/unit/test_project_control_rendering.py -q
-- uv run ruff check app/project_control
+- uv run pytest tests/test_strategy_pack.py -q
+- uv run ruff check app/core/packs app/schemas/pack.py
 ## Risks
 - Unverified substitution creates false success
 - Contract changes can break existing strategies.
@@ -1315,8 +1315,8 @@ Failed, blocked, or inconclusive workflow evidence prevents a VLM completion cla
 ## Compatibility
 Future VLM configuration migration is documented and preserves existing provider settings.
 ## Verification commands
-- uv run pytest tests/unit/test_project_control_schema.py tests/unit/test_project_control_rendering.py -q
-- uv run ruff check app/project_control
+- uv run pytest tests/test_vlm_reference_workflow.py -q
+- uv run ruff check app/core app/schemas
 ## Risks
 - A one-off result creates false success
 - Provider changes can break existing workflows.
@@ -1362,8 +1362,8 @@ Failed, blocked, or inconclusive seam evidence prevents VLA readiness and comple
 ## Compatibility
 Provider and simulator configuration migration remains explicit and backward compatible.
 ## Verification commands
-- uv run pytest tests/unit/test_project_control_schema.py tests/unit/test_project_control_rendering.py -q
-- uv run ruff check app/project_control
+- uv run pytest tests/test_vla_provider_seam.py -q
+- uv run ruff check app/core app/schemas
 ## Risks
 - Assumed seam compatibility creates false success
 - Interface changes can break existing configurations.
@@ -1409,8 +1409,8 @@ Failed, blocked, or inconclusive gate evidence prevents release completion and p
 ## Compatibility
 Package and documentation migration effects are documented before release changes.
 ## Verification commands
-- uv run pytest tests/unit/test_project_control_schema.py tests/unit/test_project_control_rendering.py -q
-- uv run ruff check app/project_control
+- uv run pytest tests/test_release_hygiene.py -q
+- npm test
 ## Risks
 - Incomplete gates create false-success release claims
 - Metadata changes can break existing installation guidance.
@@ -1456,8 +1456,8 @@ Failed, blocked, or inconclusive reproduction prevents release completion and ca
 ## Compatibility
 Publication, package, and documentation changes identify explicit migration effects for users.
 ## Verification commands
-- uv run pytest tests/unit/test_project_control_schema.py tests/unit/test_project_control_rendering.py -q
-- uv run ruff check app/project_control
+- uv run pytest tests/test_v0_1_reproduction.py -q
+- npm test
 ## Risks
 - Partial evidence creates false-success publication
 - Release changes can break user installation expectations.

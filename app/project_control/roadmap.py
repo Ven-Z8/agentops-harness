@@ -73,22 +73,23 @@ def render_roadmap(roadmap: Roadmap) -> str:
 
 
 def render_issue_body(item: RoadmapItem, roadmap: Roadmap) -> str:
-    if item.id not in {record.id for record in roadmap.items}:
+    canonical_item = next((record for record in roadmap.items if record.id == item.id), None)
+    if canonical_item is None:
         raise ValueError(f"Roadmap does not include item: {item.id}")
     return "\n".join(
         [
-            f"Task ID: {item.id}",
+            f"Task ID: {canonical_item.id}",
             "",
             "Source: `coordination/roadmap/14-day-plan.yaml`",
             "",
             "## Outcome",
-            item.outcome,
+            canonical_item.outcome,
             "",
-            render_bullets("Scope", item.scope),
-            render_bullets("Non-goals", item.non_goals),
-            render_bullets("Dependencies", item.dependencies),
-            render_bullets("Acceptance criteria", item.acceptance_criteria),
-            render_bullets("Required evidence", item.required_evidence),
-            render_bullets("Verification commands", item.verification_commands),
+            render_bullets("Scope", canonical_item.scope),
+            render_bullets("Non-goals", canonical_item.non_goals),
+            render_bullets("Dependencies", canonical_item.dependencies),
+            render_bullets("Acceptance criteria", canonical_item.acceptance_criteria),
+            render_bullets("Required evidence", canonical_item.required_evidence),
+            render_bullets("Verification commands", canonical_item.verification_commands),
         ]
     ).rstrip() + "\n"
