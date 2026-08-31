@@ -23,15 +23,17 @@ class FakeTransport:
         return next(self.responses)
 
 
-def project_response(*, cursor: str | None = None, has_next: bool = False, items=None):
-    return {
+def project_response(
+    *, cursor: str | None = None, has_next: bool = False, items=None, field_definitions=None
+):
+    response = {
         "data": {
             "user": {
                 "projectV2": {
                     "id": "PVT_1",
                     "title": "AgentOps Research Control Plane — 14-Day v0.1",
                     "url": "https://github.com/users/Ven-Z8/projects/1",
-                    "fields": {"nodes": []},
+                    "fields": {"nodes": field_definitions or []},
                     "items": {
                         "nodes": items or [],
                         "pageInfo": {"hasNextPage": has_next, "endCursor": cursor},
@@ -40,6 +42,93 @@ def project_response(*, cursor: str | None = None, has_next: bool = False, items
             }
         }
     }
+    if field_definitions is None:
+        control_selects = {
+            "Status",
+            "Priority",
+            "Phase",
+            "Evidence",
+            "Workstream",
+            "Type",
+            "Risk",
+        }
+        control_data_types = {
+            "Day": "NUMBER",
+            "Harness": "TEXT",
+            "Dependency": "TEXT",
+            "Blocker": "TEXT",
+            "Handoff": "TEXT",
+        }
+        discovered = {}
+        for item in items or []:
+            for node in item.get("fieldValues", {}).get("nodes", []):
+                field = node["field"]
+                name = field["name"]
+                option_name = node.get("name")
+                if name in discovered:
+                    if name in control_selects and option_name is not None:
+                        discovered[name]["options"].append(
+                            {"id": f"OPT_{name}_{option_name}", "name": option_name}
+                        )
+                    continue
+                definition = {
+                    "id": field["id"],
+                    "name": name,
+                    "__typename": (
+                        "ProjectV2SingleSelectField"
+                        if name in control_selects
+                        else "ProjectV2IterationField"
+                        if name == "Iteration"
+                        else "ProjectV2Field"
+                    ),
+                }
+                if name not in control_selects and name != "Iteration":
+                    definition["dataType"] = control_data_types.get(name, "TEXT")
+                if name in control_selects and option_name is not None:
+                    definition["options"] = [
+                        {"id": f"OPT_{name}_{option_name}", "name": option_name}
+                    ]
+                discovered[name] = definition
+        response["data"]["user"]["projectV2"]["fields"]["nodes"] = list(discovered.values())
+    return response
+
+
+def complete_control_definitions(*, missing_data_type: str | None = None):
+    select_options = {
+        "Status": ["Inbox", "Ready", "In progress", "Blocked", "Done"],
+        "Priority": ["P0", "P1", "P2", "P3"],
+        "Phase": ["Phase 1", "Phase 2"],
+        "Evidence": ["Missing", "Inconclusive", "Partial", "Verified"],
+        "Workstream": ["Trust", "kernel"],
+        "Type": ["task", "outcome"],
+        "Risk": ["Critical", "high", "medium", "low"],
+    }
+    definitions = []
+    for name, options in select_options.items():
+        definitions.append(
+            {
+                "id": f"PVT_FIELD_{name}",
+                "name": name,
+                "__typename": "ProjectV2SingleSelectField",
+                "options": [{"id": f"OPT_{name}_{option}", "name": option} for option in options],
+            }
+        )
+    for name, data_type in {
+        "Day": "NUMBER",
+        "Harness": "TEXT",
+        "Dependency": "TEXT",
+        "Blocker": "TEXT",
+        "Handoff": "TEXT",
+    }.items():
+        definitions.append(
+            {
+                "id": f"PVT_FIELD_{name}",
+                "name": name,
+                "__typename": "ProjectV2Field",
+                **({} if name == missing_data_type else {"dataType": data_type}),
+            }
+        )
+    return definitions
 
 
 def issue_item(
@@ -49,6 +138,26 @@ def issue_item(
     title: str = "Capture reproducible baseline",
     fields=None,
 ):
+    def field_value_node(index: int, field: dict[str, object]) -> dict[str, object]:
+        field_data = dict(field["field"])
+        name = field_data["name"]
+        field_data.setdefault(
+            "__typename",
+            "ProjectV2SingleSelectField"
+            if name in {"Status", "Priority", "Phase", "Evidence", "Workstream", "Type", "Risk"}
+            else "ProjectV2IterationField"
+            if name == "Iteration"
+            else "ProjectV2Field",
+        )
+        return {
+            "id": f"PVTFV_{number}_{index}",
+            **field,
+            "field": {
+                "id": f"PVT_FIELD_{name}",
+                **field_data,
+            },
+        }
+
     return {
         "id": f"PVTI_{number}",
         "content": {
@@ -60,15 +169,7 @@ def issue_item(
         },
         "fieldValues": {
             "nodes": [
-                {
-                    "id": f"PVTFV_{number}_{index}",
-                    **field,
-                    "field": {
-                        "id": f"PVT_FIELD_{field['field']['name']}",
-                        **field["field"],
-                    },
-                }
-                for index, field in enumerate(fields or [], start=1)
+                field_value_node(index, field) for index, field in enumerate(fields or [], start=1)
             ]
         },
     }
@@ -338,6 +439,111 @@ def test_export_rejects_noncanonical_issue_url(url: str) -> None:
 def test_export_accepts_canonical_issue_url() -> None:
     export = GitHubClient(FakeTransport([PROJECT_RESPONSE])).export_project("Ven-Z8", 1)
     assert export.repository == "Ven-Z8/agentops-harness"
+
+
+def test_iteration_builtin_definition_and_value_are_ignored() -> None:
+    fields = [
+        {
+            "field": {"id": "F_ITERATION", "name": "Iteration"},
+            "iterationId": "IT_1",
+            "title": "Week 1",
+        }
+    ]
+    response = project_response(
+        items=[issue_item(fields=fields)],
+        field_definitions=[
+            {"id": "F_ITERATION", "name": "Iteration", "__typename": "ProjectV2IterationField"}
+        ],
+    )
+
+    export = GitHubClient(FakeTransport([response])).export_project("Ven-Z8", 1)
+
+    assert export.items[0].task_id == "AO-D01-01"
+
+
+@pytest.mark.parametrize(
+    "fields",
+    [
+        [{"field": {"name": "Iteration"}, "title": "Week 1"}],
+        [{"field": {"id": "WRONG", "name": "Iteration"}, "iterationId": "IT_1", "title": "Week 1"}],
+    ],
+)
+def test_iteration_value_must_have_correlated_identity(fields) -> None:
+    response = project_response(
+        items=[issue_item(fields=fields)],
+        field_definitions=[
+            {"id": "F_ITERATION", "name": "Iteration", "__typename": "ProjectV2IterationField"}
+        ],
+    )
+
+    with pytest.raises(InvalidControlRoom):
+        GitHubClient(FakeTransport([response])).export_project("Ven-Z8", 1)
+
+
+def test_export_rejects_duplicate_definition_and_field_value_ids() -> None:
+    duplicate_definition_ids = project_response(items=[issue_item()])
+    duplicate_definition_ids["data"]["user"]["projectV2"]["fields"] = {
+        "nodes": [
+            {"id": "F_DUP", "name": "Status", "__typename": "ProjectV2SingleSelectField"},
+            {"id": "F_DUP", "name": "Priority", "__typename": "ProjectV2SingleSelectField"},
+        ]
+    }
+    with pytest.raises(InvalidControlRoom, match="definition ID"):
+        GitHubClient(FakeTransport([duplicate_definition_ids])).export_project("Ven-Z8", 1)
+
+    item = issue_item(fields=[{"field": {"name": "Status"}, "name": "Ready"}])
+    item["fieldValues"]["nodes"][0]["id"] = "DUP"
+    item["fieldValues"]["nodes"].append(dict(item["fieldValues"]["nodes"][0]))
+    duplicate_value_ids = project_response(
+        items=[item], field_definitions=complete_control_definitions()
+    )
+    with pytest.raises(InvalidControlRoom, match="field value ID"):
+        GitHubClient(FakeTransport([duplicate_value_ids])).export_project("Ven-Z8", 1)
+
+
+def test_export_rejects_field_value_id_name_mismatch() -> None:
+    item = issue_item(fields=[{"field": {"name": "Status"}, "name": "Ready"}])
+    item["fieldValues"]["nodes"][0]["field"]["id"] = "OTHER"
+    response = project_response(items=[item], field_definitions=complete_control_definitions())
+    response["data"]["user"]["projectV2"]["fields"]["nodes"][0]["id"] = "OTHER_DEF"
+    with pytest.raises(InvalidControlRoom, match="definition"):
+        GitHubClient(FakeTransport([response])).export_project("Ven-Z8", 1)
+
+
+def test_export_accepts_only_graphql_typename_alias() -> None:
+    response = project_response(items=[issue_item()])
+    response["data"]["user"]["projectV2"]["fields"] = {
+        "nodes": [{"id": "F_STATUS", "name": "Status", "typename": "ProjectV2SingleSelectField"}]
+    }
+    with pytest.raises(InvalidControlRoom, match="schema"):
+        GitHubClient(FakeTransport([response])).export_project("Ven-Z8", 1)
+
+
+@pytest.mark.parametrize("day", [float("nan"), float("inf"), float("-inf"), True, 2.5, 0, 15])
+def test_export_rejects_unsafe_day_numbers(day) -> None:
+    response = project_response(
+        items=[issue_item(fields=[{"field": {"name": "Day"}, "number": day}])],
+        field_definitions=complete_control_definitions(),
+    )
+    with pytest.raises(InvalidControlRoom):
+        GitHubClient(FakeTransport([response])).export_project("Ven-Z8", 1)
+
+
+def test_export_accepts_integral_day_number() -> None:
+    response = project_response(
+        items=[issue_item(fields=[{"field": {"name": "Day"}, "number": 2.0}])],
+        field_definitions=complete_control_definitions(),
+    )
+    assert GitHubClient(FakeTransport([response])).export_project("Ven-Z8", 1).items[0].day == 2
+
+
+@pytest.mark.parametrize("name", ["Day", "Harness", "Dependency", "Blocker", "Handoff"])
+def test_export_requires_data_type_for_project_field(name: str) -> None:
+    response = project_response(
+        items=[issue_item()], field_definitions=complete_control_definitions(missing_data_type=name)
+    )
+    with pytest.raises(InvalidControlRoom, match="dataType"):
+        GitHubClient(FakeTransport([response])).export_project("Ven-Z8", 1)
 
 
 @pytest.mark.parametrize("error", [FileNotFoundError(), subprocess.CalledProcessError(1, ["gh"])])

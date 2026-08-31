@@ -216,7 +216,9 @@ def _board_export_command(_args: argparse.Namespace) -> int:
     if github_project.number is None or github_project.url is None:
         raise InvalidControlRoom("board-export requires a configured GitHub project number and url")
     export = GitHubClient(SubprocessGhTransport()).export_project(
-        github_project.owner, github_project.number
+        github_project.owner,
+        github_project.number,
+        expected_repository=project.project.repository,
     )
     if export.project_url != github_project.url:
         raise InvalidControlRoom(

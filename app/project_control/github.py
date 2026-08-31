@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import math
 import re
 import subprocess
 from typing import Protocol
@@ -18,7 +19,7 @@ class GhTransport(Protocol):
 
 
 class _StrictResponse(BaseModel):
-    model_config = ConfigDict(extra="forbid", strict=True, populate_by_name=True)
+    model_config = ConfigDict(extra="forbid", strict=True)
 
 
 class _GraphQLError(_StrictResponse):
@@ -35,7 +36,7 @@ class _FieldDefinition(_StrictResponse):
     name: str = Field(min_length=1)
     typename: str = Field(alias="__typename", min_length=1)
     dataType: str | None = None
-    options: list[_Option] = []
+    options: list[_Option] = Field(default_factory=list)
 
 
 class _FieldDefinitions(_StrictResponse):
@@ -44,23 +45,24 @@ class _FieldDefinitions(_StrictResponse):
 
 class _PageInfo(_StrictResponse):
     hasNextPage: bool
-    endCursor: str | None
+    endCursor: str | None = Field(default=None, min_length=1)
 
 
 class _FieldRef(_StrictResponse):
     id: str = Field(min_length=1)
     name: str = Field(min_length=1)
+    typename: str = Field(alias="__typename", min_length=1)
 
 
 class _FieldValue(_StrictResponse):
     id: str = Field(min_length=1)
     field: _FieldRef | None = None
-    name: str | None = None
-    text: str | None = None
+    name: str | None = Field(default=None, min_length=1)
+    text: str | None = Field(default=None, min_length=1)
     number: int | float | None = None
-    date: str | None = None
-    iterationId: str | None = None
-    title: str | None = None
+    date: str | None = Field(default=None, min_length=1)
+    iterationId: str | None = Field(default=None, min_length=1)
+    title: str | None = Field(default=None, min_length=1)
 
 
 class _FieldValues(_StrictResponse):
@@ -145,6 +147,7 @@ query ProjectBoard($owner: String!, $number: Int!, $after: String) {
               id
               ... on ProjectV2ItemFieldSingleSelectValue {
                 field {
+                  __typename
                   ... on ProjectV2Field { id name }
                   ... on ProjectV2SingleSelectField { id name }
                 }
@@ -152,6 +155,7 @@ query ProjectBoard($owner: String!, $number: Int!, $after: String) {
               }
               ... on ProjectV2ItemFieldTextValue {
                 field {
+                  __typename
                   ... on ProjectV2Field { id name }
                   ... on ProjectV2SingleSelectField { id name }
                 }
@@ -159,6 +163,7 @@ query ProjectBoard($owner: String!, $number: Int!, $after: String) {
               }
               ... on ProjectV2ItemFieldNumberValue {
                 field {
+                  __typename
                   ... on ProjectV2Field { id name }
                   ... on ProjectV2SingleSelectField { id name }
                 }
@@ -166,10 +171,21 @@ query ProjectBoard($owner: String!, $number: Int!, $after: String) {
               }
               ... on ProjectV2ItemFieldDateValue {
                 field {
+                  __typename
                   ... on ProjectV2Field { id name }
                   ... on ProjectV2SingleSelectField { id name }
                 }
                 date
+              }
+              ... on ProjectV2ItemFieldIterationValue {
+                field {
+                  __typename
+                  ... on ProjectV2Field { id name }
+                  ... on ProjectV2SingleSelectField { id name }
+                  ... on ProjectV2IterationField { id name }
+                }
+                iterationId
+                title
               }
             }
           }
@@ -196,7 +212,16 @@ _KNOWN_FIELDS = {
     "Handoff",
     "Target date",
 }
-_IGNORED_BUILT_INS = {"Title", "Assignees", "Labels", "Milestone", "Repository", "Reviewers"}
+_IGNORED_BUILT_INS = {
+    "Title",
+    "Assignees",
+    "Labels",
+    "Milestone",
+    "Repository",
+    "Reviewers",
+    "Iteration",
+}
+_IGNORED_BUILT_IN_TYPES = {"Iteration": {"ProjectV2IterationField"}}
 _CONTROL_FIELD_TYPES = {
     "Status": {"ProjectV2SingleSelectField"},
     "Priority": {"ProjectV2SingleSelectField"},
@@ -256,15 +281,35 @@ def _response(value: dict[str, object]) -> _GraphQLResponse:
 
 def _field_value(
     value: _FieldValue,
-    definitions: dict[str, tuple[str, set[str]]],
+    definitions: dict[str, tuple[str, str, set[str]]],
 ) -> tuple[str, object] | None:
     if value.field is None or not value.field.name.strip():
         raise InvalidControlRoom("GitHub project field value is missing its field name")
     name = value.field.name
+    if name not in _KNOWN_FIELDS and name not in _IGNORED_BUILT_INS:
+        raise InvalidControlRoom(f"GitHub project contains unknown field: {name}")
+    definition = definitions.get(name)
+    if definition is None:
+        raise InvalidControlRoom(f"GitHub field value references unknown definition: {name}")
+    if value.field.id != definition[0]:
+        raise InvalidControlRoom(f"GitHub field value does not match definition: {name}")
+    if value.field.typename != definition[1]:
+        raise InvalidControlRoom(f"GitHub field value type does not match definition: {name}")
+
+    if name == "Iteration":
+        if definition[1] != "ProjectV2IterationField" or (
+            value.iterationId is None
+            or value.title is None
+            or any(
+                field_value is not None
+                for field_value in (value.name, value.text, value.number, value.date)
+            )
+        ):
+            raise InvalidControlRoom("GitHub Iteration field value has an unsupported shape")
+        return None
+
     if name in _IGNORED_BUILT_INS:
         return None
-    if name not in _KNOWN_FIELDS:
-        raise InvalidControlRoom(f"GitHub project contains unknown field: {name}")
 
     populated = [
         ("name", value.name),
@@ -278,8 +323,7 @@ def _field_value(
     if len(present) != 1:
         raise InvalidControlRoom(f"GitHub field {name!r} has an unsupported value shape")
     kind, field_value = present[0]
-    definition = definitions.get(name)
-    if definition and kind == "name" and field_value not in definition[1]:
+    if kind == "name" and field_value not in definition[2]:
         raise InvalidControlRoom(f"GitHub field {name!r} has an unknown option: {field_value}")
     if name in {"Status", "Priority", "Phase", "Evidence", "Workstream", "Type", "Risk"}:
         if kind != "name":
@@ -312,7 +356,7 @@ def _validate_canonical_issue(issue: _Issue) -> None:
 
 def _board_item(
     item: _Item,
-    definitions: dict[str, set[str]],
+    definitions: dict[str, tuple[str, str, set[str]]],
     seen_item_ids: set[str],
     seen_task_ids: set[str],
 ) -> BoardItem:
@@ -328,7 +372,11 @@ def _board_item(
     seen_task_ids.add(task_id)
 
     values: dict[str, object] = {}
+    value_ids: set[str] = set()
     for field_value in item.fieldValues.nodes:
+        if field_value.id in value_ids:
+            raise InvalidControlRoom(f"GitHub issue has duplicate field value ID: {field_value.id}")
+        value_ids.add(field_value.id)
         mapped = _field_value(field_value, definitions)
         if mapped is None:
             continue
@@ -346,7 +394,11 @@ def _board_item(
         raise InvalidControlRoom(f"GitHub field 'Priority' has an unknown option: {priority}")
     day = values.get("Day")
     if day is not None and (
-        isinstance(day, bool) or not isinstance(day, (int, float)) or int(day) != day
+        isinstance(day, bool)
+        or not isinstance(day, (int, float))
+        or not math.isfinite(day)
+        or int(day) != day
+        or not 1 <= day <= 14
     ):
         raise InvalidControlRoom("GitHub field 'Day' must be an integer")
     phase = values.get("Phase")
@@ -420,18 +472,28 @@ class GitHubClient:
     def __init__(self, transport: GhTransport) -> None:
         self._transport = transport
 
-    def export_project(self, owner: str, number: int) -> BoardExport:
+    def export_project(
+        self,
+        owner: str,
+        number: int,
+        expected_repository: str | None = None,
+    ) -> BoardExport:
         if not isinstance(owner, str) or not owner.strip():
             raise InvalidControlRoom("GitHub project owner must not be empty")
         if isinstance(number, bool) or not isinstance(number, int) or number < 1:
             raise InvalidControlRoom("GitHub project number must be positive")
+        if expected_repository is not None and (
+            not isinstance(expected_repository, str)
+            or not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", expected_repository)
+        ):
+            raise InvalidControlRoom("expected GitHub repository must be canonical owner/name")
 
         after: str | None = None
         cursors: set[str] = set()
         seen_item_ids: set[str] = set()
         seen_task_ids: set[str] = set()
         project: _Project | None = None
-        project_repository: str | None = None
+        project_repository: str | None = expected_repository
         exported: list[BoardItem] = []
         while True:
             try:
@@ -456,14 +518,20 @@ class GitHubClient:
                 page_repository = raw_item.content.repository.nameWithOwner
                 if project_repository is None:
                     project_repository = page_repository
-                if page_repository != project_repository:
+                elif page_repository != project_repository:
                     raise InvalidControlRoom("GitHub issue repository changed during pagination")
-            definitions: dict[str, tuple[str, set[str]]] = {}
+            definitions: dict[str, tuple[str, str, set[str]]] = {}
+            definition_ids: set[str] = set()
             for definition in current.fields.nodes:
                 if definition.name in definitions:
                     raise InvalidControlRoom(
                         f"GitHub project has duplicate field: {definition.name}"
                     )
+                if definition.id in definition_ids:
+                    raise InvalidControlRoom(
+                        f"GitHub project has duplicate definition ID: {definition.id}"
+                    )
+                definition_ids.add(definition.id)
                 if definition.name not in _KNOWN_FIELDS | _IGNORED_BUILT_INS:
                     raise InvalidControlRoom(
                         f"GitHub project contains unknown field/custom field: {definition.name}"
@@ -483,6 +551,11 @@ class GitHubClient:
                     raise InvalidControlRoom(
                         f"GitHub field {definition.name!r} has wrong definition type"
                     )
+                ignored_types = _IGNORED_BUILT_IN_TYPES.get(definition.name)
+                if ignored_types and definition.typename not in ignored_types:
+                    raise InvalidControlRoom(
+                        f"GitHub built-in field {definition.name!r} has wrong definition type"
+                    )
                 expected_data_types = _CONTROL_FIELD_DATA_TYPES.get(definition.name)
                 if (
                     expected_data_types
@@ -492,7 +565,15 @@ class GitHubClient:
                     raise InvalidControlRoom(
                         f"GitHub field {definition.name!r} has wrong definition data type"
                     )
-                definitions[definition.name] = (definition.typename, set(option_names))
+                if definition.typename == "ProjectV2Field" and definition.dataType is None:
+                    raise InvalidControlRoom(
+                        f"GitHub field {definition.name!r} is missing dataType metadata"
+                    )
+                definitions[definition.name] = (
+                    definition.id,
+                    definition.typename,
+                    set(option_names),
+                )
             defined_controls = definitions.keys() & _CONTROL_FIELD_TYPES.keys()
             if defined_controls and defined_controls != _CONTROL_FIELD_TYPES.keys():
                 missing = sorted(_CONTROL_FIELD_TYPES.keys() - defined_controls)
