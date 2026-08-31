@@ -7958,6 +7958,258 @@
     },
     {
       "metadata": {},
+      "source": "file:app/project_control/cli.py",
+      "target": "function:python:app.project_control.cli._codegraph_command",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/cli.py",
+      "target": "function:python:app.project_control.cli._git_output",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/cli.py",
+      "target": "function:python:app.project_control.cli._handoff_command",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/cli.py",
+      "target": "function:python:app.project_control.cli._normalize_expected_failure",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/cli.py",
+      "target": "function:python:app.project_control.cli._record_issue",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/cli.py",
+      "target": "function:python:app.project_control.cli._relative_label",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/cli.py",
+      "target": "function:python:app.project_control.cli._repository_root",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/cli.py",
+      "target": "function:python:app.project_control.cli._snapshot_command",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/cli.py",
+      "target": "function:python:app.project_control.cli._validate_command",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/cli.py",
+      "target": "function:python:app.project_control.cli._validate_frontmatter_records",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/cli.py",
+      "target": "function:python:app.project_control.cli.build_parser",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/cli.py",
+      "target": "function:python:app.project_control.cli.compare_roadmap",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/cli.py",
+      "target": "function:python:app.project_control.cli.main",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/cli.py",
+      "target": "function:python:app.project_control.cli.validate_control_room",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/cli.py",
+      "target": "import:python:__future__.annotations",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/cli.py",
+      "target": "import:python:app.project_control.artifacts.load_artifact_index",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/cli.py",
+      "target": "import:python:app.project_control.codegraph.build_codegraph",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/cli.py",
+      "target": "import:python:app.project_control.codegraph.validate_codegraph_freshness",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/cli.py",
+      "target": "import:python:app.project_control.decisions.load_recent_decisions",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/cli.py",
+      "target": "import:python:app.project_control.errors.DependencyUnavailable",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/cli.py",
+      "target": "import:python:app.project_control.errors.InvalidControlRoom",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/cli.py",
+      "target": "import:python:app.project_control.errors.RemotePartialFailure",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/cli.py",
+      "target": "import:python:app.project_control.handoffs.create_handoff",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/cli.py",
+      "target": "import:python:app.project_control.handoffs.load_latest_handoffs",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/cli.py",
+      "target": "import:python:app.project_control.io.load_frontmatter",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/cli.py",
+      "target": "import:python:app.project_control.io.load_yaml",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/cli.py",
+      "target": "import:python:app.project_control.io.resolve_inside",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/cli.py",
+      "target": "import:python:app.project_control.models.DecisionHeader",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/cli.py",
+      "target": "import:python:app.project_control.models.HandoffHeader",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/cli.py",
+      "target": "import:python:app.project_control.models.ProjectConfig",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/cli.py",
+      "target": "import:python:app.project_control.roadmap.load_roadmap",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/cli.py",
+      "target": "import:python:app.project_control.roadmap.render_roadmap",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/cli.py",
+      "target": "import:python:app.project_control.snapshots.write_initial_snapshots",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/cli.py",
+      "target": "import:python:argparse",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/cli.py",
+      "target": "import:python:collections.abc.Callable",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/cli.py",
+      "target": "import:python:collections.abc.Sequence",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/cli.py",
+      "target": "import:python:datetime.UTC",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/cli.py",
+      "target": "import:python:datetime.datetime",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/cli.py",
+      "target": "import:python:pathlib.Path",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/cli.py",
+      "target": "import:python:subprocess",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/cli.py",
+      "target": "import:python:sys",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/cli.py",
+      "target": "import:python:typing.Any",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
       "source": "file:app/project_control/codegraph.py",
       "target": "function:python:app.project_control.codegraph._annotate_file_only_languages",
       "type": "defines"
@@ -8242,6 +8494,12 @@
       "metadata": {},
       "source": "file:app/project_control/errors.py",
       "target": "class:python:app.project_control.errors.InvalidControlRoom",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/errors.py",
+      "target": "class:python:app.project_control.errors.RemotePartialFailure",
       "type": "defines"
     },
     {
@@ -11234,6 +11492,30 @@
     },
     {
       "metadata": {},
+      "source": "file:scripts/project_control.py",
+      "target": "import:python:__future__.annotations",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:scripts/project_control.py",
+      "target": "import:python:importlib.import_module",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:scripts/project_control.py",
+      "target": "import:python:pathlib.Path",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:scripts/project_control.py",
+      "target": "import:python:sys",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
       "source": "file:scripts/showcase.py",
       "target": "function:python:scripts.showcase.main",
       "type": "defines"
@@ -11464,6 +11746,174 @@
       "metadata": {},
       "source": "file:tests/helpers_runrecord.py",
       "target": "import:python:datetime.datetime",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/integration/test_project_control_cli.py",
+      "target": "function:python:tests.integration.test_project_control_cli._git",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/integration/test_project_control_cli.py",
+      "target": "function:python:tests.integration.test_project_control_cli._seed_cli_repository",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/integration/test_project_control_cli.py",
+      "target": "function:python:tests.integration.test_project_control_cli.fail",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/integration/test_project_control_cli.py",
+      "target": "function:python:tests.integration.test_project_control_cli.run_cli",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/integration/test_project_control_cli.py",
+      "target": "function:python:tests.integration.test_project_control_cli.test_cli_help_lists_all_local_commands",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/integration/test_project_control_cli.py",
+      "target": "function:python:tests.integration.test_project_control_cli.test_coordination_index_links_every_authoritative_surface",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/integration/test_project_control_cli.py",
+      "target": "function:python:tests.integration.test_project_control_cli.test_expected_failures_map_to_stable_exit_codes_without_tracebacks",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/integration/test_project_control_cli.py",
+      "target": "function:python:tests.integration.test_project_control_cli.test_local_generation_and_handoff_commands_use_repository_state",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/integration/test_project_control_cli.py",
+      "target": "function:python:tests.integration.test_project_control_cli.test_project_boundary_preserves_vlm_vla_limitations",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/integration/test_project_control_cli.py",
+      "target": "function:python:tests.integration.test_project_control_cli.test_root_agents_file_links_control_room_in_one_hop",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/integration/test_project_control_cli.py",
+      "target": "function:python:tests.integration.test_project_control_cli.test_usage_errors_return_two_without_traceback",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/integration/test_project_control_cli.py",
+      "target": "function:python:tests.integration.test_project_control_cli.test_validate_command_succeeds_on_committed_control_room",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/integration/test_project_control_cli.py",
+      "target": "function:python:tests.integration.test_project_control_cli.test_validate_reports_every_invalid_path_without_traceback",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/integration/test_project_control_cli.py",
+      "target": "import:python:__future__.annotations",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/integration/test_project_control_cli.py",
+      "target": "import:python:app.project_control.cli",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/integration/test_project_control_cli.py",
+      "target": "import:python:app.project_control.codegraph.build_codegraph",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/integration/test_project_control_cli.py",
+      "target": "import:python:app.project_control.errors.DependencyUnavailable",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/integration/test_project_control_cli.py",
+      "target": "import:python:app.project_control.errors.InvalidControlRoom",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/integration/test_project_control_cli.py",
+      "target": "import:python:app.project_control.errors.RemotePartialFailure",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/integration/test_project_control_cli.py",
+      "target": "import:python:app.project_control.roadmap.load_roadmap",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/integration/test_project_control_cli.py",
+      "target": "import:python:app.project_control.roadmap.render_roadmap",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/integration/test_project_control_cli.py",
+      "target": "import:python:datetime.UTC",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/integration/test_project_control_cli.py",
+      "target": "import:python:datetime.datetime",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/integration/test_project_control_cli.py",
+      "target": "import:python:pathlib.Path",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/integration/test_project_control_cli.py",
+      "target": "import:python:subprocess",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/integration/test_project_control_cli.py",
+      "target": "import:python:sys",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/integration/test_project_control_cli.py",
+      "target": "import:python:tests.helpers_project_control.seed_control_room",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/integration/test_project_control_cli.py",
+      "target": "import:python:yaml",
       "type": "imports"
     },
     {
@@ -12123,7 +12573,7 @@
     {
       "metadata": {},
       "source": "file:tests/test_cli.py",
-      "target": "file:app/cli.py",
+      "target": "file:app/project_control/cli.py",
       "type": "likely_tests"
     },
     {
@@ -18447,6 +18897,12 @@
     {
       "metadata": {},
       "source": "folder:.",
+      "target": "file:AGENTS.md",
+      "type": "contains"
+    },
+    {
+      "metadata": {},
+      "source": "folder:.",
       "target": "file:Dockerfile",
       "type": "contains"
     },
@@ -19083,6 +19539,12 @@
     {
       "metadata": {},
       "source": "folder:app/project_control",
+      "target": "file:app/project_control/cli.py",
+      "type": "contains"
+    },
+    {
+      "metadata": {},
+      "source": "folder:app/project_control",
       "target": "file:app/project_control/codegraph.py",
       "type": "contains"
     },
@@ -19324,6 +19786,18 @@
       "metadata": {},
       "source": "folder:app/schemas",
       "target": "file:app/schemas/workspace.py",
+      "type": "contains"
+    },
+    {
+      "metadata": {},
+      "source": "folder:coordination",
+      "target": "file:coordination/PROJECT.md",
+      "type": "contains"
+    },
+    {
+      "metadata": {},
+      "source": "folder:coordination",
+      "target": "file:coordination/README.md",
       "type": "contains"
     },
     {
@@ -19923,6 +20397,12 @@
     {
       "metadata": {},
       "source": "folder:scripts",
+      "target": "file:scripts/project_control.py",
+      "type": "contains"
+    },
+    {
+      "metadata": {},
+      "source": "folder:scripts",
       "target": "file:scripts/showcase.py",
       "type": "contains"
     },
@@ -20361,7 +20841,19 @@
     {
       "metadata": {},
       "source": "folder:tests",
+      "target": "folder:tests/integration",
+      "type": "contains"
+    },
+    {
+      "metadata": {},
+      "source": "folder:tests",
       "target": "folder:tests/unit",
+      "type": "contains"
+    },
+    {
+      "metadata": {},
+      "source": "folder:tests/integration",
+      "target": "file:tests/integration/test_project_control_cli.py",
       "type": "contains"
     },
     {
@@ -21472,6 +21964,17 @@
       "type": "class"
     },
     {
+      "id": "class:python:app.project_control.errors.RemotePartialFailure",
+      "language": "python",
+      "metadata": {
+        "line": 16,
+        "qualified_name": "app.project_control.errors.RemotePartialFailure"
+      },
+      "name": "RemotePartialFailure",
+      "path": "app/project_control/errors.py",
+      "type": "class"
+    },
+    {
       "id": "class:python:app.project_control.handoffs.HandoffRecord",
       "language": "python",
       "metadata": {
@@ -22565,6 +23068,14 @@
       "type": "file"
     },
     {
+      "id": "file:AGENTS.md",
+      "language": null,
+      "metadata": {},
+      "name": "AGENTS.md",
+      "path": "AGENTS.md",
+      "type": "file"
+    },
+    {
       "id": "file:Dockerfile",
       "language": null,
       "metadata": {},
@@ -23181,6 +23692,14 @@
       "type": "file"
     },
     {
+      "id": "file:app/project_control/cli.py",
+      "language": "python",
+      "metadata": {},
+      "name": "cli.py",
+      "path": "app/project_control/cli.py",
+      "type": "file"
+    },
+    {
       "id": "file:app/project_control/codegraph.py",
       "language": "python",
       "metadata": {},
@@ -23514,6 +24033,22 @@
       "metadata": {},
       "name": "vault_mcp.py",
       "path": "app/vault_mcp.py",
+      "type": "file"
+    },
+    {
+      "id": "file:coordination/PROJECT.md",
+      "language": null,
+      "metadata": {},
+      "name": "PROJECT.md",
+      "path": "coordination/PROJECT.md",
+      "type": "file"
+    },
+    {
+      "id": "file:coordination/README.md",
+      "language": null,
+      "metadata": {},
+      "name": "README.md",
+      "path": "coordination/README.md",
       "type": "file"
     },
     {
@@ -24141,6 +24676,14 @@
       "type": "file"
     },
     {
+      "id": "file:scripts/project_control.py",
+      "language": "python",
+      "metadata": {},
+      "name": "project_control.py",
+      "path": "scripts/project_control.py",
+      "type": "file"
+    },
+    {
       "id": "file:scripts/showcase.py",
       "language": "python",
       "metadata": {},
@@ -24170,6 +24713,14 @@
       "metadata": {},
       "name": "helpers_runrecord.py",
       "path": "tests/helpers_runrecord.py",
+      "type": "test"
+    },
+    {
+      "id": "file:tests/integration/test_project_control_cli.py",
+      "language": "python",
+      "metadata": {},
+      "name": "test_project_control_cli.py",
+      "path": "tests/integration/test_project_control_cli.py",
       "type": "test"
     },
     {
@@ -25298,6 +25849,14 @@
       "metadata": {},
       "name": "tests",
       "path": "tests",
+      "type": "folder"
+    },
+    {
+      "id": "folder:tests/integration",
+      "language": null,
+      "metadata": {},
+      "name": "integration",
+      "path": "tests/integration",
       "type": "folder"
     },
     {
@@ -29994,6 +30553,160 @@
       "type": "function"
     },
     {
+      "id": "function:python:app.project_control.cli._codegraph_command",
+      "language": "python",
+      "metadata": {
+        "line": 159,
+        "qualified_name": "app.project_control.cli._codegraph_command"
+      },
+      "name": "_codegraph_command",
+      "path": "app/project_control/cli.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.project_control.cli._git_output",
+      "language": "python",
+      "metadata": {
+        "line": 170,
+        "qualified_name": "app.project_control.cli._git_output"
+      },
+      "name": "_git_output",
+      "path": "app/project_control/cli.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.project_control.cli._handoff_command",
+      "language": "python",
+      "metadata": {
+        "line": 184,
+        "qualified_name": "app.project_control.cli._handoff_command"
+      },
+      "name": "_handoff_command",
+      "path": "app/project_control/cli.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.project_control.cli._normalize_expected_failure",
+      "language": "python",
+      "metadata": {
+        "line": 132,
+        "qualified_name": "app.project_control.cli._normalize_expected_failure"
+      },
+      "name": "_normalize_expected_failure",
+      "path": "app/project_control/cli.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.project_control.cli._record_issue",
+      "language": "python",
+      "metadata": {
+        "line": 39,
+        "qualified_name": "app.project_control.cli._record_issue"
+      },
+      "name": "_record_issue",
+      "path": "app/project_control/cli.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.project_control.cli._relative_label",
+      "language": "python",
+      "metadata": {
+        "line": 32,
+        "qualified_name": "app.project_control.cli._relative_label"
+      },
+      "name": "_relative_label",
+      "path": "app/project_control/cli.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.project_control.cli._repository_root",
+      "language": "python",
+      "metadata": {
+        "line": 28,
+        "qualified_name": "app.project_control.cli._repository_root"
+      },
+      "name": "_repository_root",
+      "path": "app/project_control/cli.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.project_control.cli._snapshot_command",
+      "language": "python",
+      "metadata": {
+        "line": 152,
+        "qualified_name": "app.project_control.cli._snapshot_command"
+      },
+      "name": "_snapshot_command",
+      "path": "app/project_control/cli.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.project_control.cli._validate_command",
+      "language": "python",
+      "metadata": {
+        "line": 145,
+        "qualified_name": "app.project_control.cli._validate_command"
+      },
+      "name": "_validate_command",
+      "path": "app/project_control/cli.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.project_control.cli._validate_frontmatter_records",
+      "language": "python",
+      "metadata": {
+        "line": 51,
+        "qualified_name": "app.project_control.cli._validate_frontmatter_records"
+      },
+      "name": "_validate_frontmatter_records",
+      "path": "app/project_control/cli.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.project_control.cli.build_parser",
+      "language": "python",
+      "metadata": {
+        "line": 208,
+        "qualified_name": "app.project_control.cli.build_parser"
+      },
+      "name": "build_parser",
+      "path": "app/project_control/cli.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.project_control.cli.compare_roadmap",
+      "language": "python",
+      "metadata": {
+        "line": 119,
+        "qualified_name": "app.project_control.cli.compare_roadmap"
+      },
+      "name": "compare_roadmap",
+      "path": "app/project_control/cli.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.project_control.cli.main",
+      "language": "python",
+      "metadata": {
+        "line": 228,
+        "qualified_name": "app.project_control.cli.main"
+      },
+      "name": "main",
+      "path": "app/project_control/cli.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.project_control.cli.validate_control_room",
+      "language": "python",
+      "metadata": {
+        "line": 78,
+        "qualified_name": "app.project_control.cli.validate_control_room"
+      },
+      "name": "validate_control_room",
+      "path": "app/project_control/cli.py",
+      "type": "function"
+    },
+    {
       "id": "function:python:app.project_control.codegraph._annotate_file_only_languages",
       "language": "python",
       "metadata": {
@@ -31740,6 +32453,149 @@
       },
       "name": "minimal_run_record",
       "path": "tests/helpers_runrecord.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.integration.test_project_control_cli._git",
+      "language": "python",
+      "metadata": {
+        "line": 29,
+        "qualified_name": "tests.integration.test_project_control_cli._git"
+      },
+      "name": "_git",
+      "path": "tests/integration/test_project_control_cli.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.integration.test_project_control_cli._seed_cli_repository",
+      "language": "python",
+      "metadata": {
+        "line": 39,
+        "qualified_name": "tests.integration.test_project_control_cli._seed_cli_repository"
+      },
+      "name": "_seed_cli_repository",
+      "path": "tests/integration/test_project_control_cli.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.integration.test_project_control_cli.fail",
+      "language": "python",
+      "metadata": {
+        "line": 126,
+        "qualified_name": "tests.integration.test_project_control_cli.fail"
+      },
+      "name": "fail",
+      "path": "tests/integration/test_project_control_cli.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.integration.test_project_control_cli.run_cli",
+      "language": "python",
+      "metadata": {
+        "line": 19,
+        "qualified_name": "tests.integration.test_project_control_cli.run_cli"
+      },
+      "name": "run_cli",
+      "path": "tests/integration/test_project_control_cli.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.integration.test_project_control_cli.test_cli_help_lists_all_local_commands",
+      "language": "python",
+      "metadata": {
+        "line": 65,
+        "qualified_name": "tests.integration.test_project_control_cli.test_cli_help_lists_all_local_commands"
+      },
+      "name": "test_cli_help_lists_all_local_commands",
+      "path": "tests/integration/test_project_control_cli.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.integration.test_project_control_cli.test_coordination_index_links_every_authoritative_surface",
+      "language": "python",
+      "metadata": {
+        "line": 153,
+        "qualified_name": "tests.integration.test_project_control_cli.test_coordination_index_links_every_authoritative_surface"
+      },
+      "name": "test_coordination_index_links_every_authoritative_surface",
+      "path": "tests/integration/test_project_control_cli.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.integration.test_project_control_cli.test_expected_failures_map_to_stable_exit_codes_without_tracebacks",
+      "language": "python",
+      "metadata": {
+        "line": 109,
+        "qualified_name": "tests.integration.test_project_control_cli.test_expected_failures_map_to_stable_exit_codes_without_tracebacks"
+      },
+      "name": "test_expected_failures_map_to_stable_exit_codes_without_tracebacks",
+      "path": "tests/integration/test_project_control_cli.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.integration.test_project_control_cli.test_local_generation_and_handoff_commands_use_repository_state",
+      "language": "python",
+      "metadata": {
+        "line": 86,
+        "qualified_name": "tests.integration.test_project_control_cli.test_local_generation_and_handoff_commands_use_repository_state"
+      },
+      "name": "test_local_generation_and_handoff_commands_use_repository_state",
+      "path": "tests/integration/test_project_control_cli.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.integration.test_project_control_cli.test_project_boundary_preserves_vlm_vla_limitations",
+      "language": "python",
+      "metadata": {
+        "line": 172,
+        "qualified_name": "tests.integration.test_project_control_cli.test_project_boundary_preserves_vlm_vla_limitations"
+      },
+      "name": "test_project_boundary_preserves_vlm_vla_limitations",
+      "path": "tests/integration/test_project_control_cli.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.integration.test_project_control_cli.test_root_agents_file_links_control_room_in_one_hop",
+      "language": "python",
+      "metadata": {
+        "line": 143,
+        "qualified_name": "tests.integration.test_project_control_cli.test_root_agents_file_links_control_room_in_one_hop"
+      },
+      "name": "test_root_agents_file_links_control_room_in_one_hop",
+      "path": "tests/integration/test_project_control_cli.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.integration.test_project_control_cli.test_usage_errors_return_two_without_traceback",
+      "language": "python",
+      "metadata": {
+        "line": 136,
+        "qualified_name": "tests.integration.test_project_control_cli.test_usage_errors_return_two_without_traceback"
+      },
+      "name": "test_usage_errors_return_two_without_traceback",
+      "path": "tests/integration/test_project_control_cli.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.integration.test_project_control_cli.test_validate_command_succeeds_on_committed_control_room",
+      "language": "python",
+      "metadata": {
+        "line": 58,
+        "qualified_name": "tests.integration.test_project_control_cli.test_validate_command_succeeds_on_committed_control_room"
+      },
+      "name": "test_validate_command_succeeds_on_committed_control_room",
+      "path": "tests/integration/test_project_control_cli.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.integration.test_project_control_cli.test_validate_reports_every_invalid_path_without_traceback",
+      "language": "python",
+      "metadata": {
+        "line": 73,
+        "qualified_name": "tests.integration.test_project_control_cli.test_validate_reports_every_invalid_path_without_traceback"
+      },
+      "name": "test_validate_reports_every_invalid_path_without_traceback",
+      "path": "tests/integration/test_project_control_cli.py",
       "type": "function"
     },
     {
@@ -38980,6 +39836,16 @@
       "type": "import"
     },
     {
+      "id": "import:python:app.project_control.cli",
+      "language": "python",
+      "metadata": {
+        "imported_from": "app.project_control"
+      },
+      "name": "app.project_control.cli",
+      "path": null,
+      "type": "import"
+    },
+    {
       "id": "import:python:app.project_control.codegraph.build_codegraph",
       "language": "python",
       "metadata": {
@@ -39040,12 +39906,32 @@
       "type": "import"
     },
     {
+      "id": "import:python:app.project_control.errors.DependencyUnavailable",
+      "language": "python",
+      "metadata": {
+        "imported_from": "app.project_control.errors"
+      },
+      "name": "app.project_control.errors.DependencyUnavailable",
+      "path": null,
+      "type": "import"
+    },
+    {
       "id": "import:python:app.project_control.errors.InvalidControlRoom",
       "language": "python",
       "metadata": {
         "imported_from": "app.project_control.errors"
       },
       "name": "app.project_control.errors.InvalidControlRoom",
+      "path": null,
+      "type": "import"
+    },
+    {
+      "id": "import:python:app.project_control.errors.RemotePartialFailure",
+      "language": "python",
+      "metadata": {
+        "imported_from": "app.project_control.errors"
+      },
+      "name": "app.project_control.errors.RemotePartialFailure",
       "path": null,
       "type": "import"
     },
@@ -40000,6 +40886,16 @@
       "type": "import"
     },
     {
+      "id": "import:python:collections.abc.Sequence",
+      "language": "python",
+      "metadata": {
+        "imported_from": "collections.abc"
+      },
+      "name": "collections.abc.Sequence",
+      "path": null,
+      "type": "import"
+    },
+    {
       "id": "import:python:contextlib",
       "language": "python",
       "metadata": {
@@ -40166,6 +41062,16 @@
         "imported_from": null
       },
       "name": "httpx",
+      "path": null,
+      "type": "import"
+    },
+    {
+      "id": "import:python:importlib.import_module",
+      "language": "python",
+      "metadata": {
+        "imported_from": "importlib"
+      },
+      "name": "importlib.import_module",
       "path": null,
       "type": "import"
     },
@@ -44333,8 +45239,8 @@
       "python"
     ],
     "risk_count": 0,
-    "source_file_count": 222,
-    "test_file_count": 93,
+    "source_file_count": 225,
+    "test_file_count": 94,
     "test_frameworks": [
       "pytest"
     ]

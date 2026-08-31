@@ -1,10 +1,10 @@
 {
   "counts": {
-    "edges": 3437,
-    "included_files": 303,
-    "nodes": 2282,
-    "source_files": 222,
-    "test_files": 93
+    "edges": 3519,
+    "included_files": 309,
+    "nodes": 2322,
+    "source_files": 225,
+    "test_files": 94
   },
   "exclusions": [
     ".cache/",
@@ -26,7 +26,7 @@
     "target/",
     "vendor/"
   ],
-  "generated_at": "2026-08-31T16:05:10Z",
+  "generated_at": "2026-08-31T16:14:51Z",
   "generator_version": "1",
   "included_paths": [
     ".claude/launch.json",
@@ -35,6 +35,7 @@
     ".github/workflows/ci.yml",
     ".github/workflows/public-hygiene.yml",
     ".gitignore",
+    "AGENTS.md",
     "Dockerfile",
     "Makefile",
     "README.md",
@@ -112,6 +113,7 @@
     "app/mcp_server.py",
     "app/project_control/__init__.py",
     "app/project_control/artifacts.py",
+    "app/project_control/cli.py",
     "app/project_control/codegraph.py",
     "app/project_control/decisions.py",
     "app/project_control/errors.py",
@@ -154,6 +156,8 @@
     "app/schemas/workload.py",
     "app/schemas/workspace.py",
     "app/vault_mcp.py",
+    "coordination/PROJECT.md",
+    "coordination/README.md",
     "coordination/artifacts/README.md",
     "coordination/artifacts/index.yaml",
     "coordination/decisions/README.md",
@@ -232,10 +236,12 @@
     "scripts/benchmark.py",
     "scripts/capture_showcase.py",
     "scripts/evolve.py",
+    "scripts/project_control.py",
     "scripts/showcase.py",
     "tests/conftest.py",
     "tests/helpers_project_control.py",
     "tests/helpers_runrecord.py",
+    "tests/integration/test_project_control_cli.py",
     "tests/test_api.py",
     "tests/test_benchmark.py",
     "tests/test_capability_pack.py",
@@ -357,6 +363,6 @@
     ]
   },
   "schema_version": 1,
-  "source_commit": "186b363ac8a9b70afa3ca295dbd3733e8453f42b",
-  "source_tree_digest": "b9dba03b65f54a903e6a94ae6c38c0685f388c6387b29b7daf0eb6d83309b40e"
+  "source_commit": "a514a12aec4f5c6c04813e1c0cb775e0491270d5",
+  "source_tree_digest": "2ba5bc4ee59d089448adc31608e7da20f4f620fa6a614cfe79ad64cc2775cac8"
 }
