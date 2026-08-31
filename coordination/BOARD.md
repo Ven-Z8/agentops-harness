@@ -5,7 +5,7 @@
 
 - Generated at: 2026-08-30T18:00:00Z
 - GitHub project: not provisioned
-- Snapshot input revision: `2d8d31992813c1209d92611d45c29c985a04024e`
+- Snapshot input revision: `73d16ae5dac9d15fd138a14b9bd1c5033c67d5f4`
 - Generated snapshot outputs are excluded from this revision.
 
 ## Repository roadmap work
