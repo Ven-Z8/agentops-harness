@@ -1,10 +1,10 @@
 {
   "counts": {
-    "edges": 3657,
-    "included_files": 311,
-    "nodes": 2433,
-    "source_files": 227,
-    "test_files": 95
+    "edges": 3764,
+    "included_files": 312,
+    "nodes": 2519,
+    "source_files": 228,
+    "test_files": 96
   },
   "exclusions": [
     ".cache/",
@@ -26,7 +26,7 @@
     "target/",
     "vendor/"
   ],
-  "generated_at": "2026-08-31T22:10:25Z",
+  "generated_at": "2026-08-31T22:32:46Z",
   "generator_version": "1",
   "included_paths": [
     ".claude/launch.json",
@@ -316,6 +316,7 @@
     "tests/unit/test_project_control_codegraph.py",
     "tests/unit/test_project_control_github.py",
     "tests/unit/test_project_control_handoffs.py",
+    "tests/unit/test_project_control_provisioning.py",
     "tests/unit/test_project_control_rendering.py",
     "tests/unit/test_project_control_schema.py",
     "tests/unit/test_project_control_snapshots.py",
@@ -365,6 +366,6 @@
     ]
   },
   "schema_version": 1,
-  "source_commit": "f0ed27f229e6485ab95d6ee43a18adacd0e43250",
-  "source_tree_digest": "12f8c25a5411eddc6a23729d1ed97502150fd133f890f7af0c6b0f4f17aeff41"
+  "source_commit": "dfdd0d910f34656bbec6b9a3752d9f527d6b2e00",
+  "source_tree_digest": "b6ca9834eb8cde343a5a08b80d207d9a235e4b57661446b6cc10dfce2662ee79"
 }
