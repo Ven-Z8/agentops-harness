@@ -79,8 +79,35 @@ def test_cli_help_lists_all_local_commands() -> None:
     result = run_cli("--help")
 
     assert result.returncode == 0
-    commands = ("validate", "snapshot", "codegraph", "handoff", "board-export")
+    commands = (
+        "validate",
+        "snapshot",
+        "codegraph",
+        "handoff",
+        "board-export",
+        "github-provision",
+    )
     assert all(command in result.stdout for command in commands)
+
+
+def test_github_provision_requires_exactly_one_mode() -> None:
+    from app.project_control.cli import build_parser
+
+    with pytest.raises(SystemExit):
+        build_parser().parse_args(["github-provision"])
+    with pytest.raises(SystemExit):
+        build_parser().parse_args(["github-provision", "--dry-run", "--apply"])
+
+
+def test_github_apply_requires_explicit_confirmation(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from app.project_control import cli
+
+    _seed_cli_repository(tmp_path)
+    monkeypatch.setattr(cli, "_repository_root", lambda: tmp_path)
+
+    assert cli.main(["github-provision", "--apply"]) == 2
 
 
 def test_board_export_writes_both_snapshots_only_after_fake_remote_validation(

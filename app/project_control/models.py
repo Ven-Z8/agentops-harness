@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import re
+from dataclasses import dataclass
+from dataclasses import field as dataclass_field
 from datetime import datetime
 from enum import StrEnum
 from pathlib import PurePosixPath
-from typing import Literal
+from typing import Any, Literal
 from urllib.parse import urlsplit
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
@@ -597,3 +599,175 @@ class ControlRoomState(StrictModel):
         if value != "unavailable" and not re.fullmatch(r"[0-9a-f]{40}", value):
             raise ValueError("Snapshot source revision must be a full commit SHA or unavailable")
         return value
+
+
+# GitHub provisioning is deliberately represented separately from BoardExport.  BoardExport
+# is the validated read-only snapshot consumed by local renderers; these records are the
+# minimum remote identity needed by the deterministic provisioning planner.
+class RemoteProject(StrictModel):
+    id: str = Field(min_length=1)
+    number: int = Field(gt=0)
+    name: str = Field(min_length=1)
+    url: str
+
+    _validate_url = field_validator("url")(_https_url)
+
+
+class RemoteIssue(StrictModel):
+    task_id: str = Field(min_length=1)
+    node_id: str = Field(min_length=1)
+    number: int = Field(gt=0)
+    url: str
+    title: str | None = None
+    body: str = ""
+
+    _validate_url = field_validator("url")(_https_url)
+
+
+class RemoteField(StrictModel):
+    id: str = Field(min_length=1)
+    name: str = Field(min_length=1)
+    options: list[str] = Field(default_factory=list)
+
+
+class RemoteProjectItem(StrictModel):
+    id: str = Field(min_length=1)
+    task_id: str = Field(min_length=1)
+    field_values: dict[str, Any] = Field(default_factory=dict)
+
+
+class RemoteView(StrictModel):
+    id: str = Field(min_length=1)
+    name: str = Field(min_length=1)
+
+
+class RemoteGitHubState(StrictModel):
+    owner: str = Field(min_length=1)
+    repository: str = Field(pattern=r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
+    project: RemoteProject | None = None
+    issues: list[RemoteIssue] = Field(default_factory=list)
+    fields: list[RemoteField] = Field(default_factory=list)
+    items: list[RemoteProjectItem] = Field(default_factory=list)
+    views: list[RemoteView] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def validate_unique_remote_keys(self) -> RemoteGitHubState:
+        issue_ids = [issue.task_id for issue in self.issues]
+        if len(issue_ids) != len(set(issue_ids)):
+            raise ValueError("duplicate remote issue stable task ID")
+        for issue in self.issues:
+            expected = f"https://github.com/{self.repository}/issues/{issue.number}"
+            if issue.url != expected:
+                raise ValueError("remote issue URL does not match configured repository")
+        field_names = [field.name for field in self.fields]
+        if len(field_names) != len(set(field_names)):
+            raise ValueError("duplicate remote field name")
+        for field in self.fields:
+            if len(field.options) != len(set(field.options)):
+                raise ValueError(f"duplicate options for remote field: {field.name}")
+        item_ids = [item.id for item in self.items]
+        if len(item_ids) != len(set(item_ids)):
+            raise ValueError("duplicate remote project item ID")
+        item_tasks = [item.task_id for item in self.items]
+        if len(item_tasks) != len(set(item_tasks)):
+            raise ValueError("duplicate remote project item stable task ID")
+        view_names = [view.name for view in self.views]
+        if len(view_names) != len(set(view_names)):
+            raise ValueError("duplicate remote view name")
+        return self
+
+
+ProvisionResource = Literal["project", "field", "view", "issue", "item", "field-value"]
+ProvisionActionKind = Literal["create", "reuse", "update"]
+
+
+@dataclass(frozen=True)
+class ProvisionAction:
+    resource: ProvisionResource
+    stable_key: str
+    action: ProvisionActionKind
+    remote_id: str | None
+    payload: dict[str, object] = dataclass_field(default_factory=dict)
+
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "resource": self.resource,
+            "stable_key": self.stable_key,
+            "action": self.action,
+            "remote_id": self.remote_id,
+            "payload": self.payload,
+        }
+
+
+@dataclass(frozen=True)
+class ProvisioningPlan:
+    project: ProvisionAction
+    field_actions: list[ProvisionAction] = dataclass_field(default_factory=list)
+    issue_actions: list[ProvisionAction] = dataclass_field(default_factory=list)
+    item_actions: list[ProvisionAction] = dataclass_field(default_factory=list)
+    field_value_actions: list[ProvisionAction] = dataclass_field(default_factory=list)
+    view_actions: list[ProvisionAction] = dataclass_field(default_factory=list)
+
+    @property
+    def actions(self) -> list[ProvisionAction]:
+        return [
+            self.project,
+            *sorted(self.field_actions, key=lambda action: action.stable_key),
+            *sorted(self.issue_actions, key=lambda action: action.stable_key),
+            *sorted(self.item_actions, key=lambda action: action.stable_key),
+            *sorted(self.field_value_actions, key=lambda action: action.stable_key),
+            *sorted(self.view_actions, key=lambda action: action.stable_key),
+        ]
+
+    def as_dict(self) -> dict[str, object]:
+        return {"actions": [action.as_dict() for action in self.actions]}
+
+    def to_json(self) -> str:
+        import json
+
+        return json.dumps(self.as_dict(), ensure_ascii=False, sort_keys=True, indent=2) + "\n"
+
+    def to_markdown(self) -> str:
+        lines = [
+            "# GitHub Provisioning Plan",
+            "",
+            "| Resource | Stable key | Action | Remote ID |",
+            "| --- | --- | --- | --- |",
+        ]
+        for action in self.actions:
+            lines.append(
+                "| "
+                f"{action.resource} | {action.stable_key} | {action.action} | "
+                f"{action.remote_id or '—'} |"
+            )
+        return "\n".join(lines) + "\n"
+
+
+@dataclass(frozen=True)
+class ReconciliationReport:
+    state: Literal["success", "partial"]
+    completed_object_ids: dict[str, str] = dataclass_field(default_factory=dict)
+    completed_actions: list[ProvisionAction] = dataclass_field(default_factory=list)
+    remaining_actions: list[ProvisionAction] = dataclass_field(default_factory=list)
+    skipped_actions: list[ProvisionAction] = dataclass_field(default_factory=list)
+    manual_instructions: list[str] = dataclass_field(default_factory=list)
+    error: str | None = None
+    report_path: str | None = None
+
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "schema_version": 1,
+            "state": self.state,
+            "completed_object_ids": dict(sorted(self.completed_object_ids.items())),
+            "completed_actions": [action.as_dict() for action in self.completed_actions],
+            "remaining_actions": [action.as_dict() for action in self.remaining_actions],
+            "skipped_actions": [action.as_dict() for action in self.skipped_actions],
+            "manual_instructions": self.manual_instructions,
+            "error": self.error,
+            "report_path": self.report_path,
+        }
+
+    def to_json(self) -> str:
+        import json
+
+        return json.dumps(self.as_dict(), ensure_ascii=False, sort_keys=True, indent=2) + "\n"

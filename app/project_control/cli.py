@@ -18,10 +18,20 @@ from app.project_control.errors import (
     InvalidControlRoom,
     RemotePartialFailure,
 )
-from app.project_control.github import GitHubClient, SubprocessGhTransport
+from app.project_control.github import (
+    ApplyGhTransport,
+    GitHubClient,
+    GitHubProvisioner,
+    SubprocessGhTransport,
+)
 from app.project_control.handoffs import create_handoff, load_latest_handoffs
 from app.project_control.io import load_frontmatter, load_yaml, resolve_inside
-from app.project_control.models import DecisionHeader, HandoffHeader, ProjectConfig
+from app.project_control.models import (
+    ControlRoomState,
+    DecisionHeader,
+    HandoffHeader,
+    ProjectConfig,
+)
 from app.project_control.roadmap import load_roadmap, render_roadmap
 from app.project_control.snapshots import write_initial_snapshots, write_snapshots
 
@@ -233,6 +243,32 @@ def _board_export_command(_args: argparse.Namespace) -> int:
     return 0
 
 
+def _github_provision_command(args: argparse.Namespace) -> int:
+    root = _repository_root()
+    project = load_yaml(root / "coordination/project.yaml", ProjectConfig, root=root)
+    if args.apply and not args.confirm:
+        raise InvalidControlRoom("--apply requires explicit --confirm approval")
+    roadmap = load_roadmap(root)
+    state = ControlRoomState(project=project, roadmap=roadmap)
+    remote = GitHubClient(SubprocessGhTransport()).discover_state(
+        project.github_project.owner,
+        project.project.repository,
+        "AgentOps Research Control Plane — 14-Day v0.1",
+    )
+    # The mutation-capable transport is intentionally constructed only after the mode and
+    # explicit confirmation have been validated. Dry-run therefore cannot even instantiate it.
+    if args.dry_run:
+        plan = GitHubProvisioner(SubprocessGhTransport()).plan(state, remote)
+        print(plan.to_json(), end="")
+        return 0
+    mutation_transport = ApplyGhTransport()
+    provisioner = GitHubProvisioner(mutation_transport, root=root)
+    plan = provisioner.plan(state, remote)
+    report = provisioner.apply(plan)
+    print(report.to_json(), end="")
+    return 4 if report.state == "partial" else 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Manage the local Project Control Room.")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -255,6 +291,21 @@ def build_parser() -> argparse.ArgumentParser:
         "board-export", help="Export the configured GitHub Project read-only."
     )
     board_export.set_defaults(handler=_board_export_command)
+
+    github_provision = subparsers.add_parser(
+        "github-provision", help="Plan or explicitly apply GitHub Project reconciliation."
+    )
+    mode = github_provision.add_mutually_exclusive_group(required=True)
+    mode.add_argument("--dry-run", action="store_true", help="Print a mutation-free plan.")
+    mode.add_argument("--apply", action="store_true", help="Apply the plan after confirmation.")
+    github_provision.add_argument(
+        "--confirm",
+        "--yes",
+        dest="confirm",
+        action="store_true",
+        help="Confirm remote mutation (required with --apply).",
+    )
+    github_provision.set_defaults(handler=_github_provision_command)
     return parser
 
 
