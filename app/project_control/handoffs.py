@@ -4,6 +4,8 @@ import re
 from datetime import UTC, datetime
 from pathlib import Path
 
+import yaml
+
 from app.project_control.io import atomic_write, load_frontmatter, resolve_inside
 from app.project_control.models import HandoffHeader
 from app.project_control.roadmap import load_roadmap
@@ -25,9 +27,16 @@ def _require_roadmap_task(root: Path, task_id: str) -> None:
 
 
 def _utc_timestamp(value: datetime) -> str:
-    if value.tzinfo is None:
+    if value.tzinfo is None or value.utcoffset() is None:
         raise ValueError("now must include a timezone")
     return value.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def _expected_handoff_name(header: HandoffHeader) -> str:
+    if header.started_at.tzinfo is None or header.started_at.utcoffset() is None:
+        raise ValueError("Handoff filename requires timezone-aware started_at")
+    created_on = header.started_at.astimezone(UTC).date().isoformat()
+    return f"{created_on}-{header.task_id}-{header.harness}.md"
 
 
 def create_handoff(
@@ -66,24 +75,13 @@ def create_handoff(
             "decisions": [],
         }
     )
+    frontmatter = yaml.safe_dump(
+        header.model_dump(mode="json"), sort_keys=False, allow_unicode=True
+    ).rstrip()
     content = "\n".join(
         [
             "---",
-            "schema_version: 1",
-            f"task_id: {header.task_id}",
-            f"harness: {header.harness}",
-            "status: partial",
-            f"started_at: {timestamp}",
-            f"updated_at: {timestamp}",
-            f"branch: {header.branch}",
-            f"base_commit: {header.base_commit}",
-            f"head_commit: {header.head_commit}",
-            "verification:",
-            "  required: false",
-            "  state: not_run",
-            "  commands: []",
-            "artifacts: []",
-            "decisions: []",
+            frontmatter,
             "---",
             "",
             *[f"## {section}\nNot yet recorded.\n" for section in _HANDOFF_SECTIONS],
@@ -103,6 +101,11 @@ def latest_handoffs(root: Path) -> dict[str, Path]:
 
     for path in sorted(handoffs_directory.glob("*.md")):
         header = load_frontmatter(path, HandoffHeader, root=root)
+        expected_name = _expected_handoff_name(header)
+        if path.name != expected_name:
+            raise ValueError(
+                f"Handoff filename does not match header: expected {expected_name}, got {path.name}"
+            )
         _require_roadmap_task(root, header.task_id)
         candidate = (header.updated_at, path.name)
         previous = latest.get(header.task_id)
