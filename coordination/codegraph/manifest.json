@@ -1,8 +1,8 @@
 {
   "counts": {
-    "edges": 3644,
+    "edges": 3657,
     "included_files": 311,
-    "nodes": 2420,
+    "nodes": 2433,
     "source_files": 227,
     "test_files": 95
   },
@@ -26,7 +26,7 @@
     "target/",
     "vendor/"
   ],
-  "generated_at": "2026-08-31T21:50:35Z",
+  "generated_at": "2026-08-31T22:10:25Z",
   "generator_version": "1",
   "included_paths": [
     ".claude/launch.json",
@@ -365,6 +365,6 @@
     ]
   },
   "schema_version": 1,
-  "source_commit": "f69bc3e4ef78e88c5e59595fe68f661256b5a928",
-  "source_tree_digest": "e887af5331abe0b19b2d3ac72af7347dd05ad15bef0ae4105fcbeebcd2c3cd48"
+  "source_commit": "f0ed27f229e6485ab95d6ee43a18adacd0e43250",
+  "source_tree_digest": "12f8c25a5411eddc6a23729d1ed97502150fd133f890f7af0c6b0f4f17aeff41"
 }

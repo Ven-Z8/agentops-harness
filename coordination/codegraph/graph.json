@@ -8769,6 +8769,12 @@
     {
       "metadata": {},
       "source": "file:app/project_control/github.py",
+      "target": "import:python:math",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/github.py",
       "target": "import:python:pydantic.BaseModel",
       "type": "imports"
     },
@@ -12129,6 +12135,12 @@
     {
       "metadata": {},
       "source": "file:tests/integration/test_project_control_cli.py",
+      "target": "function:python:tests.integration.test_project_control_cli.test_board_export_allows_empty_project_with_configured_repository",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/integration/test_project_control_cli.py",
       "target": "function:python:tests.integration.test_project_control_cli.test_board_export_refuses_cross_repository_items_before_writes",
       "type": "defines"
     },
@@ -12334,6 +12346,12 @@
       "metadata": {},
       "source": "file:tests/integration/test_project_control_cli.py",
       "target": "import:python:tests.unit.test_project_control_github.PROJECT_RESPONSE",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/integration/test_project_control_cli.py",
+      "target": "import:python:tests.unit.test_project_control_github.project_response",
       "type": "imports"
     },
     {
@@ -18567,6 +18585,12 @@
     {
       "metadata": {},
       "source": "file:tests/unit/test_project_control_github.py",
+      "target": "function:python:tests.unit.test_project_control_github.complete_control_definitions",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_github.py",
       "target": "function:python:tests.unit.test_project_control_github.fail",
       "type": "defines"
     },
@@ -18574,6 +18598,12 @@
       "metadata": {},
       "source": "file:tests/unit/test_project_control_github.py",
       "target": "function:python:tests.unit.test_project_control_github.fake_run",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_github.py",
+      "target": "function:python:tests.unit.test_project_control_github.field_value_node",
       "type": "defines"
     },
     {
@@ -18598,6 +18628,18 @@
       "metadata": {},
       "source": "file:tests/unit/test_project_control_github.py",
       "target": "function:python:tests.unit.test_project_control_github.test_export_accepts_canonical_issue_url",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_github.py",
+      "target": "function:python:tests.unit.test_project_control_github.test_export_accepts_integral_day_number",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_github.py",
+      "target": "function:python:tests.unit.test_project_control_github.test_export_accepts_only_graphql_typename_alias",
       "type": "defines"
     },
     {
@@ -18633,6 +18675,18 @@
     {
       "metadata": {},
       "source": "file:tests/unit/test_project_control_github.py",
+      "target": "function:python:tests.unit.test_project_control_github.test_export_rejects_duplicate_definition_and_field_value_ids",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_github.py",
+      "target": "function:python:tests.unit.test_project_control_github.test_export_rejects_field_value_id_name_mismatch",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_github.py",
       "target": "function:python:tests.unit.test_project_control_github.test_export_rejects_graphql_scalar_type_substitution",
       "type": "defines"
     },
@@ -18663,13 +18717,37 @@
     {
       "metadata": {},
       "source": "file:tests/unit/test_project_control_github.py",
+      "target": "function:python:tests.unit.test_project_control_github.test_export_rejects_unsafe_day_numbers",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_github.py",
       "target": "function:python:tests.unit.test_project_control_github.test_export_rejects_wrong_definition_type",
       "type": "defines"
     },
     {
       "metadata": {},
       "source": "file:tests/unit/test_project_control_github.py",
+      "target": "function:python:tests.unit.test_project_control_github.test_export_requires_data_type_for_project_field",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_github.py",
       "target": "function:python:tests.unit.test_project_control_github.test_extract_task_id_requires_exact_stable_line",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_github.py",
+      "target": "function:python:tests.unit.test_project_control_github.test_iteration_builtin_definition_and_value_are_ignored",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_github.py",
+      "target": "function:python:tests.unit.test_project_control_github.test_iteration_value_must_have_correlated_identity",
       "type": "defines"
     },
     {
@@ -22728,7 +22806,7 @@
       "id": "class:python:app.project_control.github.GhTransport",
       "language": "python",
       "metadata": {
-        "line": 16,
+        "line": 17,
         "qualified_name": "app.project_control.github.GhTransport"
       },
       "name": "GhTransport",
@@ -22739,7 +22817,7 @@
       "id": "class:python:app.project_control.github.GitHubClient",
       "language": "python",
       "metadata": {
-        "line": 419,
+        "line": 471,
         "qualified_name": "app.project_control.github.GitHubClient"
       },
       "name": "GitHubClient",
@@ -22750,7 +22828,7 @@
       "id": "class:python:app.project_control.github.SubprocessGhTransport",
       "language": "python",
       "metadata": {
-        "line": 389,
+        "line": 441,
         "qualified_name": "app.project_control.github.SubprocessGhTransport"
       },
       "name": "SubprocessGhTransport",
@@ -22761,7 +22839,7 @@
       "id": "class:python:app.project_control.github._Data",
       "language": "python",
       "metadata": {
-        "line": 108,
+        "line": 110,
         "qualified_name": "app.project_control.github._Data"
       },
       "name": "_Data",
@@ -22772,7 +22850,7 @@
       "id": "class:python:app.project_control.github._FieldDefinition",
       "language": "python",
       "metadata": {
-        "line": 33,
+        "line": 34,
         "qualified_name": "app.project_control.github._FieldDefinition"
       },
       "name": "_FieldDefinition",
@@ -22783,7 +22861,7 @@
       "id": "class:python:app.project_control.github._FieldDefinitions",
       "language": "python",
       "metadata": {
-        "line": 41,
+        "line": 42,
         "qualified_name": "app.project_control.github._FieldDefinitions"
       },
       "name": "_FieldDefinitions",
@@ -22794,7 +22872,7 @@
       "id": "class:python:app.project_control.github._FieldRef",
       "language": "python",
       "metadata": {
-        "line": 50,
+        "line": 51,
         "qualified_name": "app.project_control.github._FieldRef"
       },
       "name": "_FieldRef",
@@ -22805,7 +22883,7 @@
       "id": "class:python:app.project_control.github._FieldValue",
       "language": "python",
       "metadata": {
-        "line": 55,
+        "line": 57,
         "qualified_name": "app.project_control.github._FieldValue"
       },
       "name": "_FieldValue",
@@ -22816,7 +22894,7 @@
       "id": "class:python:app.project_control.github._FieldValues",
       "language": "python",
       "metadata": {
-        "line": 66,
+        "line": 68,
         "qualified_name": "app.project_control.github._FieldValues"
       },
       "name": "_FieldValues",
@@ -22827,7 +22905,7 @@
       "id": "class:python:app.project_control.github._GraphQLError",
       "language": "python",
       "metadata": {
-        "line": 24,
+        "line": 25,
         "qualified_name": "app.project_control.github._GraphQLError"
       },
       "name": "_GraphQLError",
@@ -22838,7 +22916,7 @@
       "id": "class:python:app.project_control.github._GraphQLResponse",
       "language": "python",
       "metadata": {
-        "line": 112,
+        "line": 114,
         "qualified_name": "app.project_control.github._GraphQLResponse"
       },
       "name": "_GraphQLResponse",
@@ -22849,7 +22927,7 @@
       "id": "class:python:app.project_control.github._Issue",
       "language": "python",
       "metadata": {
-        "line": 77,
+        "line": 79,
         "qualified_name": "app.project_control.github._Issue"
       },
       "name": "_Issue",
@@ -22860,7 +22938,7 @@
       "id": "class:python:app.project_control.github._Item",
       "language": "python",
       "metadata": {
-        "line": 85,
+        "line": 87,
         "qualified_name": "app.project_control.github._Item"
       },
       "name": "_Item",
@@ -22871,7 +22949,7 @@
       "id": "class:python:app.project_control.github._Items",
       "language": "python",
       "metadata": {
-        "line": 91,
+        "line": 93,
         "qualified_name": "app.project_control.github._Items"
       },
       "name": "_Items",
@@ -22882,7 +22960,7 @@
       "id": "class:python:app.project_control.github._Option",
       "language": "python",
       "metadata": {
-        "line": 28,
+        "line": 29,
         "qualified_name": "app.project_control.github._Option"
       },
       "name": "_Option",
@@ -22893,7 +22971,7 @@
       "id": "class:python:app.project_control.github._PageInfo",
       "language": "python",
       "metadata": {
-        "line": 45,
+        "line": 46,
         "qualified_name": "app.project_control.github._PageInfo"
       },
       "name": "_PageInfo",
@@ -22904,7 +22982,7 @@
       "id": "class:python:app.project_control.github._Project",
       "language": "python",
       "metadata": {
-        "line": 96,
+        "line": 98,
         "qualified_name": "app.project_control.github._Project"
       },
       "name": "_Project",
@@ -22915,7 +22993,7 @@
       "id": "class:python:app.project_control.github._Repository",
       "language": "python",
       "metadata": {
-        "line": 70,
+        "line": 72,
         "qualified_name": "app.project_control.github._Repository"
       },
       "name": "_Repository",
@@ -22926,7 +23004,7 @@
       "id": "class:python:app.project_control.github._StrictResponse",
       "language": "python",
       "metadata": {
-        "line": 20,
+        "line": 21,
         "qualified_name": "app.project_control.github._StrictResponse"
       },
       "name": "_StrictResponse",
@@ -22937,7 +23015,7 @@
       "id": "class:python:app.project_control.github._User",
       "language": "python",
       "metadata": {
-        "line": 104,
+        "line": 106,
         "qualified_name": "app.project_control.github._User"
       },
       "name": "_User",
@@ -31674,7 +31752,7 @@
       "id": "function:python:app.project_control.cli.build_parser",
       "language": "python",
       "metadata": {
-        "line": 234,
+        "line": 236,
         "qualified_name": "app.project_control.cli.build_parser"
       },
       "name": "build_parser",
@@ -31696,7 +31774,7 @@
       "id": "function:python:app.project_control.cli.main",
       "language": "python",
       "metadata": {
-        "line": 259,
+        "line": 261,
         "qualified_name": "app.project_control.cli.main"
       },
       "name": "main",
@@ -31927,7 +32005,7 @@
       "id": "function:python:app.project_control.github.__init__",
       "language": "python",
       "metadata": {
-        "line": 420,
+        "line": 472,
         "qualified_name": "app.project_control.github.__init__"
       },
       "name": "__init__",
@@ -31938,7 +32016,7 @@
       "id": "function:python:app.project_control.github._board_item",
       "language": "python",
       "metadata": {
-        "line": 313,
+        "line": 357,
         "qualified_name": "app.project_control.github._board_item"
       },
       "name": "_board_item",
@@ -31949,7 +32027,7 @@
       "id": "function:python:app.project_control.github._field_value",
       "language": "python",
       "metadata": {
-        "line": 257,
+        "line": 282,
         "qualified_name": "app.project_control.github._field_value"
       },
       "name": "_field_value",
@@ -31960,7 +32038,7 @@
       "id": "function:python:app.project_control.github._phase_id",
       "language": "python",
       "metadata": {
-        "line": 296,
+        "line": 340,
         "qualified_name": "app.project_control.github._phase_id"
       },
       "name": "_phase_id",
@@ -31971,7 +32049,7 @@
       "id": "function:python:app.project_control.github._response",
       "language": "python",
       "metadata": {
-        "line": 244,
+        "line": 269,
         "qualified_name": "app.project_control.github._response"
       },
       "name": "_response",
@@ -31982,7 +32060,7 @@
       "id": "function:python:app.project_control.github._validate_canonical_issue",
       "language": "python",
       "metadata": {
-        "line": 305,
+        "line": 349,
         "qualified_name": "app.project_control.github._validate_canonical_issue"
       },
       "name": "_validate_canonical_issue",
@@ -31993,7 +32071,7 @@
       "id": "function:python:app.project_control.github.export_project",
       "language": "python",
       "metadata": {
-        "line": 423,
+        "line": 475,
         "qualified_name": "app.project_control.github.export_project"
       },
       "name": "export_project",
@@ -32004,7 +32082,7 @@
       "id": "function:python:app.project_control.github.extract_task_id",
       "language": "python",
       "metadata": {
-        "line": 237,
+        "line": 262,
         "qualified_name": "app.project_control.github.extract_task_id"
       },
       "name": "extract_task_id",
@@ -32015,7 +32093,7 @@
       "id": "function:python:app.project_control.github.graphql",
       "language": "python",
       "metadata": {
-        "line": 17,
+        "line": 18,
         "qualified_name": "app.project_control.github.graphql"
       },
       "name": "graphql",
@@ -33632,7 +33710,7 @@
       "id": "function:python:tests.integration.test_project_control_cli.fail",
       "language": "python",
       "metadata": {
-        "line": 314,
+        "line": 337,
         "qualified_name": "tests.integration.test_project_control_cli.fail"
       },
       "name": "fail",
@@ -33647,6 +33725,17 @@
         "qualified_name": "tests.integration.test_project_control_cli.run_cli"
       },
       "name": "run_cli",
+      "path": "tests/integration/test_project_control_cli.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.integration.test_project_control_cli.test_board_export_allows_empty_project_with_configured_repository",
+      "language": "python",
+      "metadata": {
+        "line": 163,
+        "qualified_name": "tests.integration.test_project_control_cli.test_board_export_allows_empty_project_with_configured_repository"
+      },
+      "name": "test_board_export_allows_empty_project_with_configured_repository",
       "path": "tests/integration/test_project_control_cli.py",
       "type": "function"
     },
@@ -33698,7 +33787,7 @@
       "id": "function:python:tests.integration.test_project_control_cli.test_coordination_index_links_every_authoritative_surface",
       "language": "python",
       "metadata": {
-        "line": 341,
+        "line": 364,
         "qualified_name": "tests.integration.test_project_control_cli.test_coordination_index_links_every_authoritative_surface"
       },
       "name": "test_coordination_index_links_every_authoritative_surface",
@@ -33709,7 +33798,7 @@
       "id": "function:python:tests.integration.test_project_control_cli.test_expected_failures_map_to_stable_exit_codes_without_tracebacks",
       "language": "python",
       "metadata": {
-        "line": 296,
+        "line": 319,
         "qualified_name": "tests.integration.test_project_control_cli.test_expected_failures_map_to_stable_exit_codes_without_tracebacks"
       },
       "name": "test_expected_failures_map_to_stable_exit_codes_without_tracebacks",
@@ -33720,7 +33809,7 @@
       "id": "function:python:tests.integration.test_project_control_cli.test_handoff_rejects_unsafe_identifiers_without_traceback",
       "language": "python",
       "metadata": {
-        "line": 284,
+        "line": 307,
         "qualified_name": "tests.integration.test_project_control_cli.test_handoff_rejects_unsafe_identifiers_without_traceback"
       },
       "name": "test_handoff_rejects_unsafe_identifiers_without_traceback",
@@ -33731,7 +33820,7 @@
       "id": "function:python:tests.integration.test_project_control_cli.test_local_generation_and_handoff_commands_use_repository_state",
       "language": "python",
       "metadata": {
-        "line": 260,
+        "line": 283,
         "qualified_name": "tests.integration.test_project_control_cli.test_local_generation_and_handoff_commands_use_repository_state"
       },
       "name": "test_local_generation_and_handoff_commands_use_repository_state",
@@ -33742,7 +33831,7 @@
       "id": "function:python:tests.integration.test_project_control_cli.test_malformed_project_yaml_is_invalid_for_validate_and_snapshot",
       "language": "python",
       "metadata": {
-        "line": 176,
+        "line": 199,
         "qualified_name": "tests.integration.test_project_control_cli.test_malformed_project_yaml_is_invalid_for_validate_and_snapshot"
       },
       "name": "test_malformed_project_yaml_is_invalid_for_validate_and_snapshot",
@@ -33753,7 +33842,7 @@
       "id": "function:python:tests.integration.test_project_control_cli.test_project_boundary_preserves_vlm_vla_limitations",
       "language": "python",
       "metadata": {
-        "line": 360,
+        "line": 383,
         "qualified_name": "tests.integration.test_project_control_cli.test_project_boundary_preserves_vlm_vla_limitations"
       },
       "name": "test_project_boundary_preserves_vlm_vla_limitations",
@@ -33764,7 +33853,7 @@
       "id": "function:python:tests.integration.test_project_control_cli.test_root_agents_file_links_control_room_in_one_hop",
       "language": "python",
       "metadata": {
-        "line": 331,
+        "line": 354,
         "qualified_name": "tests.integration.test_project_control_cli.test_root_agents_file_links_control_room_in_one_hop"
       },
       "name": "test_root_agents_file_links_control_room_in_one_hop",
@@ -33775,7 +33864,7 @@
       "id": "function:python:tests.integration.test_project_control_cli.test_usage_errors_return_two_without_traceback",
       "language": "python",
       "metadata": {
-        "line": 324,
+        "line": 347,
         "qualified_name": "tests.integration.test_project_control_cli.test_usage_errors_return_two_without_traceback"
       },
       "name": "test_usage_errors_return_two_without_traceback",
@@ -33797,7 +33886,7 @@
       "id": "function:python:tests.integration.test_project_control_cli.test_validate_labels_malformed_roadmap_and_frontmatter_paths",
       "language": "python",
       "metadata": {
-        "line": 189,
+        "line": 212,
         "qualified_name": "tests.integration.test_project_control_cli.test_validate_labels_malformed_roadmap_and_frontmatter_paths"
       },
       "name": "test_validate_labels_malformed_roadmap_and_frontmatter_paths",
@@ -33808,7 +33897,7 @@
       "id": "function:python:tests.integration.test_project_control_cli.test_validate_preserves_project_and_roadmap_id_consistency_check",
       "language": "python",
       "metadata": {
-        "line": 246,
+        "line": 269,
         "qualified_name": "tests.integration.test_project_control_cli.test_validate_preserves_project_and_roadmap_id_consistency_check"
       },
       "name": "test_validate_preserves_project_and_roadmap_id_consistency_check",
@@ -33819,7 +33908,7 @@
       "id": "function:python:tests.integration.test_project_control_cli.test_validate_rejects_unsafe_root_roadmap_identifiers_without_traceback",
       "language": "python",
       "metadata": {
-        "line": 212,
+        "line": 235,
         "qualified_name": "tests.integration.test_project_control_cli.test_validate_rejects_unsafe_root_roadmap_identifiers_without_traceback"
       },
       "name": "test_validate_rejects_unsafe_root_roadmap_identifiers_without_traceback",
@@ -33830,7 +33919,7 @@
       "id": "function:python:tests.integration.test_project_control_cli.test_validate_reports_every_invalid_path_without_traceback",
       "language": "python",
       "metadata": {
-        "line": 163,
+        "line": 186,
         "qualified_name": "tests.integration.test_project_control_cli.test_validate_reports_every_invalid_path_without_traceback"
       },
       "name": "test_validate_reports_every_invalid_path_without_traceback",
@@ -38766,10 +38855,21 @@
       "type": "function"
     },
     {
+      "id": "function:python:tests.unit.test_project_control_github.complete_control_definitions",
+      "language": "python",
+      "metadata": {
+        "line": 96,
+        "qualified_name": "tests.unit.test_project_control_github.complete_control_definitions"
+      },
+      "name": "complete_control_definitions",
+      "path": "tests/unit/test_project_control_github.py",
+      "type": "function"
+    },
+    {
       "id": "function:python:tests.unit.test_project_control_github.fail",
       "language": "python",
       "metadata": {
-        "line": 345,
+        "line": 551,
         "qualified_name": "tests.unit.test_project_control_github.fail"
       },
       "name": "fail",
@@ -38780,10 +38880,21 @@
       "id": "function:python:tests.unit.test_project_control_github.fake_run",
       "language": "python",
       "metadata": {
-        "line": 196,
+        "line": 297,
         "qualified_name": "tests.unit.test_project_control_github.fake_run"
       },
       "name": "fake_run",
+      "path": "tests/unit/test_project_control_github.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.unit.test_project_control_github.field_value_node",
+      "language": "python",
+      "metadata": {
+        "line": 141,
+        "qualified_name": "tests.unit.test_project_control_github.field_value_node"
+      },
+      "name": "field_value_node",
       "path": "tests/unit/test_project_control_github.py",
       "type": "function"
     },
@@ -38802,7 +38913,7 @@
       "id": "function:python:tests.unit.test_project_control_github.issue_item",
       "language": "python",
       "metadata": {
-        "line": 45,
+        "line": 134,
         "qualified_name": "tests.unit.test_project_control_github.issue_item"
       },
       "name": "issue_item",
@@ -38824,7 +38935,7 @@
       "id": "function:python:tests.unit.test_project_control_github.test_export_accepts_canonical_issue_url",
       "language": "python",
       "metadata": {
-        "line": 338,
+        "line": 439,
         "qualified_name": "tests.unit.test_project_control_github.test_export_accepts_canonical_issue_url"
       },
       "name": "test_export_accepts_canonical_issue_url",
@@ -38832,10 +38943,32 @@
       "type": "function"
     },
     {
+      "id": "function:python:tests.unit.test_project_control_github.test_export_accepts_integral_day_number",
+      "language": "python",
+      "metadata": {
+        "line": 532,
+        "qualified_name": "tests.unit.test_project_control_github.test_export_accepts_integral_day_number"
+      },
+      "name": "test_export_accepts_integral_day_number",
+      "path": "tests/unit/test_project_control_github.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.unit.test_project_control_github.test_export_accepts_only_graphql_typename_alias",
+      "language": "python",
+      "metadata": {
+        "line": 513,
+        "qualified_name": "tests.unit.test_project_control_github.test_export_accepts_only_graphql_typename_alias"
+      },
+      "name": "test_export_accepts_only_graphql_typename_alias",
+      "path": "tests/unit/test_project_control_github.py",
+      "type": "function"
+    },
+    {
       "id": "function:python:tests.unit.test_project_control_github.test_export_fetches_all_pages_and_advances_cursor",
       "language": "python",
       "metadata": {
-        "line": 129,
+        "line": 230,
         "qualified_name": "tests.unit.test_project_control_github.test_export_fetches_all_pages_and_advances_cursor"
       },
       "name": "test_export_fetches_all_pages_and_advances_cursor",
@@ -38846,7 +38979,7 @@
       "id": "function:python:tests.unit.test_project_control_github.test_export_is_read_only_and_maps_task_ids",
       "language": "python",
       "metadata": {
-        "line": 80,
+        "line": 181,
         "qualified_name": "tests.unit.test_project_control_github.test_export_is_read_only_and_maps_task_ids"
       },
       "name": "test_export_is_read_only_and_maps_task_ids",
@@ -38857,7 +38990,7 @@
       "id": "function:python:tests.unit.test_project_control_github.test_export_maps_supported_project_fields",
       "language": "python",
       "metadata": {
-        "line": 102,
+        "line": 203,
         "qualified_name": "tests.unit.test_project_control_github.test_export_maps_supported_project_fields"
       },
       "name": "test_export_maps_supported_project_fields",
@@ -38868,7 +39001,7 @@
       "id": "function:python:tests.unit.test_project_control_github.test_export_rejects_bad_urls_and_unsupported_field_values",
       "language": "python",
       "metadata": {
-        "line": 181,
+        "line": 282,
         "qualified_name": "tests.unit.test_project_control_github.test_export_rejects_bad_urls_and_unsupported_field_values"
       },
       "name": "test_export_rejects_bad_urls_and_unsupported_field_values",
@@ -38879,7 +39012,7 @@
       "id": "function:python:tests.unit.test_project_control_github.test_export_rejects_cursor_cycle_and_has_next_without_cursor",
       "language": "python",
       "metadata": {
-        "line": 167,
+        "line": 268,
         "qualified_name": "tests.unit.test_project_control_github.test_export_rejects_cursor_cycle_and_has_next_without_cursor"
       },
       "name": "test_export_rejects_cursor_cycle_and_has_next_without_cursor",
@@ -38887,10 +39020,32 @@
       "type": "function"
     },
     {
+      "id": "function:python:tests.unit.test_project_control_github.test_export_rejects_duplicate_definition_and_field_value_ids",
+      "language": "python",
+      "metadata": {
+        "line": 483,
+        "qualified_name": "tests.unit.test_project_control_github.test_export_rejects_duplicate_definition_and_field_value_ids"
+      },
+      "name": "test_export_rejects_duplicate_definition_and_field_value_ids",
+      "path": "tests/unit/test_project_control_github.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.unit.test_project_control_github.test_export_rejects_field_value_id_name_mismatch",
+      "language": "python",
+      "metadata": {
+        "line": 504,
+        "qualified_name": "tests.unit.test_project_control_github.test_export_rejects_field_value_id_name_mismatch"
+      },
+      "name": "test_export_rejects_field_value_id_name_mismatch",
+      "path": "tests/unit/test_project_control_github.py",
+      "type": "function"
+    },
+    {
       "id": "function:python:tests.unit.test_project_control_github.test_export_rejects_graphql_scalar_type_substitution",
       "language": "python",
       "metadata": {
-        "line": 239,
+        "line": 340,
         "qualified_name": "tests.unit.test_project_control_github.test_export_rejects_graphql_scalar_type_substitution"
       },
       "name": "test_export_rejects_graphql_scalar_type_substitution",
@@ -38901,7 +39056,7 @@
       "id": "function:python:tests.unit.test_project_control_github.test_export_rejects_invalid_or_incomplete_graphql_state",
       "language": "python",
       "metadata": {
-        "line": 155,
+        "line": 256,
         "qualified_name": "tests.unit.test_project_control_github.test_export_rejects_invalid_or_incomplete_graphql_state"
       },
       "name": "test_export_rejects_invalid_or_incomplete_graphql_state",
@@ -38912,7 +39067,7 @@
       "id": "function:python:tests.unit.test_project_control_github.test_export_rejects_missing_duplicate_option_ids_and_empty_option_value",
       "language": "python",
       "metadata": {
-        "line": 281,
+        "line": 382,
         "qualified_name": "tests.unit.test_project_control_github.test_export_rejects_missing_duplicate_option_ids_and_empty_option_value"
       },
       "name": "test_export_rejects_missing_duplicate_option_ids_and_empty_option_value",
@@ -38923,7 +39078,7 @@
       "id": "function:python:tests.unit.test_project_control_github.test_export_rejects_noncanonical_issue_url",
       "language": "python",
       "metadata": {
-        "line": 331,
+        "line": 432,
         "qualified_name": "tests.unit.test_project_control_github.test_export_rejects_noncanonical_issue_url"
       },
       "name": "test_export_rejects_noncanonical_issue_url",
@@ -38934,7 +39089,7 @@
       "id": "function:python:tests.unit.test_project_control_github.test_export_rejects_unknown_custom_definition_and_allows_known_builtin",
       "language": "python",
       "metadata": {
-        "line": 252,
+        "line": 353,
         "qualified_name": "tests.unit.test_project_control_github.test_export_rejects_unknown_custom_definition_and_allows_known_builtin"
       },
       "name": "test_export_rejects_unknown_custom_definition_and_allows_known_builtin",
@@ -38942,10 +39097,21 @@
       "type": "function"
     },
     {
+      "id": "function:python:tests.unit.test_project_control_github.test_export_rejects_unsafe_day_numbers",
+      "language": "python",
+      "metadata": {
+        "line": 523,
+        "qualified_name": "tests.unit.test_project_control_github.test_export_rejects_unsafe_day_numbers"
+      },
+      "name": "test_export_rejects_unsafe_day_numbers",
+      "path": "tests/unit/test_project_control_github.py",
+      "type": "function"
+    },
+    {
       "id": "function:python:tests.unit.test_project_control_github.test_export_rejects_wrong_definition_type",
       "language": "python",
       "metadata": {
-        "line": 304,
+        "line": 405,
         "qualified_name": "tests.unit.test_project_control_github.test_export_rejects_wrong_definition_type"
       },
       "name": "test_export_rejects_wrong_definition_type",
@@ -38953,10 +39119,21 @@
       "type": "function"
     },
     {
+      "id": "function:python:tests.unit.test_project_control_github.test_export_requires_data_type_for_project_field",
+      "language": "python",
+      "metadata": {
+        "line": 541,
+        "qualified_name": "tests.unit.test_project_control_github.test_export_requires_data_type_for_project_field"
+      },
+      "name": "test_export_requires_data_type_for_project_field",
+      "path": "tests/unit/test_project_control_github.py",
+      "type": "function"
+    },
+    {
       "id": "function:python:tests.unit.test_project_control_github.test_extract_task_id_requires_exact_stable_line",
       "language": "python",
       "metadata": {
-        "line": 90,
+        "line": 191,
         "qualified_name": "tests.unit.test_project_control_github.test_extract_task_id_requires_exact_stable_line"
       },
       "name": "test_extract_task_id_requires_exact_stable_line",
@@ -38964,10 +39141,32 @@
       "type": "function"
     },
     {
+      "id": "function:python:tests.unit.test_project_control_github.test_iteration_builtin_definition_and_value_are_ignored",
+      "language": "python",
+      "metadata": {
+        "line": 444,
+        "qualified_name": "tests.unit.test_project_control_github.test_iteration_builtin_definition_and_value_are_ignored"
+      },
+      "name": "test_iteration_builtin_definition_and_value_are_ignored",
+      "path": "tests/unit/test_project_control_github.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.unit.test_project_control_github.test_iteration_value_must_have_correlated_identity",
+      "language": "python",
+      "metadata": {
+        "line": 471,
+        "qualified_name": "tests.unit.test_project_control_github.test_iteration_value_must_have_correlated_identity"
+      },
+      "name": "test_iteration_value_must_have_correlated_identity",
+      "path": "tests/unit/test_project_control_github.py",
+      "type": "function"
+    },
+    {
       "id": "function:python:tests.unit.test_project_control_github.test_subprocess_transport_maps_auth_failure_and_json_failure",
       "language": "python",
       "metadata": {
-        "line": 353,
+        "line": 559,
         "qualified_name": "tests.unit.test_project_control_github.test_subprocess_transport_maps_auth_failure_and_json_failure"
       },
       "name": "test_subprocess_transport_maps_auth_failure_and_json_failure",
@@ -38978,7 +39177,7 @@
       "id": "function:python:tests.unit.test_project_control_github.test_subprocess_transport_maps_missing_or_unauthenticated_gh",
       "language": "python",
       "metadata": {
-        "line": 344,
+        "line": 550,
         "qualified_name": "tests.unit.test_project_control_github.test_subprocess_transport_maps_missing_or_unauthenticated_gh"
       },
       "name": "test_subprocess_transport_maps_missing_or_unauthenticated_gh",
@@ -38989,7 +39188,7 @@
       "id": "function:python:tests.unit.test_project_control_github.test_subprocess_transport_refuses_mutation_text_without_invoking_gh",
       "language": "python",
       "metadata": {
-        "line": 216,
+        "line": 317,
         "qualified_name": "tests.unit.test_project_control_github.test_subprocess_transport_refuses_mutation_text_without_invoking_gh"
       },
       "name": "test_subprocess_transport_refuses_mutation_text_without_invoking_gh",
@@ -39000,7 +39199,7 @@
       "id": "function:python:tests.unit.test_project_control_github.test_subprocess_transport_uses_read_only_argument_array_and_json_stdin",
       "language": "python",
       "metadata": {
-        "line": 193,
+        "line": 294,
         "qualified_name": "tests.unit.test_project_control_github.test_subprocess_transport_uses_read_only_argument_array_and_json_stdin"
       },
       "name": "test_subprocess_transport_uses_read_only_argument_array_and_json_stdin",
@@ -42844,6 +43043,16 @@
       "type": "import"
     },
     {
+      "id": "import:python:math",
+      "language": "python",
+      "metadata": {
+        "imported_from": null
+      },
+      "name": "math",
+      "path": null,
+      "type": "import"
+    },
+    {
       "id": "import:python:mcp.server.fastmcp.FastMCP",
       "language": "python",
       "metadata": {
@@ -43410,6 +43619,16 @@
         "imported_from": "tests.unit.test_project_control_github"
       },
       "name": "tests.unit.test_project_control_github.PROJECT_RESPONSE",
+      "path": null,
+      "type": "import"
+    },
+    {
+      "id": "import:python:tests.unit.test_project_control_github.project_response",
+      "language": "python",
+      "metadata": {
+        "imported_from": "tests.unit.test_project_control_github"
+      },
+      "name": "tests.unit.test_project_control_github.project_response",
       "path": null,
       "type": "import"
     },
@@ -46175,7 +46394,7 @@
       "id": "method:python:app.project_control.github.GhTransport.graphql",
       "language": "python",
       "metadata": {
-        "line": 17,
+        "line": 18,
         "qualified_name": "app.project_control.github.GhTransport.graphql"
       },
       "name": "graphql",
@@ -46186,7 +46405,7 @@
       "id": "method:python:app.project_control.github.GitHubClient.__init__",
       "language": "python",
       "metadata": {
-        "line": 420,
+        "line": 472,
         "qualified_name": "app.project_control.github.GitHubClient.__init__"
       },
       "name": "__init__",
@@ -46197,7 +46416,7 @@
       "id": "method:python:app.project_control.github.GitHubClient.export_project",
       "language": "python",
       "metadata": {
-        "line": 423,
+        "line": 475,
         "qualified_name": "app.project_control.github.GitHubClient.export_project"
       },
       "name": "export_project",
@@ -46208,7 +46427,7 @@
       "id": "method:python:app.project_control.github.SubprocessGhTransport.graphql",
       "language": "python",
       "metadata": {
-        "line": 392,
+        "line": 444,
         "qualified_name": "app.project_control.github.SubprocessGhTransport.graphql"
       },
       "name": "graphql",
