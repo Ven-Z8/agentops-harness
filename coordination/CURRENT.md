@@ -15,7 +15,7 @@
 ## Confirmed baseline
 
 - Baseline commit: `39c041f699d7909d1f6853a89bf2a86835a4acd4`
-- Snapshot input revision: `1d95b09ae4c0663f6d564ba62443ceab7b0dea2d`
+- Snapshot input revision: `4fbb1913bae00009607506371b72a874b7f62da5`
 - Generated snapshot outputs are excluded; unavailable means validated inputs are dirty or provenance could not be resolved.
 
 ## Active blockers
@@ -57,13 +57,13 @@
 
 ## Code graph freshness
 
-- Graph input provenance: `186b363ac8a9b70afa3ca295dbd3733e8453f42b`; freshness is inconclusive until validated against the current source tree before relying on it.
+- Graph input provenance: `a514a12aec4f5c6c04813e1c0cb775e0491270d5`; freshness is inconclusive until validated against the current source tree before relying on it.
 - Fresh: the manifest source-tree digest matches tracked inputs.
 
 ## Onboarding commands
 
 ```bash
 git status --short
-# Planned after Task 6: uv run python scripts/project_control.py validate
-# Planned after Task 6: uv run python scripts/project_control.py snapshot
+uv run python scripts/project_control.py validate
+uv run python scripts/project_control.py snapshot
 ```
