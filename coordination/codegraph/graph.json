@@ -7971,6 +7971,18 @@
     {
       "metadata": {},
       "source": "file:app/project_control/codegraph.py",
+      "target": "function:python:app.project_control.codegraph._exclusions",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/codegraph.py",
+      "target": "function:python:app.project_control.codegraph._generated_paths",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/codegraph.py",
       "target": "function:python:app.project_control.codegraph._graph_counts",
       "type": "defines"
     },
@@ -8085,13 +8097,31 @@
     {
       "metadata": {},
       "source": "file:app/project_control/codegraph.py",
+      "target": "import:python:app.project_control.io.load_yaml",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/codegraph.py",
       "target": "import:python:app.project_control.io.resolve_inside",
       "type": "imports"
     },
     {
       "metadata": {},
       "source": "file:app/project_control/codegraph.py",
+      "target": "import:python:app.project_control.models.GeneratedPaths",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/codegraph.py",
       "target": "import:python:app.project_control.models.GraphManifest",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/codegraph.py",
+      "target": "import:python:app.project_control.models.ProjectConfig",
       "type": "imports"
     },
     {
@@ -8144,6 +8174,60 @@
     },
     {
       "metadata": {},
+      "source": "file:app/project_control/decisions.py",
+      "target": "class:python:app.project_control.decisions.DecisionRecord",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/decisions.py",
+      "target": "function:python:app.project_control.decisions.load_recent_decisions",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/decisions.py",
+      "target": "import:python:__future__.annotations",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/decisions.py",
+      "target": "import:python:app.project_control.io.load_frontmatter",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/decisions.py",
+      "target": "import:python:app.project_control.io.resolve_inside",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/decisions.py",
+      "target": "import:python:app.project_control.models.DecisionHeader",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/decisions.py",
+      "target": "import:python:app.project_control.roadmap.load_roadmap",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/decisions.py",
+      "target": "import:python:dataclasses.dataclass",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/decisions.py",
+      "target": "import:python:pathlib.Path",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
       "source": "file:app/project_control/errors.py",
       "target": "class:python:app.project_control.errors.ControlRoomError",
       "type": "defines"
@@ -8165,6 +8249,12 @@
       "source": "file:app/project_control/errors.py",
       "target": "import:python:__future__.annotations",
       "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/handoffs.py",
+      "target": "class:python:app.project_control.handoffs.HandoffRecord",
+      "type": "defines"
     },
     {
       "metadata": {},
@@ -8194,6 +8284,12 @@
       "metadata": {},
       "source": "file:app/project_control/handoffs.py",
       "target": "function:python:app.project_control.handoffs.latest_handoffs",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/handoffs.py",
+      "target": "function:python:app.project_control.handoffs.load_latest_handoffs",
       "type": "defines"
     },
     {
@@ -8230,6 +8326,12 @@
       "metadata": {},
       "source": "file:app/project_control/handoffs.py",
       "target": "import:python:app.project_control.roadmap.load_roadmap",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/handoffs.py",
+      "target": "import:python:dataclasses.dataclass",
       "type": "imports"
     },
     {
@@ -8457,6 +8559,12 @@
     {
       "metadata": {},
       "source": "file:app/project_control/models.py",
+      "target": "function:python:app.project_control.models._https_url",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/models.py",
       "target": "function:python:app.project_control.models._nonempty",
       "type": "defines"
     },
@@ -8481,7 +8589,25 @@
     {
       "metadata": {},
       "source": "file:app/project_control/models.py",
+      "target": "function:python:app.project_control.models._safe_relative_link_target",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/models.py",
+      "target": "function:python:app.project_control.models._single_line_identifier",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/models.py",
       "target": "function:python:app.project_control.models.enforce_terminal_semantics",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/models.py",
+      "target": "function:python:app.project_control.models.require_issue_reference_parts_together",
       "type": "defines"
     },
     {
@@ -8506,6 +8632,30 @@
       "metadata": {},
       "source": "file:app/project_control/models.py",
       "target": "function:python:app.project_control.models.validate_evidence",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/models.py",
+      "target": "function:python:app.project_control.models.validate_generated_output_layout",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/models.py",
+      "target": "function:python:app.project_control.models.validate_project_url",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/models.py",
+      "target": "function:python:app.project_control.models.validate_snapshot_source_revision",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/models.py",
+      "target": "function:python:app.project_control.models.validate_source_revision",
       "type": "defines"
     },
     {
@@ -8553,6 +8703,36 @@
     {
       "metadata": {},
       "source": "file:app/project_control/models.py",
+      "target": "method:python:app.project_control.models.BoardExport.validate_project_url",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/models.py",
+      "target": "method:python:app.project_control.models.BoardExport.validate_source_revision",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/models.py",
+      "target": "method:python:app.project_control.models.BoardItem.require_issue_reference_parts_together",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/models.py",
+      "target": "method:python:app.project_control.models.BoardItem.validate_day",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/models.py",
+      "target": "method:python:app.project_control.models.ControlRoomState.validate_snapshot_source_revision",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/models.py",
       "target": "method:python:app.project_control.models.DecisionHeader.validate_supersession",
       "type": "defines"
     },
@@ -8572,6 +8752,12 @@
       "metadata": {},
       "source": "file:app/project_control/models.py",
       "target": "method:python:app.project_control.models.HandoffHeader.enforce_terminal_semantics",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/models.py",
+      "target": "method:python:app.project_control.models.ProjectConfig.validate_generated_output_layout",
       "type": "defines"
     },
     {
@@ -8655,7 +8841,19 @@
     {
       "metadata": {},
       "source": "file:app/project_control/models.py",
+      "target": "import:python:re",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/models.py",
       "target": "import:python:typing.Literal",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/models.py",
+      "target": "import:python:urllib.parse.urlsplit",
       "type": "imports"
     },
     {
@@ -8752,6 +8950,294 @@
       "metadata": {},
       "source": "file:app/project_control/roadmap.py",
       "target": "import:python:shlex.split",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/snapshots.py",
+      "target": "function:python:app.project_control.snapshots._codegraph_freshness",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/snapshots.py",
+      "target": "function:python:app.project_control.snapshots._codegraph_status",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/snapshots.py",
+      "target": "function:python:app.project_control.snapshots._current_phase",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/snapshots.py",
+      "target": "function:python:app.project_control.snapshots._excluded_snapshot_output",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/snapshots.py",
+      "target": "function:python:app.project_control.snapshots._immediate_objective",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/snapshots.py",
+      "target": "function:python:app.project_control.snapshots._initial_board",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/snapshots.py",
+      "target": "function:python:app.project_control.snapshots._inputs_are_dirty",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/snapshots.py",
+      "target": "function:python:app.project_control.snapshots._load_state",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/snapshots.py",
+      "target": "function:python:app.project_control.snapshots._local_link",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/snapshots.py",
+      "target": "function:python:app.project_control.snapshots._markdown",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/snapshots.py",
+      "target": "function:python:app.project_control.snapshots._phase_summaries",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/snapshots.py",
+      "target": "function:python:app.project_control.snapshots._prepare",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/snapshots.py",
+      "target": "function:python:app.project_control.snapshots._record_input_paths",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/snapshots.py",
+      "target": "function:python:app.project_control.snapshots._render_current_with_freshness",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/snapshots.py",
+      "target": "function:python:app.project_control.snapshots._replace_pair",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/snapshots.py",
+      "target": "function:python:app.project_control.snapshots._roadmap_board_sort_key",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/snapshots.py",
+      "target": "function:python:app.project_control.snapshots._snapshot_input_paths",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/snapshots.py",
+      "target": "function:python:app.project_control.snapshots._snapshot_source_revision",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/snapshots.py",
+      "target": "function:python:app.project_control.snapshots._timestamp",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/snapshots.py",
+      "target": "function:python:app.project_control.snapshots._url_link",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/snapshots.py",
+      "target": "function:python:app.project_control.snapshots.board_sort_key",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/snapshots.py",
+      "target": "function:python:app.project_control.snapshots.render_board",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/snapshots.py",
+      "target": "function:python:app.project_control.snapshots.render_current",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/snapshots.py",
+      "target": "function:python:app.project_control.snapshots.write_initial_snapshots",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/snapshots.py",
+      "target": "function:python:app.project_control.snapshots.write_snapshots",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/snapshots.py",
+      "target": "import:python:__future__.annotations",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/snapshots.py",
+      "target": "import:python:app.project_control.artifacts.load_artifact_index",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/snapshots.py",
+      "target": "import:python:app.project_control.codegraph.tracked_graph_inputs",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/snapshots.py",
+      "target": "import:python:app.project_control.codegraph.validate_codegraph_freshness",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/snapshots.py",
+      "target": "import:python:app.project_control.decisions.load_recent_decisions",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/snapshots.py",
+      "target": "import:python:app.project_control.handoffs.load_latest_handoffs",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/snapshots.py",
+      "target": "import:python:app.project_control.io.load_yaml",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/snapshots.py",
+      "target": "import:python:app.project_control.io.resolve_inside",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/snapshots.py",
+      "target": "import:python:app.project_control.models.BoardExport",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/snapshots.py",
+      "target": "import:python:app.project_control.models.BoardItem",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/snapshots.py",
+      "target": "import:python:app.project_control.models.ControlRoomState",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/snapshots.py",
+      "target": "import:python:app.project_control.models.GraphManifest",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/snapshots.py",
+      "target": "import:python:app.project_control.models.ProjectConfig",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/snapshots.py",
+      "target": "import:python:app.project_control.models.RoadmapItem",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/snapshots.py",
+      "target": "import:python:app.project_control.models._https_url",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/snapshots.py",
+      "target": "import:python:app.project_control.models._safe_relative_link_target",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/snapshots.py",
+      "target": "import:python:app.project_control.roadmap.load_roadmap",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/snapshots.py",
+      "target": "import:python:datetime.UTC",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/snapshots.py",
+      "target": "import:python:datetime.datetime",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/snapshots.py",
+      "target": "import:python:pathlib.Path",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/snapshots.py",
+      "target": "import:python:re",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/snapshots.py",
+      "target": "import:python:subprocess",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/snapshots.py",
+      "target": "import:python:tempfile.NamedTemporaryFile",
       "type": "imports"
     },
     {
@@ -17043,7 +17529,19 @@
     {
       "metadata": {},
       "source": "file:tests/unit/test_project_control_codegraph.py",
+      "target": "function:python:tests.unit.test_project_control_codegraph.test_codegraph_build_and_freshness_use_configured_directory",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_codegraph.py",
       "target": "function:python:tests.unit.test_project_control_codegraph.test_codegraph_generator_is_stable_for_fixed_time_and_fresh_until_sources_change",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_codegraph.py",
+      "target": "function:python:tests.unit.test_project_control_codegraph.test_configured_generated_outputs_are_excluded_before_file_validation",
       "type": "defines"
     },
     {
@@ -17139,6 +17637,12 @@
     {
       "metadata": {},
       "source": "file:tests/unit/test_project_control_codegraph.py",
+      "target": "import:python:app.project_control.models.ProjectConfig",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_codegraph.py",
       "target": "import:python:datetime.UTC",
       "type": "imports"
     },
@@ -17164,6 +17668,12 @@
       "metadata": {},
       "source": "file:tests/unit/test_project_control_codegraph.py",
       "target": "import:python:subprocess",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_codegraph.py",
+      "target": "import:python:tests.helpers_project_control.valid_project_config",
       "type": "imports"
     },
     {
@@ -17499,6 +18009,12 @@
     {
       "metadata": {},
       "source": "file:tests/unit/test_project_control_schema.py",
+      "target": "function:python:tests.unit.test_project_control_schema.test_project_config_rejects_generated_output_input_overlap",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_schema.py",
       "target": "function:python:tests.unit.test_project_control_schema.test_project_config_rejects_unknown_keys",
       "type": "defines"
     },
@@ -17638,6 +18154,276 @@
       "metadata": {},
       "source": "file:tests/unit/test_project_control_schema.py",
       "target": "import:python:yaml",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_snapshots.py",
+      "target": "function:python:tests.unit.test_project_control_snapshots._git",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_snapshots.py",
+      "target": "function:python:tests.unit.test_project_control_snapshots._init_snapshot_git_repository",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_snapshots.py",
+      "target": "function:python:tests.unit.test_project_control_snapshots.fail_second_prepare",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_snapshots.py",
+      "target": "function:python:tests.unit.test_project_control_snapshots.test_board_export_rejects_unsafe_relative_handoff_links",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_snapshots.py",
+      "target": "function:python:tests.unit.test_project_control_snapshots.test_board_export_rejects_untruthful_source_revisions",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_snapshots.py",
+      "target": "function:python:tests.unit.test_project_control_snapshots.test_board_export_renders_safe_normalized_relative_handoff_link",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_snapshots.py",
+      "target": "function:python:tests.unit.test_project_control_snapshots.test_board_snapshot_declares_live_authority",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_snapshots.py",
+      "target": "function:python:tests.unit.test_project_control_snapshots.test_board_snapshot_sorts_live_work_by_execution_priority",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_snapshots.py",
+      "target": "function:python:tests.unit.test_project_control_snapshots.test_current_and_initial_board_render_repository_record_links",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_snapshots.py",
+      "target": "function:python:tests.unit.test_project_control_snapshots.test_current_snapshot_exposes_required_onboarding_context",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_snapshots.py",
+      "target": "function:python:tests.unit.test_project_control_snapshots.test_dirty_generated_outputs_do_not_invalidate_snapshot_provenance",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_snapshots.py",
+      "target": "function:python:tests.unit.test_project_control_snapshots.test_dirty_snapshot_input_makes_provenance_unavailable",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_snapshots.py",
+      "target": "function:python:tests.unit.test_project_control_snapshots.test_empty_live_export_remains_authoritative_for_current_state",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_snapshots.py",
+      "target": "function:python:tests.unit.test_project_control_snapshots.test_fixed_clock_snapshot_reproduces_committed_bytes_after_output_only_commit",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_snapshots.py",
+      "target": "function:python:tests.unit.test_project_control_snapshots.test_fresh_codegraph_stays_fresh_across_two_fixed_clock_snapshot_generations",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_snapshots.py",
+      "target": "function:python:tests.unit.test_project_control_snapshots.test_initial_snapshots_are_stable_and_identify_unprovisioned_project",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_snapshots.py",
+      "target": "function:python:tests.unit.test_project_control_snapshots.test_invalid_export_does_not_replace_last_good_board",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_snapshots.py",
+      "target": "function:python:tests.unit.test_project_control_snapshots.test_live_board_export_controls_current_phase_objective_and_blockers",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_snapshots.py",
+      "target": "function:python:tests.unit.test_project_control_snapshots.test_live_export_rejects_markdown_syntax_in_identifiers_and_links",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_snapshots.py",
+      "target": "function:python:tests.unit.test_project_control_snapshots.test_live_rendering_escapes_display_text_across_all_untrusted_fields",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_snapshots.py",
+      "target": "function:python:tests.unit.test_project_control_snapshots.test_live_rendering_is_deterministic_and_escapes_forged_heading",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_snapshots.py",
+      "target": "function:python:tests.unit.test_project_control_snapshots.test_second_temp_prepare_failure_removes_first_temp_without_replacing_destinations",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_snapshots.py",
+      "target": "function:python:tests.unit.test_project_control_snapshots.test_snapshot_freshness_uses_configured_alternate_codegraph",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_snapshots.py",
+      "target": "function:python:tests.unit.test_project_control_snapshots.test_snapshot_provenance_separates_baseline_snapshot_and_graph_revisions",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_snapshots.py",
+      "target": "function:python:tests.unit.test_project_control_snapshots.test_snapshot_record_loading_rejects_unknown_or_malformed_handoffs",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_snapshots.py",
+      "target": "function:python:tests.unit.test_project_control_snapshots.test_snapshot_source_revision_ignores_outputs_but_tracks_inputs_and_renderer",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_snapshots.py",
+      "target": "function:python:tests.unit.test_project_control_snapshots.test_snapshot_source_revision_uses_configured_alternate_roadmap",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_snapshots.py",
+      "target": "function:python:tests.unit.test_project_control_snapshots.test_snapshot_writer_preserves_both_files_when_second_destination_is_a_symlink",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_snapshots.py",
+      "target": "import:python:__future__.annotations",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_snapshots.py",
+      "target": "import:python:app.project_control.codegraph.build_codegraph",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_snapshots.py",
+      "target": "import:python:app.project_control.models.BoardExport",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_snapshots.py",
+      "target": "import:python:app.project_control.snapshots",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_snapshots.py",
+      "target": "import:python:app.project_control.snapshots._snapshot_source_revision",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_snapshots.py",
+      "target": "import:python:app.project_control.snapshots.render_board",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_snapshots.py",
+      "target": "import:python:app.project_control.snapshots.render_current",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_snapshots.py",
+      "target": "import:python:app.project_control.snapshots.write_initial_snapshots",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_snapshots.py",
+      "target": "import:python:app.project_control.snapshots.write_snapshots",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_snapshots.py",
+      "target": "import:python:datetime.UTC",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_snapshots.py",
+      "target": "import:python:datetime.datetime",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_snapshots.py",
+      "target": "import:python:pathlib.Path",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_snapshots.py",
+      "target": "import:python:pydantic.ValidationError",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_snapshots.py",
+      "target": "import:python:pytest",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_snapshots.py",
+      "target": "import:python:subprocess",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_snapshots.py",
+      "target": "import:python:tests.helpers_project_control.make_control_room_state",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_snapshots.py",
+      "target": "import:python:tests.helpers_project_control.seed_control_room",
       "type": "imports"
     },
     {
@@ -18303,6 +19089,12 @@
     {
       "metadata": {},
       "source": "folder:app/project_control",
+      "target": "file:app/project_control/decisions.py",
+      "type": "contains"
+    },
+    {
+      "metadata": {},
+      "source": "folder:app/project_control",
       "target": "file:app/project_control/errors.py",
       "type": "contains"
     },
@@ -18328,6 +19120,12 @@
       "metadata": {},
       "source": "folder:app/project_control",
       "target": "file:app/project_control/roadmap.py",
+      "type": "contains"
+    },
+    {
+      "metadata": {},
+      "source": "folder:app/project_control",
+      "target": "file:app/project_control/snapshots.py",
       "type": "contains"
     },
     {
@@ -19598,6 +20396,12 @@
     },
     {
       "metadata": {},
+      "source": "folder:tests/unit",
+      "target": "file:tests/unit/test_project_control_snapshots.py",
+      "type": "contains"
+    },
+    {
+      "metadata": {},
       "source": "folder:web",
       "target": "file:web/app-state.js",
       "type": "contains"
@@ -20624,6 +21428,17 @@
       "type": "class"
     },
     {
+      "id": "class:python:app.project_control.decisions.DecisionRecord",
+      "language": "python",
+      "metadata": {
+        "line": 14,
+        "qualified_name": "app.project_control.decisions.DecisionRecord"
+      },
+      "name": "DecisionRecord",
+      "path": "app/project_control/decisions.py",
+      "type": "class"
+    },
+    {
       "id": "class:python:app.project_control.errors.ControlRoomError",
       "language": "python",
       "metadata": {
@@ -20657,10 +21472,21 @@
       "type": "class"
     },
     {
+      "id": "class:python:app.project_control.handoffs.HandoffRecord",
+      "language": "python",
+      "metadata": {
+        "line": 26,
+        "qualified_name": "app.project_control.handoffs.HandoffRecord"
+      },
+      "name": "HandoffRecord",
+      "path": "app/project_control/handoffs.py",
+      "type": "class"
+    },
+    {
       "id": "class:python:app.project_control.models.ArtifactIndex",
       "language": "python",
       "metadata": {
-        "line": 346,
+        "line": 435,
         "qualified_name": "app.project_control.models.ArtifactIndex"
       },
       "name": "ArtifactIndex",
@@ -20671,7 +21497,7 @@
       "id": "class:python:app.project_control.models.ArtifactRecord",
       "language": "python",
       "metadata": {
-        "line": 312,
+        "line": 401,
         "qualified_name": "app.project_control.models.ArtifactRecord"
       },
       "name": "ArtifactRecord",
@@ -20682,7 +21508,7 @@
       "id": "class:python:app.project_control.models.BoardExport",
       "language": "python",
       "metadata": {
-        "line": 387,
+        "line": 503,
         "qualified_name": "app.project_control.models.BoardExport"
       },
       "name": "BoardExport",
@@ -20693,7 +21519,7 @@
       "id": "class:python:app.project_control.models.BoardItem",
       "language": "python",
       "metadata": {
-        "line": 372,
+        "line": 461,
         "qualified_name": "app.project_control.models.BoardItem"
       },
       "name": "BoardItem",
@@ -20704,7 +21530,7 @@
       "id": "class:python:app.project_control.models.ControlRoomState",
       "language": "python",
       "metadata": {
-        "line": 393,
+        "line": 521,
         "qualified_name": "app.project_control.models.ControlRoomState"
       },
       "name": "ControlRoomState",
@@ -20715,7 +21541,7 @@
       "id": "class:python:app.project_control.models.DecisionHeader",
       "language": "python",
       "metadata": {
-        "line": 290,
+        "line": 379,
         "qualified_name": "app.project_control.models.DecisionHeader"
       },
       "name": "DecisionHeader",
@@ -20726,7 +21552,7 @@
       "id": "class:python:app.project_control.models.EvidenceState",
       "language": "python",
       "metadata": {
-        "line": 23,
+        "line": 25,
         "qualified_name": "app.project_control.models.EvidenceState"
       },
       "name": "EvidenceState",
@@ -20737,7 +21563,7 @@
       "id": "class:python:app.project_control.models.GeneratedPaths",
       "language": "python",
       "metadata": {
-        "line": 101,
+        "line": 140,
         "qualified_name": "app.project_control.models.GeneratedPaths"
       },
       "name": "GeneratedPaths",
@@ -20748,7 +21574,7 @@
       "id": "class:python:app.project_control.models.GitHubIssueReference",
       "language": "python",
       "metadata": {
-        "line": 117,
+        "line": 206,
         "qualified_name": "app.project_control.models.GitHubIssueReference"
       },
       "name": "GitHubIssueReference",
@@ -20759,7 +21585,7 @@
       "id": "class:python:app.project_control.models.GitHubProjectConfig",
       "language": "python",
       "metadata": {
-        "line": 83,
+        "line": 122,
         "qualified_name": "app.project_control.models.GitHubProjectConfig"
       },
       "name": "GitHubProjectConfig",
@@ -20770,7 +21596,7 @@
       "id": "class:python:app.project_control.models.GraphManifest",
       "language": "python",
       "metadata": {
-        "line": 358,
+        "line": 447,
         "qualified_name": "app.project_control.models.GraphManifest"
       },
       "name": "GraphManifest",
@@ -20781,7 +21607,7 @@
       "id": "class:python:app.project_control.models.HandoffHeader",
       "language": "python",
       "metadata": {
-        "line": 254,
+        "line": 343,
         "qualified_name": "app.project_control.models.HandoffHeader"
       },
       "name": "HandoffHeader",
@@ -20792,7 +21618,7 @@
       "id": "class:python:app.project_control.models.HandoffVerification",
       "language": "python",
       "metadata": {
-        "line": 248,
+        "line": 337,
         "qualified_name": "app.project_control.models.HandoffVerification"
       },
       "name": "HandoffVerification",
@@ -20803,7 +21629,7 @@
       "id": "class:python:app.project_control.models.ProjectConfig",
       "language": "python",
       "metadata": {
-        "line": 109,
+        "line": 148,
         "qualified_name": "app.project_control.models.ProjectConfig"
       },
       "name": "ProjectConfig",
@@ -20814,7 +21640,7 @@
       "id": "class:python:app.project_control.models.ProjectIdentity",
       "language": "python",
       "metadata": {
-        "line": 66,
+        "line": 105,
         "qualified_name": "app.project_control.models.ProjectIdentity"
       },
       "name": "ProjectIdentity",
@@ -20825,7 +21651,7 @@
       "id": "class:python:app.project_control.models.ProjectStatus",
       "language": "python",
       "metadata": {
-        "line": 15,
+        "line": 17,
         "qualified_name": "app.project_control.models.ProjectStatus"
       },
       "name": "ProjectStatus",
@@ -20836,7 +21662,7 @@
       "id": "class:python:app.project_control.models.Roadmap",
       "language": "python",
       "metadata": {
-        "line": 207,
+        "line": 296,
         "qualified_name": "app.project_control.models.Roadmap"
       },
       "name": "Roadmap",
@@ -20847,7 +21673,7 @@
       "id": "class:python:app.project_control.models.RoadmapConfig",
       "language": "python",
       "metadata": {
-        "line": 75,
+        "line": 114,
         "qualified_name": "app.project_control.models.RoadmapConfig"
       },
       "name": "RoadmapConfig",
@@ -20858,7 +21684,7 @@
       "id": "class:python:app.project_control.models.RoadmapItem",
       "language": "python",
       "metadata": {
-        "line": 132,
+        "line": 221,
         "qualified_name": "app.project_control.models.RoadmapItem"
       },
       "name": "RoadmapItem",
@@ -20869,7 +21695,7 @@
       "id": "class:python:app.project_control.models.StrictModel",
       "language": "python",
       "metadata": {
-        "line": 11,
+        "line": 13,
         "qualified_name": "app.project_control.models.StrictModel"
       },
       "name": "StrictModel",
@@ -20880,7 +21706,7 @@
       "id": "class:python:app.project_control.models.VerificationState",
       "language": "python",
       "metadata": {
-        "line": 30,
+        "line": 32,
         "qualified_name": "app.project_control.models.VerificationState"
       },
       "name": "VerificationState",
@@ -22363,6 +23189,14 @@
       "type": "file"
     },
     {
+      "id": "file:app/project_control/decisions.py",
+      "language": "python",
+      "metadata": {},
+      "name": "decisions.py",
+      "path": "app/project_control/decisions.py",
+      "type": "file"
+    },
+    {
       "id": "file:app/project_control/errors.py",
       "language": "python",
       "metadata": {},
@@ -22400,6 +23234,14 @@
       "metadata": {},
       "name": "roadmap.py",
       "path": "app/project_control/roadmap.py",
+      "type": "file"
+    },
+    {
+      "id": "file:app/project_control/snapshots.py",
+      "language": "python",
+      "metadata": {},
+      "name": "snapshots.py",
+      "path": "app/project_control/snapshots.py",
       "type": "file"
     },
     {
@@ -23920,6 +24762,14 @@
       "metadata": {},
       "name": "test_project_control_schema.py",
       "path": "tests/unit/test_project_control_schema.py",
+      "type": "test"
+    },
+    {
+      "id": "file:tests/unit/test_project_control_snapshots.py",
+      "language": "python",
+      "metadata": {},
+      "name": "test_project_control_snapshots.py",
+      "path": "tests/unit/test_project_control_snapshots.py",
       "type": "test"
     },
     {
@@ -29147,7 +29997,7 @@
       "id": "function:python:app.project_control.codegraph._annotate_file_only_languages",
       "language": "python",
       "metadata": {
-        "line": 105,
+        "line": 136,
         "qualified_name": "app.project_control.codegraph._annotate_file_only_languages"
       },
       "name": "_annotate_file_only_languages",
@@ -29158,7 +30008,7 @@
       "id": "function:python:app.project_control.codegraph._copy_tracked_inputs",
       "language": "python",
       "metadata": {
-        "line": 86,
+        "line": 117,
         "qualified_name": "app.project_control.codegraph._copy_tracked_inputs"
       },
       "name": "_copy_tracked_inputs",
@@ -29166,10 +30016,32 @@
       "type": "function"
     },
     {
+      "id": "function:python:app.project_control.codegraph._exclusions",
+      "language": "python",
+      "metadata": {
+        "line": 48,
+        "qualified_name": "app.project_control.codegraph._exclusions"
+      },
+      "name": "_exclusions",
+      "path": "app/project_control/codegraph.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.project_control.codegraph._generated_paths",
+      "language": "python",
+      "metadata": {
+        "line": 39,
+        "qualified_name": "app.project_control.codegraph._generated_paths"
+      },
+      "name": "_generated_paths",
+      "path": "app/project_control/codegraph.py",
+      "type": "function"
+    },
+    {
       "id": "function:python:app.project_control.codegraph._graph_counts",
       "language": "python",
       "metadata": {
-        "line": 168,
+        "line": 199,
         "qualified_name": "app.project_control.codegraph._graph_counts"
       },
       "name": "_graph_counts",
@@ -29180,7 +30052,7 @@
       "id": "function:python:app.project_control.codegraph._is_excluded",
       "language": "python",
       "metadata": {
-        "line": 51,
+        "line": 73,
         "qualified_name": "app.project_control.codegraph._is_excluded"
       },
       "name": "_is_excluded",
@@ -29191,7 +30063,7 @@
       "id": "function:python:app.project_control.codegraph._is_file_only_test",
       "language": "python",
       "metadata": {
-        "line": 94,
+        "line": 125,
         "qualified_name": "app.project_control.codegraph._is_file_only_test"
       },
       "name": "_is_file_only_test",
@@ -29202,7 +30074,7 @@
       "id": "function:python:app.project_control.codegraph._language_coverage",
       "language": "python",
       "metadata": {
-        "line": 151,
+        "line": 182,
         "qualified_name": "app.project_control.codegraph._language_coverage"
       },
       "name": "_language_coverage",
@@ -29213,7 +30085,7 @@
       "id": "function:python:app.project_control.codegraph._source_commit",
       "language": "python",
       "metadata": {
-        "line": 138,
+        "line": 169,
         "qualified_name": "app.project_control.codegraph._source_commit"
       },
       "name": "_source_commit",
@@ -29224,7 +30096,7 @@
       "id": "function:python:app.project_control.codegraph._summary",
       "language": "python",
       "metadata": {
-        "line": 178,
+        "line": 209,
         "qualified_name": "app.project_control.codegraph._summary"
       },
       "name": "_summary",
@@ -29235,7 +30107,7 @@
       "id": "function:python:app.project_control.codegraph._timestamp",
       "language": "python",
       "metadata": {
-        "line": 145,
+        "line": 176,
         "qualified_name": "app.project_control.codegraph._timestamp"
       },
       "name": "_timestamp",
@@ -29246,7 +30118,7 @@
       "id": "function:python:app.project_control.codegraph._validated_relative_file",
       "language": "python",
       "metadata": {
-        "line": 42,
+        "line": 64,
         "qualified_name": "app.project_control.codegraph._validated_relative_file"
       },
       "name": "_validated_relative_file",
@@ -29257,7 +30129,7 @@
       "id": "function:python:app.project_control.codegraph.build_codegraph",
       "language": "python",
       "metadata": {
-        "line": 210,
+        "line": 241,
         "qualified_name": "app.project_control.codegraph.build_codegraph"
       },
       "name": "build_codegraph",
@@ -29268,7 +30140,7 @@
       "id": "function:python:app.project_control.codegraph.build_export_graph",
       "language": "python",
       "metadata": {
-        "line": 125,
+        "line": 156,
         "qualified_name": "app.project_control.codegraph.build_export_graph"
       },
       "name": "build_export_graph",
@@ -29279,7 +30151,7 @@
       "id": "function:python:app.project_control.codegraph.file_only_language",
       "language": "python",
       "metadata": {
-        "line": 37,
+        "line": 59,
         "qualified_name": "app.project_control.codegraph.file_only_language"
       },
       "name": "file_only_language",
@@ -29290,7 +30162,7 @@
       "id": "function:python:app.project_control.codegraph.source_tree_digest",
       "language": "python",
       "metadata": {
-        "line": 73,
+        "line": 104,
         "qualified_name": "app.project_control.codegraph.source_tree_digest"
       },
       "name": "source_tree_digest",
@@ -29301,7 +30173,7 @@
       "id": "function:python:app.project_control.codegraph.tracked_graph_inputs",
       "language": "python",
       "metadata": {
-        "line": 56,
+        "line": 83,
         "qualified_name": "app.project_control.codegraph.tracked_graph_inputs"
       },
       "name": "tracked_graph_inputs",
@@ -29312,7 +30184,7 @@
       "id": "function:python:app.project_control.codegraph.validate_codegraph_freshness",
       "language": "python",
       "metadata": {
-        "line": 237,
+        "line": 271,
         "qualified_name": "app.project_control.codegraph.validate_codegraph_freshness"
       },
       "name": "validate_codegraph_freshness",
@@ -29320,10 +30192,21 @@
       "type": "function"
     },
     {
+      "id": "function:python:app.project_control.decisions.load_recent_decisions",
+      "language": "python",
+      "metadata": {
+        "line": 19,
+        "qualified_name": "app.project_control.decisions.load_recent_decisions"
+      },
+      "name": "load_recent_decisions",
+      "path": "app/project_control/decisions.py",
+      "type": "function"
+    },
+    {
       "id": "function:python:app.project_control.handoffs._expected_handoff_name",
       "language": "python",
       "metadata": {
-        "line": 35,
+        "line": 42,
         "qualified_name": "app.project_control.handoffs._expected_handoff_name"
       },
       "name": "_expected_handoff_name",
@@ -29334,7 +30217,7 @@
       "id": "function:python:app.project_control.handoffs._require_roadmap_task",
       "language": "python",
       "metadata": {
-        "line": 24,
+        "line": 31,
         "qualified_name": "app.project_control.handoffs._require_roadmap_task"
       },
       "name": "_require_roadmap_task",
@@ -29345,7 +30228,7 @@
       "id": "function:python:app.project_control.handoffs._utc_timestamp",
       "language": "python",
       "metadata": {
-        "line": 29,
+        "line": 36,
         "qualified_name": "app.project_control.handoffs._utc_timestamp"
       },
       "name": "_utc_timestamp",
@@ -29356,7 +30239,7 @@
       "id": "function:python:app.project_control.handoffs.create_handoff",
       "language": "python",
       "metadata": {
-        "line": 42,
+        "line": 49,
         "qualified_name": "app.project_control.handoffs.create_handoff"
       },
       "name": "create_handoff",
@@ -29367,10 +30250,21 @@
       "id": "function:python:app.project_control.handoffs.latest_handoffs",
       "language": "python",
       "metadata": {
-        "line": 94,
+        "line": 101,
         "qualified_name": "app.project_control.handoffs.latest_handoffs"
       },
       "name": "latest_handoffs",
+      "path": "app/project_control/handoffs.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.project_control.handoffs.load_latest_handoffs",
+      "language": "python",
+      "metadata": {
+        "line": 126,
+        "qualified_name": "app.project_control.handoffs.load_latest_handoffs"
+      },
+      "name": "load_latest_handoffs",
       "path": "app/project_control/handoffs.py",
       "type": "function"
     },
@@ -29419,10 +30313,21 @@
       "type": "function"
     },
     {
+      "id": "function:python:app.project_control.models._https_url",
+      "language": "python",
+      "metadata": {
+        "line": 54,
+        "qualified_name": "app.project_control.models._https_url"
+      },
+      "name": "_https_url",
+      "path": "app/project_control/models.py",
+      "type": "function"
+    },
+    {
       "id": "function:python:app.project_control.models._nonempty",
       "language": "python",
       "metadata": {
-        "line": 37,
+        "line": 39,
         "qualified_name": "app.project_control.models._nonempty"
       },
       "name": "_nonempty",
@@ -29433,7 +30338,7 @@
       "id": "function:python:app.project_control.models._nonempty_text_list",
       "language": "python",
       "metadata": {
-        "line": 60,
+        "line": 99,
         "qualified_name": "app.project_control.models._nonempty_text_list"
       },
       "name": "_nonempty_text_list",
@@ -29444,7 +30349,7 @@
       "id": "function:python:app.project_control.models._relative_repository_path",
       "language": "python",
       "metadata": {
-        "line": 43,
+        "line": 70,
         "qualified_name": "app.project_control.models._relative_repository_path"
       },
       "name": "_relative_repository_path",
@@ -29455,7 +30360,7 @@
       "id": "function:python:app.project_control.models._relative_repository_paths",
       "language": "python",
       "metadata": {
-        "line": 56,
+        "line": 95,
         "qualified_name": "app.project_control.models._relative_repository_paths"
       },
       "name": "_relative_repository_paths",
@@ -29463,10 +30368,32 @@
       "type": "function"
     },
     {
+      "id": "function:python:app.project_control.models._safe_relative_link_target",
+      "language": "python",
+      "metadata": {
+        "line": 83,
+        "qualified_name": "app.project_control.models._safe_relative_link_target"
+      },
+      "name": "_safe_relative_link_target",
+      "path": "app/project_control/models.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.project_control.models._single_line_identifier",
+      "language": "python",
+      "metadata": {
+        "line": 45,
+        "qualified_name": "app.project_control.models._single_line_identifier"
+      },
+      "name": "_single_line_identifier",
+      "path": "app/project_control/models.py",
+      "type": "function"
+    },
+    {
       "id": "function:python:app.project_control.models.enforce_terminal_semantics",
       "language": "python",
       "metadata": {
-        "line": 273,
+        "line": 362,
         "qualified_name": "app.project_control.models.enforce_terminal_semantics"
       },
       "name": "enforce_terminal_semantics",
@@ -29474,10 +30401,21 @@
       "type": "function"
     },
     {
+      "id": "function:python:app.project_control.models.require_issue_reference_parts_together",
+      "language": "python",
+      "metadata": {
+        "line": 493,
+        "qualified_name": "app.project_control.models.require_issue_reference_parts_together"
+      },
+      "name": "require_issue_reference_parts_together",
+      "path": "app/project_control/models.py",
+      "type": "function"
+    },
+    {
       "id": "function:python:app.project_control.models.require_number_and_url_together",
       "language": "python",
       "metadata": {
-        "line": 91,
+        "line": 130,
         "qualified_name": "app.project_control.models.require_number_and_url_together"
       },
       "name": "require_number_and_url_together",
@@ -29488,7 +30426,7 @@
       "id": "function:python:app.project_control.models.validate_day",
       "language": "python",
       "metadata": {
-        "line": 190,
+        "line": 279,
         "qualified_name": "app.project_control.models.validate_day"
       },
       "name": "validate_day",
@@ -29499,7 +30437,7 @@
       "id": "function:python:app.project_control.models.validate_dependencies",
       "language": "python",
       "metadata": {
-        "line": 213,
+        "line": 302,
         "qualified_name": "app.project_control.models.validate_dependencies"
       },
       "name": "validate_dependencies",
@@ -29510,7 +30448,7 @@
       "id": "function:python:app.project_control.models.validate_evidence",
       "language": "python",
       "metadata": {
-        "line": 328,
+        "line": 417,
         "qualified_name": "app.project_control.models.validate_evidence"
       },
       "name": "validate_evidence",
@@ -29518,10 +30456,54 @@
       "type": "function"
     },
     {
+      "id": "function:python:app.project_control.models.validate_generated_output_layout",
+      "language": "python",
+      "metadata": {
+        "line": 156,
+        "qualified_name": "app.project_control.models.validate_generated_output_layout"
+      },
+      "name": "validate_generated_output_layout",
+      "path": "app/project_control/models.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.project_control.models.validate_project_url",
+      "language": "python",
+      "metadata": {
+        "line": 510,
+        "qualified_name": "app.project_control.models.validate_project_url"
+      },
+      "name": "validate_project_url",
+      "path": "app/project_control/models.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.project_control.models.validate_snapshot_source_revision",
+      "language": "python",
+      "metadata": {
+        "line": 538,
+        "qualified_name": "app.project_control.models.validate_snapshot_source_revision"
+      },
+      "name": "validate_snapshot_source_revision",
+      "path": "app/project_control/models.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.project_control.models.validate_source_revision",
+      "language": "python",
+      "metadata": {
+        "line": 515,
+        "qualified_name": "app.project_control.models.validate_source_revision"
+      },
+      "name": "validate_source_revision",
+      "path": "app/project_control/models.py",
+      "type": "function"
+    },
+    {
       "id": "function:python:app.project_control.models.validate_supersession",
       "language": "python",
       "metadata": {
-        "line": 302,
+        "line": 391,
         "qualified_name": "app.project_control.models.validate_supersession"
       },
       "name": "validate_supersession",
@@ -29532,7 +30514,7 @@
       "id": "function:python:app.project_control.models.validate_task_only_fields",
       "language": "python",
       "metadata": {
-        "line": 196,
+        "line": 285,
         "qualified_name": "app.project_control.models.validate_task_only_fields"
       },
       "name": "validate_task_only_fields",
@@ -29543,7 +30525,7 @@
       "id": "function:python:app.project_control.models.validate_test_first",
       "language": "python",
       "metadata": {
-        "line": 185,
+        "line": 274,
         "qualified_name": "app.project_control.models.validate_test_first"
       },
       "name": "validate_test_first",
@@ -29554,7 +30536,7 @@
       "id": "function:python:app.project_control.models.validate_unique_ids",
       "language": "python",
       "metadata": {
-        "line": 351,
+        "line": 440,
         "qualified_name": "app.project_control.models.validate_unique_ids"
       },
       "name": "validate_unique_ids",
@@ -29565,7 +30547,7 @@
       "id": "function:python:app.project_control.models.visit",
       "language": "python",
       "metadata": {
-        "line": 232,
+        "line": 321,
         "qualified_name": "app.project_control.models.visit"
       },
       "name": "visit",
@@ -29647,6 +30629,281 @@
       },
       "name": "verification_heading",
       "path": "app/project_control/roadmap.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.project_control.snapshots._codegraph_freshness",
+      "language": "python",
+      "metadata": {
+        "line": 437,
+        "qualified_name": "app.project_control.snapshots._codegraph_freshness"
+      },
+      "name": "_codegraph_freshness",
+      "path": "app/project_control/snapshots.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.project_control.snapshots._codegraph_status",
+      "language": "python",
+      "metadata": {
+        "line": 193,
+        "qualified_name": "app.project_control.snapshots._codegraph_status"
+      },
+      "name": "_codegraph_status",
+      "path": "app/project_control/snapshots.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.project_control.snapshots._current_phase",
+      "language": "python",
+      "metadata": {
+        "line": 173,
+        "qualified_name": "app.project_control.snapshots._current_phase"
+      },
+      "name": "_current_phase",
+      "path": "app/project_control/snapshots.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.project_control.snapshots._excluded_snapshot_output",
+      "language": "python",
+      "metadata": {
+        "line": 396,
+        "qualified_name": "app.project_control.snapshots._excluded_snapshot_output"
+      },
+      "name": "_excluded_snapshot_output",
+      "path": "app/project_control/snapshots.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.project_control.snapshots._immediate_objective",
+      "language": "python",
+      "metadata": {
+        "line": 180,
+        "qualified_name": "app.project_control.snapshots._immediate_objective"
+      },
+      "name": "_immediate_objective",
+      "path": "app/project_control/snapshots.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.project_control.snapshots._initial_board",
+      "language": "python",
+      "metadata": {
+        "line": 454,
+        "qualified_name": "app.project_control.snapshots._initial_board"
+      },
+      "name": "_initial_board",
+      "path": "app/project_control/snapshots.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.project_control.snapshots._inputs_are_dirty",
+      "language": "python",
+      "metadata": {
+        "line": 401,
+        "qualified_name": "app.project_control.snapshots._inputs_are_dirty"
+      },
+      "name": "_inputs_are_dirty",
+      "path": "app/project_control/snapshots.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.project_control.snapshots._load_state",
+      "language": "python",
+      "metadata": {
+        "line": 411,
+        "qualified_name": "app.project_control.snapshots._load_state"
+      },
+      "name": "_load_state",
+      "path": "app/project_control/snapshots.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.project_control.snapshots._local_link",
+      "language": "python",
+      "metadata": {
+        "line": 57,
+        "qualified_name": "app.project_control.snapshots._local_link"
+      },
+      "name": "_local_link",
+      "path": "app/project_control/snapshots.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.project_control.snapshots._markdown",
+      "language": "python",
+      "metadata": {
+        "line": 69,
+        "qualified_name": "app.project_control.snapshots._markdown"
+      },
+      "name": "_markdown",
+      "path": "app/project_control/snapshots.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.project_control.snapshots._phase_summaries",
+      "language": "python",
+      "metadata": {
+        "line": 80,
+        "qualified_name": "app.project_control.snapshots._phase_summaries"
+      },
+      "name": "_phase_summaries",
+      "path": "app/project_control/snapshots.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.project_control.snapshots._prepare",
+      "language": "python",
+      "metadata": {
+        "line": 536,
+        "qualified_name": "app.project_control.snapshots._prepare"
+      },
+      "name": "_prepare",
+      "path": "app/project_control/snapshots.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.project_control.snapshots._record_input_paths",
+      "language": "python",
+      "metadata": {
+        "line": 375,
+        "qualified_name": "app.project_control.snapshots._record_input_paths"
+      },
+      "name": "_record_input_paths",
+      "path": "app/project_control/snapshots.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.project_control.snapshots._render_current_with_freshness",
+      "language": "python",
+      "metadata": {
+        "line": 449,
+        "qualified_name": "app.project_control.snapshots._render_current_with_freshness"
+      },
+      "name": "_render_current_with_freshness",
+      "path": "app/project_control/snapshots.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.project_control.snapshots._replace_pair",
+      "language": "python",
+      "metadata": {
+        "line": 544,
+        "qualified_name": "app.project_control.snapshots._replace_pair"
+      },
+      "name": "_replace_pair",
+      "path": "app/project_control/snapshots.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.project_control.snapshots._roadmap_board_sort_key",
+      "language": "python",
+      "metadata": {
+        "line": 48,
+        "qualified_name": "app.project_control.snapshots._roadmap_board_sort_key"
+      },
+      "name": "_roadmap_board_sort_key",
+      "path": "app/project_control/snapshots.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.project_control.snapshots._snapshot_input_paths",
+      "language": "python",
+      "metadata": {
+        "line": 343,
+        "qualified_name": "app.project_control.snapshots._snapshot_input_paths"
+      },
+      "name": "_snapshot_input_paths",
+      "path": "app/project_control/snapshots.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.project_control.snapshots._snapshot_source_revision",
+      "language": "python",
+      "metadata": {
+        "line": 316,
+        "qualified_name": "app.project_control.snapshots._snapshot_source_revision"
+      },
+      "name": "_snapshot_source_revision",
+      "path": "app/project_control/snapshots.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.project_control.snapshots._timestamp",
+      "language": "python",
+      "metadata": {
+        "line": 32,
+        "qualified_name": "app.project_control.snapshots._timestamp"
+      },
+      "name": "_timestamp",
+      "path": "app/project_control/snapshots.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.project_control.snapshots._url_link",
+      "language": "python",
+      "metadata": {
+        "line": 63,
+        "qualified_name": "app.project_control.snapshots._url_link"
+      },
+      "name": "_url_link",
+      "path": "app/project_control/snapshots.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.project_control.snapshots.board_sort_key",
+      "language": "python",
+      "metadata": {
+        "line": 38,
+        "qualified_name": "app.project_control.snapshots.board_sort_key"
+      },
+      "name": "board_sort_key",
+      "path": "app/project_control/snapshots.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.project_control.snapshots.render_board",
+      "language": "python",
+      "metadata": {
+        "line": 98,
+        "qualified_name": "app.project_control.snapshots.render_board"
+      },
+      "name": "render_board",
+      "path": "app/project_control/snapshots.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.project_control.snapshots.render_current",
+      "language": "python",
+      "metadata": {
+        "line": 203,
+        "qualified_name": "app.project_control.snapshots.render_current"
+      },
+      "name": "render_current",
+      "path": "app/project_control/snapshots.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.project_control.snapshots.write_initial_snapshots",
+      "language": "python",
+      "metadata": {
+        "line": 521,
+        "qualified_name": "app.project_control.snapshots.write_initial_snapshots"
+      },
+      "name": "write_initial_snapshots",
+      "path": "app/project_control/snapshots.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.project_control.snapshots.write_snapshots",
+      "language": "python",
+      "metadata": {
+        "line": 505,
+        "qualified_name": "app.project_control.snapshots.write_snapshots"
+      },
+      "name": "write_snapshots",
+      "path": "app/project_control/snapshots.py",
       "type": "function"
     },
     {
@@ -35241,7 +36498,7 @@
       "id": "function:python:tests.unit.test_project_control_codegraph._git",
       "language": "python",
       "metadata": {
-        "line": 20,
+        "line": 22,
         "qualified_name": "tests.unit.test_project_control_codegraph._git"
       },
       "name": "_git",
@@ -35252,7 +36509,7 @@
       "id": "function:python:tests.unit.test_project_control_codegraph._git_output",
       "language": "python",
       "metadata": {
-        "line": 24,
+        "line": 26,
         "qualified_name": "tests.unit.test_project_control_codegraph._git_output"
       },
       "name": "_git_output",
@@ -35263,7 +36520,7 @@
       "id": "function:python:tests.unit.test_project_control_codegraph._tracked_repo",
       "language": "python",
       "metadata": {
-        "line": 30,
+        "line": 32,
         "qualified_name": "tests.unit.test_project_control_codegraph._tracked_repo"
       },
       "name": "_tracked_repo",
@@ -35271,10 +36528,21 @@
       "type": "function"
     },
     {
+      "id": "function:python:tests.unit.test_project_control_codegraph.test_codegraph_build_and_freshness_use_configured_directory",
+      "language": "python",
+      "metadata": {
+        "line": 156,
+        "qualified_name": "tests.unit.test_project_control_codegraph.test_codegraph_build_and_freshness_use_configured_directory"
+      },
+      "name": "test_codegraph_build_and_freshness_use_configured_directory",
+      "path": "tests/unit/test_project_control_codegraph.py",
+      "type": "function"
+    },
+    {
       "id": "function:python:tests.unit.test_project_control_codegraph.test_codegraph_generator_is_stable_for_fixed_time_and_fresh_until_sources_change",
       "language": "python",
       "metadata": {
-        "line": 157,
+        "line": 202,
         "qualified_name": "tests.unit.test_project_control_codegraph.test_codegraph_generator_is_stable_for_fixed_time_and_fresh_until_sources_change"
       },
       "name": "test_codegraph_generator_is_stable_for_fixed_time_and_fresh_until_sources_change",
@@ -35282,10 +36550,21 @@
       "type": "function"
     },
     {
+      "id": "function:python:tests.unit.test_project_control_codegraph.test_configured_generated_outputs_are_excluded_before_file_validation",
+      "language": "python",
+      "metadata": {
+        "line": 128,
+        "qualified_name": "tests.unit.test_project_control_codegraph.test_configured_generated_outputs_are_excluded_before_file_validation"
+      },
+      "name": "test_configured_generated_outputs_are_excluded_before_file_validation",
+      "path": "tests/unit/test_project_control_codegraph.py",
+      "type": "function"
+    },
+    {
       "id": "function:python:tests.unit.test_project_control_codegraph.test_control_room_graph_marks_javascript_test_files_without_symbol_parsing",
       "language": "python",
       "metadata": {
-        "line": 58,
+        "line": 60,
         "qualified_name": "tests.unit.test_project_control_codegraph.test_control_room_graph_marks_javascript_test_files_without_symbol_parsing"
       },
       "name": "test_control_room_graph_marks_javascript_test_files_without_symbol_parsing",
@@ -35296,7 +36575,7 @@
       "id": "function:python:tests.unit.test_project_control_codegraph.test_control_room_graph_marks_typescript_as_file_only",
       "language": "python",
       "metadata": {
-        "line": 45,
+        "line": 47,
         "qualified_name": "tests.unit.test_project_control_codegraph.test_control_room_graph_marks_typescript_as_file_only"
       },
       "name": "test_control_room_graph_marks_typescript_as_file_only",
@@ -35307,7 +36586,7 @@
       "id": "function:python:tests.unit.test_project_control_codegraph.test_control_room_graph_rejects_directory_input",
       "language": "python",
       "metadata": {
-        "line": 149,
+        "line": 194,
         "qualified_name": "tests.unit.test_project_control_codegraph.test_control_room_graph_rejects_directory_input"
       },
       "name": "test_control_room_graph_rejects_directory_input",
@@ -35318,7 +36597,7 @@
       "id": "function:python:tests.unit.test_project_control_codegraph.test_control_room_graph_rejects_symlink_input",
       "language": "python",
       "metadata": {
-        "line": 127,
+        "line": 172,
         "qualified_name": "tests.unit.test_project_control_codegraph.test_control_room_graph_rejects_symlink_input"
       },
       "name": "test_control_room_graph_rejects_symlink_input",
@@ -35329,7 +36608,7 @@
       "id": "function:python:tests.unit.test_project_control_codegraph.test_control_room_graph_rejects_traversal_input",
       "language": "python",
       "metadata": {
-        "line": 141,
+        "line": 186,
         "qualified_name": "tests.unit.test_project_control_codegraph.test_control_room_graph_rejects_traversal_input"
       },
       "name": "test_control_room_graph_rejects_traversal_input",
@@ -35340,7 +36619,7 @@
       "id": "function:python:tests.unit.test_project_control_codegraph.test_source_digest_changes_when_a_tracked_file_changes",
       "language": "python",
       "metadata": {
-        "line": 104,
+        "line": 106,
         "qualified_name": "tests.unit.test_project_control_codegraph.test_source_digest_changes_when_a_tracked_file_changes"
       },
       "name": "test_source_digest_changes_when_a_tracked_file_changes",
@@ -35351,7 +36630,7 @@
       "id": "function:python:tests.unit.test_project_control_codegraph.test_source_digest_ignores_generated_graph_files",
       "language": "python",
       "metadata": {
-        "line": 113,
+        "line": 115,
         "qualified_name": "tests.unit.test_project_control_codegraph.test_source_digest_ignores_generated_graph_files"
       },
       "name": "test_source_digest_ignores_generated_graph_files",
@@ -35362,7 +36641,7 @@
       "id": "function:python:tests.unit.test_project_control_codegraph.test_tracked_graph_inputs_exclude_dirty_untracked_and_generated_paths",
       "language": "python",
       "metadata": {
-        "line": 75,
+        "line": 77,
         "qualified_name": "tests.unit.test_project_control_codegraph.test_tracked_graph_inputs_exclude_dirty_untracked_and_generated_paths"
       },
       "name": "test_tracked_graph_inputs_exclude_dirty_untracked_and_generated_paths",
@@ -35373,7 +36652,7 @@
       "id": "function:python:tests.unit.test_project_control_codegraph.test_tracked_graph_inputs_include_staged_file",
       "language": "python",
       "metadata": {
-        "line": 92,
+        "line": 94,
         "qualified_name": "tests.unit.test_project_control_codegraph.test_tracked_graph_inputs_include_staged_file"
       },
       "name": "test_tracked_graph_inputs_include_staged_file",
@@ -35637,7 +36916,7 @@
       "id": "function:python:tests.unit.test_project_control_schema.test_atomic_write_creates_an_in_root_file",
       "language": "python",
       "metadata": {
-        "line": 74,
+        "line": 120,
         "qualified_name": "tests.unit.test_project_control_schema.test_atomic_write_creates_an_in_root_file"
       },
       "name": "test_atomic_write_creates_an_in_root_file",
@@ -35648,7 +36927,7 @@
       "id": "function:python:tests.unit.test_project_control_schema.test_atomic_write_rejects_parent_escape",
       "language": "python",
       "metadata": {
-        "line": 69,
+        "line": 115,
         "qualified_name": "tests.unit.test_project_control_schema.test_atomic_write_rejects_parent_escape"
       },
       "name": "test_atomic_write_rejects_parent_escape",
@@ -35659,7 +36938,7 @@
       "id": "function:python:tests.unit.test_project_control_schema.test_blocked_handoff_requires_blocker_and_authority",
       "language": "python",
       "metadata": {
-        "line": 150,
+        "line": 196,
         "qualified_name": "tests.unit.test_project_control_schema.test_blocked_handoff_requires_blocker_and_authority"
       },
       "name": "test_blocked_handoff_requires_blocker_and_authority",
@@ -35670,7 +36949,7 @@
       "id": "function:python:tests.unit.test_project_control_schema.test_completed_handoff_with_required_verification_rejects_non_passing_state",
       "language": "python",
       "metadata": {
-        "line": 128,
+        "line": 174,
         "qualified_name": "tests.unit.test_project_control_schema.test_completed_handoff_with_required_verification_rejects_non_passing_state"
       },
       "name": "test_completed_handoff_with_required_verification_rejects_non_passing_state",
@@ -35681,7 +36960,7 @@
       "id": "function:python:tests.unit.test_project_control_schema.test_graph_manifest_rejects_non_normalized_included_paths",
       "language": "python",
       "metadata": {
-        "line": 220,
+        "line": 266,
         "qualified_name": "tests.unit.test_project_control_schema.test_graph_manifest_rejects_non_normalized_included_paths"
       },
       "name": "test_graph_manifest_rejects_non_normalized_included_paths",
@@ -35692,7 +36971,7 @@
       "id": "function:python:tests.unit.test_project_control_schema.test_handoff_requires_full_commit_identifiers",
       "language": "python",
       "metadata": {
-        "line": 187,
+        "line": 233,
         "qualified_name": "tests.unit.test_project_control_schema.test_handoff_requires_full_commit_identifiers"
       },
       "name": "test_handoff_requires_full_commit_identifiers",
@@ -35703,7 +36982,7 @@
       "id": "function:python:tests.unit.test_project_control_schema.test_load_frontmatter_rejects_missing_closing_delimiter",
       "language": "python",
       "metadata": {
-        "line": 120,
+        "line": 166,
         "qualified_name": "tests.unit.test_project_control_schema.test_load_frontmatter_rejects_missing_closing_delimiter"
       },
       "name": "test_load_frontmatter_rejects_missing_closing_delimiter",
@@ -35714,7 +36993,7 @@
       "id": "function:python:tests.unit.test_project_control_schema.test_load_yaml_rejects_parent_escape",
       "language": "python",
       "metadata": {
-        "line": 61,
+        "line": 107,
         "qualified_name": "tests.unit.test_project_control_schema.test_load_yaml_rejects_parent_escape"
       },
       "name": "test_load_yaml_rejects_parent_escape",
@@ -35725,7 +37004,7 @@
       "id": "function:python:tests.unit.test_project_control_schema.test_load_yaml_rejects_symlink_input",
       "language": "python",
       "metadata": {
-        "line": 51,
+        "line": 97,
         "qualified_name": "tests.unit.test_project_control_schema.test_load_yaml_rejects_symlink_input"
       },
       "name": "test_load_yaml_rejects_symlink_input",
@@ -35736,10 +37015,21 @@
       "id": "function:python:tests.unit.test_project_control_schema.test_non_task_rejects_task_only_fields",
       "language": "python",
       "metadata": {
-        "line": 112,
+        "line": 158,
         "qualified_name": "tests.unit.test_project_control_schema.test_non_task_rejects_task_only_fields"
       },
       "name": "test_non_task_rejects_task_only_fields",
+      "path": "tests/unit/test_project_control_schema.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.unit.test_project_control_schema.test_project_config_rejects_generated_output_input_overlap",
+      "language": "python",
+      "metadata": {
+        "line": 66,
+        "qualified_name": "tests.unit.test_project_control_schema.test_project_config_rejects_generated_output_input_overlap"
+      },
+      "name": "test_project_config_rejects_generated_output_input_overlap",
       "path": "tests/unit/test_project_control_schema.py",
       "type": "function"
     },
@@ -35758,7 +37048,7 @@
       "id": "function:python:tests.unit.test_project_control_schema.test_required_unavailable_artifact_cannot_claim_verified_evidence",
       "language": "python",
       "metadata": {
-        "line": 170,
+        "line": 216,
         "qualified_name": "tests.unit.test_project_control_schema.test_required_unavailable_artifact_cannot_claim_verified_evidence"
       },
       "name": "test_required_unavailable_artifact_cannot_claim_verified_evidence",
@@ -35769,7 +37059,7 @@
       "id": "function:python:tests.unit.test_project_control_schema.test_roadmap_rejects_dependency_cycles",
       "language": "python",
       "metadata": {
-        "line": 90,
+        "line": 136,
         "qualified_name": "tests.unit.test_project_control_schema.test_roadmap_rejects_dependency_cycles"
       },
       "name": "test_roadmap_rejects_dependency_cycles",
@@ -35780,7 +37070,7 @@
       "id": "function:python:tests.unit.test_project_control_schema.test_roadmap_rejects_duplicate_ids",
       "language": "python",
       "metadata": {
-        "line": 31,
+        "line": 77,
         "qualified_name": "tests.unit.test_project_control_schema.test_roadmap_rejects_duplicate_ids"
       },
       "name": "test_roadmap_rejects_duplicate_ids",
@@ -35791,7 +37081,7 @@
       "id": "function:python:tests.unit.test_project_control_schema.test_roadmap_rejects_missing_dependency",
       "language": "python",
       "metadata": {
-        "line": 42,
+        "line": 88,
         "qualified_name": "tests.unit.test_project_control_schema.test_roadmap_rejects_missing_dependency"
       },
       "name": "test_roadmap_rejects_missing_dependency",
@@ -35802,7 +37092,7 @@
       "id": "function:python:tests.unit.test_project_control_schema.test_roadmap_rejects_non_normalized_repository_path_lists",
       "language": "python",
       "metadata": {
-        "line": 209,
+        "line": 255,
         "qualified_name": "tests.unit.test_project_control_schema.test_roadmap_rejects_non_normalized_repository_path_lists"
       },
       "name": "test_roadmap_rejects_non_normalized_repository_path_lists",
@@ -35813,7 +37103,7 @@
       "id": "function:python:tests.unit.test_project_control_schema.test_roadmap_rejects_self_dependencies",
       "language": "python",
       "metadata": {
-        "line": 82,
+        "line": 128,
         "qualified_name": "tests.unit.test_project_control_schema.test_roadmap_rejects_self_dependencies"
       },
       "name": "test_roadmap_rejects_self_dependencies",
@@ -35824,11 +37114,319 @@
       "id": "function:python:tests.unit.test_project_control_schema.test_task_requires_test_target_and_likely_files",
       "language": "python",
       "metadata": {
-        "line": 103,
+        "line": 149,
         "qualified_name": "tests.unit.test_project_control_schema.test_task_requires_test_target_and_likely_files"
       },
       "name": "test_task_requires_test_target_and_likely_files",
       "path": "tests/unit/test_project_control_schema.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.unit.test_project_control_snapshots._git",
+      "language": "python",
+      "metadata": {
+        "line": 611,
+        "qualified_name": "tests.unit.test_project_control_snapshots._git"
+      },
+      "name": "_git",
+      "path": "tests/unit/test_project_control_snapshots.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.unit.test_project_control_snapshots._init_snapshot_git_repository",
+      "language": "python",
+      "metadata": {
+        "line": 595,
+        "qualified_name": "tests.unit.test_project_control_snapshots._init_snapshot_git_repository"
+      },
+      "name": "_init_snapshot_git_repository",
+      "path": "tests/unit/test_project_control_snapshots.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.unit.test_project_control_snapshots.fail_second_prepare",
+      "language": "python",
+      "metadata": {
+        "line": 371,
+        "qualified_name": "tests.unit.test_project_control_snapshots.fail_second_prepare"
+      },
+      "name": "fail_second_prepare",
+      "path": "tests/unit/test_project_control_snapshots.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.unit.test_project_control_snapshots.test_board_export_rejects_unsafe_relative_handoff_links",
+      "language": "python",
+      "metadata": {
+        "line": 555,
+        "qualified_name": "tests.unit.test_project_control_snapshots.test_board_export_rejects_unsafe_relative_handoff_links"
+      },
+      "name": "test_board_export_rejects_unsafe_relative_handoff_links",
+      "path": "tests/unit/test_project_control_snapshots.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.unit.test_project_control_snapshots.test_board_export_rejects_untruthful_source_revisions",
+      "language": "python",
+      "metadata": {
+        "line": 249,
+        "qualified_name": "tests.unit.test_project_control_snapshots.test_board_export_rejects_untruthful_source_revisions"
+      },
+      "name": "test_board_export_rejects_untruthful_source_revisions",
+      "path": "tests/unit/test_project_control_snapshots.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.unit.test_project_control_snapshots.test_board_export_renders_safe_normalized_relative_handoff_link",
+      "language": "python",
+      "metadata": {
+        "line": 574,
+        "qualified_name": "tests.unit.test_project_control_snapshots.test_board_export_renders_safe_normalized_relative_handoff_link"
+      },
+      "name": "test_board_export_renders_safe_normalized_relative_handoff_link",
+      "path": "tests/unit/test_project_control_snapshots.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.unit.test_project_control_snapshots.test_board_snapshot_declares_live_authority",
+      "language": "python",
+      "metadata": {
+        "line": 25,
+        "qualified_name": "tests.unit.test_project_control_snapshots.test_board_snapshot_declares_live_authority"
+      },
+      "name": "test_board_snapshot_declares_live_authority",
+      "path": "tests/unit/test_project_control_snapshots.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.unit.test_project_control_snapshots.test_board_snapshot_sorts_live_work_by_execution_priority",
+      "language": "python",
+      "metadata": {
+        "line": 35,
+        "qualified_name": "tests.unit.test_project_control_snapshots.test_board_snapshot_sorts_live_work_by_execution_priority"
+      },
+      "name": "test_board_snapshot_sorts_live_work_by_execution_priority",
+      "path": "tests/unit/test_project_control_snapshots.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.unit.test_project_control_snapshots.test_current_and_initial_board_render_repository_record_links",
+      "language": "python",
+      "metadata": {
+        "line": 179,
+        "qualified_name": "tests.unit.test_project_control_snapshots.test_current_and_initial_board_render_repository_record_links"
+      },
+      "name": "test_current_and_initial_board_render_repository_record_links",
+      "path": "tests/unit/test_project_control_snapshots.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.unit.test_project_control_snapshots.test_current_snapshot_exposes_required_onboarding_context",
+      "language": "python",
+      "metadata": {
+        "line": 72,
+        "qualified_name": "tests.unit.test_project_control_snapshots.test_current_snapshot_exposes_required_onboarding_context"
+      },
+      "name": "test_current_snapshot_exposes_required_onboarding_context",
+      "path": "tests/unit/test_project_control_snapshots.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.unit.test_project_control_snapshots.test_dirty_generated_outputs_do_not_invalidate_snapshot_provenance",
+      "language": "python",
+      "metadata": {
+        "line": 462,
+        "qualified_name": "tests.unit.test_project_control_snapshots.test_dirty_generated_outputs_do_not_invalidate_snapshot_provenance"
+      },
+      "name": "test_dirty_generated_outputs_do_not_invalidate_snapshot_provenance",
+      "path": "tests/unit/test_project_control_snapshots.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.unit.test_project_control_snapshots.test_dirty_snapshot_input_makes_provenance_unavailable",
+      "language": "python",
+      "metadata": {
+        "line": 452,
+        "qualified_name": "tests.unit.test_project_control_snapshots.test_dirty_snapshot_input_makes_provenance_unavailable"
+      },
+      "name": "test_dirty_snapshot_input_makes_provenance_unavailable",
+      "path": "tests/unit/test_project_control_snapshots.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.unit.test_project_control_snapshots.test_empty_live_export_remains_authoritative_for_current_state",
+      "language": "python",
+      "metadata": {
+        "line": 261,
+        "qualified_name": "tests.unit.test_project_control_snapshots.test_empty_live_export_remains_authoritative_for_current_state"
+      },
+      "name": "test_empty_live_export_remains_authoritative_for_current_state",
+      "path": "tests/unit/test_project_control_snapshots.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.unit.test_project_control_snapshots.test_fixed_clock_snapshot_reproduces_committed_bytes_after_output_only_commit",
+      "language": "python",
+      "metadata": {
+        "line": 471,
+        "qualified_name": "tests.unit.test_project_control_snapshots.test_fixed_clock_snapshot_reproduces_committed_bytes_after_output_only_commit"
+      },
+      "name": "test_fixed_clock_snapshot_reproduces_committed_bytes_after_output_only_commit",
+      "path": "tests/unit/test_project_control_snapshots.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.unit.test_project_control_snapshots.test_fresh_codegraph_stays_fresh_across_two_fixed_clock_snapshot_generations",
+      "language": "python",
+      "metadata": {
+        "line": 493,
+        "qualified_name": "tests.unit.test_project_control_snapshots.test_fresh_codegraph_stays_fresh_across_two_fixed_clock_snapshot_generations"
+      },
+      "name": "test_fresh_codegraph_stays_fresh_across_two_fixed_clock_snapshot_generations",
+      "path": "tests/unit/test_project_control_snapshots.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.unit.test_project_control_snapshots.test_initial_snapshots_are_stable_and_identify_unprovisioned_project",
+      "language": "python",
+      "metadata": {
+        "line": 100,
+        "qualified_name": "tests.unit.test_project_control_snapshots.test_initial_snapshots_are_stable_and_identify_unprovisioned_project"
+      },
+      "name": "test_initial_snapshots_are_stable_and_identify_unprovisioned_project",
+      "path": "tests/unit/test_project_control_snapshots.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.unit.test_project_control_snapshots.test_invalid_export_does_not_replace_last_good_board",
+      "language": "python",
+      "metadata": {
+        "line": 88,
+        "qualified_name": "tests.unit.test_project_control_snapshots.test_invalid_export_does_not_replace_last_good_board"
+      },
+      "name": "test_invalid_export_does_not_replace_last_good_board",
+      "path": "tests/unit/test_project_control_snapshots.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.unit.test_project_control_snapshots.test_live_board_export_controls_current_phase_objective_and_blockers",
+      "language": "python",
+      "metadata": {
+        "line": 125,
+        "qualified_name": "tests.unit.test_project_control_snapshots.test_live_board_export_controls_current_phase_objective_and_blockers"
+      },
+      "name": "test_live_board_export_controls_current_phase_objective_and_blockers",
+      "path": "tests/unit/test_project_control_snapshots.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.unit.test_project_control_snapshots.test_live_export_rejects_markdown_syntax_in_identifiers_and_links",
+      "language": "python",
+      "metadata": {
+        "line": 304,
+        "qualified_name": "tests.unit.test_project_control_snapshots.test_live_export_rejects_markdown_syntax_in_identifiers_and_links"
+      },
+      "name": "test_live_export_rejects_markdown_syntax_in_identifiers_and_links",
+      "path": "tests/unit/test_project_control_snapshots.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.unit.test_project_control_snapshots.test_live_rendering_escapes_display_text_across_all_untrusted_fields",
+      "language": "python",
+      "metadata": {
+        "line": 329,
+        "qualified_name": "tests.unit.test_project_control_snapshots.test_live_rendering_escapes_display_text_across_all_untrusted_fields"
+      },
+      "name": "test_live_rendering_escapes_display_text_across_all_untrusted_fields",
+      "path": "tests/unit/test_project_control_snapshots.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.unit.test_project_control_snapshots.test_live_rendering_is_deterministic_and_escapes_forged_heading",
+      "language": "python",
+      "metadata": {
+        "line": 274,
+        "qualified_name": "tests.unit.test_project_control_snapshots.test_live_rendering_is_deterministic_and_escapes_forged_heading"
+      },
+      "name": "test_live_rendering_is_deterministic_and_escapes_forged_heading",
+      "path": "tests/unit/test_project_control_snapshots.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.unit.test_project_control_snapshots.test_second_temp_prepare_failure_removes_first_temp_without_replacing_destinations",
+      "language": "python",
+      "metadata": {
+        "line": 359,
+        "qualified_name": "tests.unit.test_project_control_snapshots.test_second_temp_prepare_failure_removes_first_temp_without_replacing_destinations"
+      },
+      "name": "test_second_temp_prepare_failure_removes_first_temp_without_replacing_destinations",
+      "path": "tests/unit/test_project_control_snapshots.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.unit.test_project_control_snapshots.test_snapshot_freshness_uses_configured_alternate_codegraph",
+      "language": "python",
+      "metadata": {
+        "line": 517,
+        "qualified_name": "tests.unit.test_project_control_snapshots.test_snapshot_freshness_uses_configured_alternate_codegraph"
+      },
+      "name": "test_snapshot_freshness_uses_configured_alternate_codegraph",
+      "path": "tests/unit/test_project_control_snapshots.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.unit.test_project_control_snapshots.test_snapshot_provenance_separates_baseline_snapshot_and_graph_revisions",
+      "language": "python",
+      "metadata": {
+        "line": 235,
+        "qualified_name": "tests.unit.test_project_control_snapshots.test_snapshot_provenance_separates_baseline_snapshot_and_graph_revisions"
+      },
+      "name": "test_snapshot_provenance_separates_baseline_snapshot_and_graph_revisions",
+      "path": "tests/unit/test_project_control_snapshots.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.unit.test_project_control_snapshots.test_snapshot_record_loading_rejects_unknown_or_malformed_handoffs",
+      "language": "python",
+      "metadata": {
+        "line": 212,
+        "qualified_name": "tests.unit.test_project_control_snapshots.test_snapshot_record_loading_rejects_unknown_or_malformed_handoffs"
+      },
+      "name": "test_snapshot_record_loading_rejects_unknown_or_malformed_handoffs",
+      "path": "tests/unit/test_project_control_snapshots.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.unit.test_project_control_snapshots.test_snapshot_source_revision_ignores_outputs_but_tracks_inputs_and_renderer",
+      "language": "python",
+      "metadata": {
+        "line": 403,
+        "qualified_name": "tests.unit.test_project_control_snapshots.test_snapshot_source_revision_ignores_outputs_but_tracks_inputs_and_renderer"
+      },
+      "name": "test_snapshot_source_revision_ignores_outputs_but_tracks_inputs_and_renderer",
+      "path": "tests/unit/test_project_control_snapshots.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.unit.test_project_control_snapshots.test_snapshot_source_revision_uses_configured_alternate_roadmap",
+      "language": "python",
+      "metadata": {
+        "line": 420,
+        "qualified_name": "tests.unit.test_project_control_snapshots.test_snapshot_source_revision_uses_configured_alternate_roadmap"
+      },
+      "name": "test_snapshot_source_revision_uses_configured_alternate_roadmap",
+      "path": "tests/unit/test_project_control_snapshots.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.unit.test_project_control_snapshots.test_snapshot_writer_preserves_both_files_when_second_destination_is_a_symlink",
+      "language": "python",
+      "metadata": {
+        "line": 157,
+        "qualified_name": "tests.unit.test_project_control_snapshots.test_snapshot_writer_preserves_both_files_when_second_destination_is_a_symlink"
+      },
+      "name": "test_snapshot_writer_preserves_both_files_when_second_destination_is_a_symlink",
+      "path": "tests/unit/test_project_control_snapshots.py",
       "type": "function"
     },
     {
@@ -37432,6 +39030,16 @@
       "type": "import"
     },
     {
+      "id": "import:python:app.project_control.decisions.load_recent_decisions",
+      "language": "python",
+      "metadata": {
+        "imported_from": "app.project_control.decisions"
+      },
+      "name": "app.project_control.decisions.load_recent_decisions",
+      "path": null,
+      "type": "import"
+    },
+    {
       "id": "import:python:app.project_control.errors.InvalidControlRoom",
       "language": "python",
       "metadata": {
@@ -37458,6 +39066,16 @@
         "imported_from": "app.project_control.handoffs"
       },
       "name": "app.project_control.handoffs.latest_handoffs",
+      "path": null,
+      "type": "import"
+    },
+    {
+      "id": "import:python:app.project_control.handoffs.load_latest_handoffs",
+      "language": "python",
+      "metadata": {
+        "imported_from": "app.project_control.handoffs"
+      },
+      "name": "app.project_control.handoffs.load_latest_handoffs",
       "path": null,
       "type": "import"
     },
@@ -37522,6 +39140,26 @@
       "type": "import"
     },
     {
+      "id": "import:python:app.project_control.models.BoardExport",
+      "language": "python",
+      "metadata": {
+        "imported_from": "app.project_control.models"
+      },
+      "name": "app.project_control.models.BoardExport",
+      "path": null,
+      "type": "import"
+    },
+    {
+      "id": "import:python:app.project_control.models.BoardItem",
+      "language": "python",
+      "metadata": {
+        "imported_from": "app.project_control.models"
+      },
+      "name": "app.project_control.models.BoardItem",
+      "path": null,
+      "type": "import"
+    },
+    {
       "id": "import:python:app.project_control.models.ControlRoomState",
       "language": "python",
       "metadata": {
@@ -37538,6 +39176,16 @@
         "imported_from": "app.project_control.models"
       },
       "name": "app.project_control.models.DecisionHeader",
+      "path": null,
+      "type": "import"
+    },
+    {
+      "id": "import:python:app.project_control.models.GeneratedPaths",
+      "language": "python",
+      "metadata": {
+        "imported_from": "app.project_control.models"
+      },
+      "name": "app.project_control.models.GeneratedPaths",
       "path": null,
       "type": "import"
     },
@@ -37592,6 +39240,26 @@
       "type": "import"
     },
     {
+      "id": "import:python:app.project_control.models._https_url",
+      "language": "python",
+      "metadata": {
+        "imported_from": "app.project_control.models"
+      },
+      "name": "app.project_control.models._https_url",
+      "path": null,
+      "type": "import"
+    },
+    {
+      "id": "import:python:app.project_control.models._safe_relative_link_target",
+      "language": "python",
+      "metadata": {
+        "imported_from": "app.project_control.models"
+      },
+      "name": "app.project_control.models._safe_relative_link_target",
+      "path": null,
+      "type": "import"
+    },
+    {
       "id": "import:python:app.project_control.roadmap.load_roadmap",
       "language": "python",
       "metadata": {
@@ -37618,6 +39286,66 @@
         "imported_from": "app.project_control.roadmap"
       },
       "name": "app.project_control.roadmap.render_roadmap",
+      "path": null,
+      "type": "import"
+    },
+    {
+      "id": "import:python:app.project_control.snapshots",
+      "language": "python",
+      "metadata": {
+        "imported_from": null
+      },
+      "name": "app.project_control.snapshots",
+      "path": null,
+      "type": "import"
+    },
+    {
+      "id": "import:python:app.project_control.snapshots._snapshot_source_revision",
+      "language": "python",
+      "metadata": {
+        "imported_from": "app.project_control.snapshots"
+      },
+      "name": "app.project_control.snapshots._snapshot_source_revision",
+      "path": null,
+      "type": "import"
+    },
+    {
+      "id": "import:python:app.project_control.snapshots.render_board",
+      "language": "python",
+      "metadata": {
+        "imported_from": "app.project_control.snapshots"
+      },
+      "name": "app.project_control.snapshots.render_board",
+      "path": null,
+      "type": "import"
+    },
+    {
+      "id": "import:python:app.project_control.snapshots.render_current",
+      "language": "python",
+      "metadata": {
+        "imported_from": "app.project_control.snapshots"
+      },
+      "name": "app.project_control.snapshots.render_current",
+      "path": null,
+      "type": "import"
+    },
+    {
+      "id": "import:python:app.project_control.snapshots.write_initial_snapshots",
+      "language": "python",
+      "metadata": {
+        "imported_from": "app.project_control.snapshots"
+      },
+      "name": "app.project_control.snapshots.write_initial_snapshots",
+      "path": null,
+      "type": "import"
+    },
+    {
+      "id": "import:python:app.project_control.snapshots.write_snapshots",
+      "language": "python",
+      "metadata": {
+        "imported_from": "app.project_control.snapshots"
+      },
+      "name": "app.project_control.snapshots.write_snapshots",
       "path": null,
       "type": "import"
     },
@@ -39218,6 +40946,16 @@
         "imported_from": "urllib.parse"
       },
       "name": "urllib.parse.quote",
+      "path": null,
+      "type": "import"
+    },
+    {
+      "id": "import:python:urllib.parse.urlsplit",
+      "language": "python",
+      "metadata": {
+        "imported_from": "urllib.parse"
+      },
+      "name": "urllib.parse.urlsplit",
       "path": null,
       "type": "import"
     },
@@ -41813,7 +43551,7 @@
       "id": "method:python:app.project_control.models.ArtifactIndex.validate_unique_ids",
       "language": "python",
       "metadata": {
-        "line": 351,
+        "line": 440,
         "qualified_name": "app.project_control.models.ArtifactIndex.validate_unique_ids"
       },
       "name": "validate_unique_ids",
@@ -41824,7 +43562,7 @@
       "id": "method:python:app.project_control.models.ArtifactRecord.validate_evidence",
       "language": "python",
       "metadata": {
-        "line": 328,
+        "line": 417,
         "qualified_name": "app.project_control.models.ArtifactRecord.validate_evidence"
       },
       "name": "validate_evidence",
@@ -41832,10 +43570,65 @@
       "type": "method"
     },
     {
+      "id": "method:python:app.project_control.models.BoardExport.validate_project_url",
+      "language": "python",
+      "metadata": {
+        "line": 510,
+        "qualified_name": "app.project_control.models.BoardExport.validate_project_url"
+      },
+      "name": "validate_project_url",
+      "path": "app/project_control/models.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:app.project_control.models.BoardExport.validate_source_revision",
+      "language": "python",
+      "metadata": {
+        "line": 515,
+        "qualified_name": "app.project_control.models.BoardExport.validate_source_revision"
+      },
+      "name": "validate_source_revision",
+      "path": "app/project_control/models.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:app.project_control.models.BoardItem.require_issue_reference_parts_together",
+      "language": "python",
+      "metadata": {
+        "line": 493,
+        "qualified_name": "app.project_control.models.BoardItem.require_issue_reference_parts_together"
+      },
+      "name": "require_issue_reference_parts_together",
+      "path": "app/project_control/models.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:app.project_control.models.BoardItem.validate_day",
+      "language": "python",
+      "metadata": {
+        "line": 487,
+        "qualified_name": "app.project_control.models.BoardItem.validate_day"
+      },
+      "name": "validate_day",
+      "path": "app/project_control/models.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:app.project_control.models.ControlRoomState.validate_snapshot_source_revision",
+      "language": "python",
+      "metadata": {
+        "line": 538,
+        "qualified_name": "app.project_control.models.ControlRoomState.validate_snapshot_source_revision"
+      },
+      "name": "validate_snapshot_source_revision",
+      "path": "app/project_control/models.py",
+      "type": "method"
+    },
+    {
       "id": "method:python:app.project_control.models.DecisionHeader.validate_supersession",
       "language": "python",
       "metadata": {
-        "line": 302,
+        "line": 391,
         "qualified_name": "app.project_control.models.DecisionHeader.validate_supersession"
       },
       "name": "validate_supersession",
@@ -41846,7 +43639,7 @@
       "id": "method:python:app.project_control.models.GitHubIssueReference.require_number_and_url_together",
       "language": "python",
       "metadata": {
-        "line": 122,
+        "line": 211,
         "qualified_name": "app.project_control.models.GitHubIssueReference.require_number_and_url_together"
       },
       "name": "require_number_and_url_together",
@@ -41857,7 +43650,7 @@
       "id": "method:python:app.project_control.models.GitHubProjectConfig.require_number_and_url_together",
       "language": "python",
       "metadata": {
-        "line": 91,
+        "line": 130,
         "qualified_name": "app.project_control.models.GitHubProjectConfig.require_number_and_url_together"
       },
       "name": "require_number_and_url_together",
@@ -41868,7 +43661,7 @@
       "id": "method:python:app.project_control.models.HandoffHeader.enforce_terminal_semantics",
       "language": "python",
       "metadata": {
-        "line": 273,
+        "line": 362,
         "qualified_name": "app.project_control.models.HandoffHeader.enforce_terminal_semantics"
       },
       "name": "enforce_terminal_semantics",
@@ -41876,10 +43669,21 @@
       "type": "method"
     },
     {
+      "id": "method:python:app.project_control.models.ProjectConfig.validate_generated_output_layout",
+      "language": "python",
+      "metadata": {
+        "line": 156,
+        "qualified_name": "app.project_control.models.ProjectConfig.validate_generated_output_layout"
+      },
+      "name": "validate_generated_output_layout",
+      "path": "app/project_control/models.py",
+      "type": "method"
+    },
+    {
       "id": "method:python:app.project_control.models.Roadmap.validate_dependencies",
       "language": "python",
       "metadata": {
-        "line": 213,
+        "line": 302,
         "qualified_name": "app.project_control.models.Roadmap.validate_dependencies"
       },
       "name": "validate_dependencies",
@@ -41890,7 +43694,7 @@
       "id": "method:python:app.project_control.models.RoadmapItem.validate_day",
       "language": "python",
       "metadata": {
-        "line": 190,
+        "line": 279,
         "qualified_name": "app.project_control.models.RoadmapItem.validate_day"
       },
       "name": "validate_day",
@@ -41901,7 +43705,7 @@
       "id": "method:python:app.project_control.models.RoadmapItem.validate_task_only_fields",
       "language": "python",
       "metadata": {
-        "line": 196,
+        "line": 285,
         "qualified_name": "app.project_control.models.RoadmapItem.validate_task_only_fields"
       },
       "name": "validate_task_only_fields",
@@ -41912,7 +43716,7 @@
       "id": "method:python:app.project_control.models.RoadmapItem.validate_test_first",
       "language": "python",
       "metadata": {
-        "line": 185,
+        "line": 274,
         "qualified_name": "app.project_control.models.RoadmapItem.validate_test_first"
       },
       "name": "validate_test_first",
@@ -42529,8 +44333,8 @@
       "python"
     ],
     "risk_count": 0,
-    "source_file_count": 219,
-    "test_file_count": 92,
+    "source_file_count": 222,
+    "test_file_count": 93,
     "test_frameworks": [
       "pytest"
     ]
