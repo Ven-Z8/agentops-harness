@@ -353,7 +353,7 @@ def _snapshot_input_paths(root: Path, project: ProjectConfig, project_path: Path
     for directory_name in ("handoffs", "decisions"):
         directory = control_root / directory_name
         paths.update(_record_input_paths(root, directory))
-    for path in tracked_graph_inputs(root):
+    for path in tracked_graph_inputs(root, config=project):
         relative = path.as_posix()
         if not _excluded_snapshot_output(relative, project):
             paths.add(relative)
@@ -438,7 +438,7 @@ def _codegraph_freshness(root: Path, state: ControlRoomState) -> str:
     if state.graph_manifest is None:
         return "Not validated: no graph manifest is present."
     try:
-        validate_codegraph_freshness(root)
+        validate_codegraph_freshness(root, config=state.project)
     except ValueError as error:
         if "Codegraph is stale" not in str(error):
             raise

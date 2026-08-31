@@ -152,6 +152,56 @@ class ProjectConfig(StrictModel):
     github_project: GitHubProjectConfig
     generated: GeneratedPaths
 
+    @model_validator(mode="after")
+    def validate_generated_output_layout(self) -> ProjectConfig:
+        generated = {
+            "board": PurePosixPath(self.generated.board),
+            "current": PurePosixPath(self.generated.current),
+            "codegraph": PurePosixPath(self.generated.codegraph),
+        }
+        coordination = PurePosixPath("coordination")
+        for name, path in generated.items():
+            if path == coordination or not path.is_relative_to(coordination):
+                raise ValueError(
+                    f"generated {name} path must be contained in the coordination output surface"
+                )
+
+        names = list(generated)
+        for index, first_name in enumerate(names):
+            first = generated[first_name]
+            for second_name in names[index + 1 :]:
+                second = generated[second_name]
+                if first == second or first.is_relative_to(second) or second.is_relative_to(first):
+                    raise ValueError(
+                        f"generated {first_name} and {second_name} paths must be distinct "
+                        "and non-overlapping"
+                    )
+
+        roadmap = PurePosixPath(self.roadmap.source)
+        protected_surfaces = {
+            PurePosixPath("app"),
+            PurePosixPath("src"),
+            PurePosixPath("source"),
+            PurePosixPath("tests"),
+            PurePosixPath("scripts"),
+            PurePosixPath("coordination/project.yaml"),
+            roadmap,
+            roadmap.parent,
+            *(coordination / name for name in ("artifacts", "decisions", "handoffs")),
+        }
+        for name, output in generated.items():
+            for protected in protected_surfaces:
+                overlaps = (
+                    output == protected
+                    or output.is_relative_to(protected)
+                    or protected.is_relative_to(output)
+                )
+                if overlaps:
+                    raise ValueError(
+                        f"generated {name} path overlaps protected input surface {protected}"
+                    )
+        return self
+
 
 class GitHubIssueReference(StrictModel):
     issue_number: int | None

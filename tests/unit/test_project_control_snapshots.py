@@ -8,6 +8,7 @@ import pytest
 from pydantic import ValidationError
 
 import app.project_control.snapshots as snapshots
+from app.project_control.codegraph import build_codegraph
 from app.project_control.models import BoardExport
 from app.project_control.snapshots import (
     _snapshot_source_revision,
@@ -487,6 +488,53 @@ def test_fixed_clock_snapshot_reproduces_committed_bytes_after_output_only_commi
         path: (tmp_path / path).read_bytes()
         for path in ("coordination/CURRENT.md", "coordination/BOARD.md")
     } == expected
+
+
+def test_fresh_codegraph_stays_fresh_across_two_fixed_clock_snapshot_generations(
+    tmp_path: Path,
+) -> None:
+    """Generated snapshots must not enter graph inputs and turn Fresh into Stale."""
+    _init_snapshot_git_repository(tmp_path)
+    build_codegraph(tmp_path, FIXED_TIME)
+
+    write_initial_snapshots(tmp_path, FIXED_TIME)
+    first = {
+        path: (tmp_path / path).read_bytes()
+        for path in ("coordination/CURRENT.md", "coordination/BOARD.md")
+    }
+    write_initial_snapshots(tmp_path, FIXED_TIME)
+    second = {
+        path: (tmp_path / path).read_bytes()
+        for path in ("coordination/CURRENT.md", "coordination/BOARD.md")
+    }
+
+    assert b"Fresh: the manifest source-tree digest matches tracked inputs." in first[
+        "coordination/CURRENT.md"
+    ]
+    assert first == second
+
+
+def test_snapshot_freshness_uses_configured_alternate_codegraph(tmp_path: Path) -> None:
+    """Snapshot freshness must read the same configured manifest that build writes."""
+    _init_snapshot_git_repository(tmp_path)
+    project = tmp_path / "coordination/project.yaml"
+    project.write_text(
+        project.read_text(encoding="utf-8").replace(
+            "codegraph: coordination/codegraph",
+            "codegraph: coordination/generated/graph",
+        ),
+        encoding="utf-8",
+    )
+    _git(tmp_path, "add", "coordination/project.yaml")
+    _git(tmp_path, "commit", "-m", "configure alternate graph")
+    build_codegraph(tmp_path, FIXED_TIME)
+
+    write_initial_snapshots(tmp_path, FIXED_TIME)
+    first = (tmp_path / "coordination/CURRENT.md").read_bytes()
+    write_initial_snapshots(tmp_path, FIXED_TIME)
+
+    assert b"Fresh: the manifest source-tree digest matches tracked inputs." in first
+    assert (tmp_path / "coordination/CURRENT.md").read_bytes() == first
 
 
 @pytest.mark.parametrize(

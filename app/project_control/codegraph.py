@@ -12,11 +12,16 @@ from tempfile import TemporaryDirectory
 
 from app.core.repo_graph import RepoGraph, RepoGraphBuilder
 from app.core.repo_graph.serializer import repo_graph_json
-from app.project_control.io import atomic_write, resolve_inside
-from app.project_control.models import GraphManifest
+from app.project_control.io import atomic_write, load_yaml, resolve_inside
+from app.project_control.models import GeneratedPaths, GraphManifest, ProjectConfig
 
 GENERATOR_VERSION = "1"
 _CODEGRAPH_DIRECTORY = Path("coordination/codegraph")
+_DEFAULT_GENERATED_PATHS = GeneratedPaths(
+    board="coordination/BOARD.md",
+    current="coordination/CURRENT.md",
+    codegraph=_CODEGRAPH_DIRECTORY.as_posix(),
+)
 _SEMANTIC_LANGUAGES = {"java", "python"}
 _FILE_ONLY_SUFFIXES = {
     ".cjs": "javascript",
@@ -29,9 +34,26 @@ _FILE_ONLY_SUFFIXES = {
     ".tsx": "typescript",
 }
 _EXCLUDED_PARTS = RepoGraphBuilder.IGNORED_PARTS | {".cache", ".next", "coverage", "vendor"}
-_EXCLUSIONS = sorted(
-    ["coordination/codegraph/"] + [f"{part}/" for part in _EXCLUDED_PARTS | {".git"}]
-)
+
+
+def _generated_paths(root: Path, config: ProjectConfig | None) -> GeneratedPaths:
+    if config is not None:
+        return config.generated
+    project_path = root / "coordination/project.yaml"
+    if project_path.exists() or project_path.is_symlink():
+        return load_yaml(project_path, ProjectConfig, root=root).generated
+    return _DEFAULT_GENERATED_PATHS
+
+
+def _exclusions(generated: GeneratedPaths) -> list[str]:
+    return sorted(
+        [
+            generated.board,
+            generated.current,
+            f"{generated.codegraph.rstrip('/')}/",
+            *[f"{part}/" for part in _EXCLUDED_PARTS | {".git"}],
+        ]
+    )
 
 
 def file_only_language(relative_path: str) -> str | None:
@@ -48,14 +70,20 @@ def _validated_relative_file(root: Path, relative: Path) -> Path:
     return Path(*relative.parts)
 
 
-def _is_excluded(relative: Path) -> bool:
+def _is_excluded(relative: Path, generated: GeneratedPaths) -> bool:
     parts = relative.parts
-    return parts[:2] == _CODEGRAPH_DIRECTORY.parts or bool(set(parts).intersection(_EXCLUDED_PARTS))
+    codegraph = Path(generated.codegraph)
+    return (
+        relative.as_posix() in {generated.board, generated.current}
+        or parts[: len(codegraph.parts)] == codegraph.parts
+        or bool(set(parts).intersection(_EXCLUDED_PARTS))
+    )
 
 
-def tracked_graph_inputs(root: Path) -> list[Path]:
+def tracked_graph_inputs(root: Path, *, config: ProjectConfig | None = None) -> list[Path]:
     """List validated, tracked source files while excluding generated and cache paths."""
     root = root.resolve(strict=True)
+    generated = _generated_paths(root, config)
     result = subprocess.run(
         ["git", "ls-files", "-z"], cwd=root, check=True, capture_output=True
     )
@@ -64,9 +92,12 @@ def tracked_graph_inputs(root: Path) -> list[Path]:
         if not value:
             continue
         relative = Path(value.decode("utf-8"))
+        if relative.is_absolute() or not relative.parts or ".." in relative.parts:
+            raise ValueError(f"Path must remain inside repository: {relative}")
+        if _is_excluded(relative, generated):
+            continue
         validated = _validated_relative_file(root, relative)
-        if not _is_excluded(validated):
-            paths.append(validated)
+        paths.append(validated)
     return sorted(paths, key=lambda value: value.as_posix())
 
 
@@ -207,10 +238,13 @@ def _summary(markdown_manifest: GraphManifest, graph: RepoGraph) -> str:
     return "\n".join(lines)
 
 
-def build_codegraph(root: Path, now: datetime) -> GraphManifest:
+def build_codegraph(
+    root: Path, now: datetime, *, config: ProjectConfig | None = None
+) -> GraphManifest:
     """Write deterministic codegraph artifacts and return their strict manifest."""
     root = root.resolve(strict=True)
-    paths = tracked_graph_inputs(root)
+    generated = _generated_paths(root, config)
+    paths = tracked_graph_inputs(root, config=config)
     graph = build_export_graph(root, paths)
     manifest = GraphManifest(
         schema_version=1,
@@ -218,12 +252,12 @@ def build_codegraph(root: Path, now: datetime) -> GraphManifest:
         source_commit=_source_commit(root),
         source_tree_digest=source_tree_digest(root, paths),
         included_paths=[path.as_posix() for path in paths],
-        exclusions=_EXCLUSIONS,
+        exclusions=_exclusions(generated),
         counts=_graph_counts(graph, paths),
         generated_at=_timestamp(now),
         language_coverage=_language_coverage(graph),
     )
-    destination = root / _CODEGRAPH_DIRECTORY
+    destination = root / generated.codegraph
     atomic_write(destination / "graph.json", repo_graph_json(graph), root=root)
     atomic_write(destination / "summary.md", _summary(manifest, graph), root=root)
     atomic_write(
@@ -234,11 +268,12 @@ def build_codegraph(root: Path, now: datetime) -> GraphManifest:
     return manifest
 
 
-def validate_codegraph_freshness(root: Path) -> None:
+def validate_codegraph_freshness(root: Path, *, config: ProjectConfig | None = None) -> None:
     """Raise when the graph export no longer matches the current tracked source tree."""
     root = root.resolve(strict=True)
-    manifest_path = resolve_inside(root / _CODEGRAPH_DIRECTORY / "manifest.json", root)
+    generated = _generated_paths(root, config)
+    manifest_path = resolve_inside(root / generated.codegraph / "manifest.json", root)
     manifest = GraphManifest.model_validate_json(manifest_path.read_text(encoding="utf-8"))
-    current_digest = source_tree_digest(root, tracked_graph_inputs(root))
+    current_digest = source_tree_digest(root, tracked_graph_inputs(root, config=config))
     if current_digest != manifest.source_tree_digest:
         raise ValueError("Codegraph is stale: source-tree digest differs from manifest")

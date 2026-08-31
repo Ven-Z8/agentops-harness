@@ -28,6 +28,52 @@ def test_project_config_rejects_unknown_keys(tmp_path: Path) -> None:
         load_yaml(path, ProjectConfig, root=tmp_path)
 
 
+@pytest.mark.parametrize(
+    "generated",
+    [
+        {
+            "board": "coordination/output.md",
+            "current": "coordination/output.md",
+            "codegraph": "coordination/codegraph",
+        },
+        {
+            "board": "app/generated/BOARD.md",
+            "current": "coordination/CURRENT.md",
+            "codegraph": "coordination/codegraph",
+        },
+        {
+            "board": "coordination/roadmap/BOARD.md",
+            "current": "coordination/CURRENT.md",
+            "codegraph": "coordination/codegraph",
+        },
+        {
+            "board": "coordination/codegraph/BOARD.md",
+            "current": "coordination/CURRENT.md",
+            "codegraph": "coordination/codegraph",
+        },
+        {
+            "board": "coordination/BOARD.md",
+            "current": "coordination/CURRENT.md",
+            "codegraph": "coordination",
+        },
+        {
+            "board": "coordination/BOARD.md",
+            "current": "coordination/project.yaml",
+            "codegraph": "coordination/codegraph",
+        },
+    ],
+)
+def test_project_config_rejects_generated_output_input_overlap(
+    generated: dict[str, str],
+) -> None:
+    """Unsafe output layouts must fail at schema load rather than overwrite inputs."""
+    payload = valid_project_config()
+    payload["generated"] = generated
+
+    with pytest.raises(ValidationError, match="generated"):
+        ProjectConfig.model_validate(payload)
+
+
 def test_roadmap_rejects_duplicate_ids() -> None:
     payload = {
         "schema_version": 1,

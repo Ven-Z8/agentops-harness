@@ -13,6 +13,8 @@ from app.project_control.codegraph import (
     tracked_graph_inputs,
     validate_codegraph_freshness,
 )
+from app.project_control.models import ProjectConfig
+from tests.helpers_project_control import valid_project_config
 
 FIXED_TIME = datetime(2026, 8, 31, 18, 0, tzinfo=UTC)
 
@@ -121,6 +123,49 @@ def test_source_digest_ignores_generated_graph_files(tmp_path: Path) -> None:
 
     assert not any(path.as_posix().startswith("coordination/codegraph/") for path in paths)
     assert source_tree_digest(root, tracked_graph_inputs(root)) == first
+
+
+def test_configured_generated_outputs_are_excluded_before_file_validation(
+    tmp_path: Path,
+) -> None:
+    """A deleted configured output must not fail before graph exclusions are applied."""
+    root = _tracked_repo(
+        tmp_path,
+        {
+            "app/kept.py": "VALUE = 1\n",
+            "coordination/generated/CURRENT.md": "current\n",
+            "coordination/generated/BOARD.md": "board\n",
+            "coordination/generated/graph/manifest.json": "{}\n",
+        },
+    )
+    payload = valid_project_config()
+    payload["generated"] = {
+        "current": "coordination/generated/CURRENT.md",
+        "board": "coordination/generated/BOARD.md",
+        "codegraph": "coordination/generated/graph",
+    }
+    config = ProjectConfig.model_validate(payload)
+    (root / "coordination/generated/CURRENT.md").unlink()
+    (root / "coordination/generated/BOARD.md").write_text("dirty board\n", encoding="utf-8")
+
+    paths = tracked_graph_inputs(root, config=config)
+
+    assert [path.as_posix() for path in paths] == ["app/kept.py"]
+
+
+def test_codegraph_build_and_freshness_use_configured_directory(tmp_path: Path) -> None:
+    """Hard-coding the default directory would validate a different manifest than was built."""
+    root = _tracked_repo(tmp_path, {"app/service.py": "VALUE = 1\n"})
+    payload = valid_project_config()
+    payload["generated"]["codegraph"] = "coordination/generated/graph"
+    config = ProjectConfig.model_validate(payload)
+
+    manifest = build_codegraph(root, FIXED_TIME, config=config)
+
+    assert (root / "coordination/generated/graph/manifest.json").is_file()
+    assert not (root / "coordination/codegraph/manifest.json").exists()
+    assert manifest.included_paths == ["app/service.py"]
+    validate_codegraph_freshness(root, config=config)
 
 
 @pytest.mark.parametrize("relative", [Path("linked.py"), Path("nested/linked.py")])
