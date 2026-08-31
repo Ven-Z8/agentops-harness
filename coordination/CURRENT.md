@@ -15,7 +15,7 @@
 ## Confirmed baseline
 
 - Baseline commit: `39c041f699d7909d1f6853a89bf2a86835a4acd4`
-- Snapshot input revision: `ab433bae0053c88f1b76a10a611c4d4ab30149fb`
+- Snapshot input revision: `b75ffedf3c37b3346caf3a1b178f65e27517e4c7`
 - Generated snapshot outputs are excluded; unavailable means validated inputs are dirty or provenance could not be resolved.
 
 ## Active blockers
@@ -57,7 +57,7 @@
 
 ## Code graph freshness
 
-- Graph input provenance: `1b8d4c1064d6825c2b580937db35cae15a613c2e`; freshness is inconclusive until validated against the current source tree before relying on it.
+- Graph input provenance: `4d217434ca97a08e7fb21d043ec0e06e1b9ea4a5`; freshness is inconclusive until validated against the current source tree before relying on it.
 - Fresh: the manifest source-tree digest matches tracked inputs.
 
 ## Onboarding commands
