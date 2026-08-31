@@ -133,20 +133,20 @@ def test_configured_generated_outputs_are_excluded_before_file_validation(
         tmp_path,
         {
             "app/kept.py": "VALUE = 1\n",
-            "coordination/generated/CURRENT.md": "current\n",
-            "coordination/generated/BOARD.md": "board\n",
+            "coordination/CURRENT.md": "current\n",
+            "coordination/BOARD.md": "board\n",
             "coordination/generated/graph/manifest.json": "{}\n",
         },
     )
     payload = valid_project_config()
     payload["generated"] = {
-        "current": "coordination/generated/CURRENT.md",
-        "board": "coordination/generated/BOARD.md",
+        "current": "coordination/CURRENT.md",
+        "board": "coordination/BOARD.md",
         "codegraph": "coordination/generated/graph",
     }
     config = ProjectConfig.model_validate(payload)
-    (root / "coordination/generated/CURRENT.md").unlink()
-    (root / "coordination/generated/BOARD.md").write_text("dirty board\n", encoding="utf-8")
+    (root / "coordination/CURRENT.md").unlink()
+    (root / "coordination/BOARD.md").write_text("dirty board\n", encoding="utf-8")
 
     paths = tracked_graph_inputs(root, config=config)
 
