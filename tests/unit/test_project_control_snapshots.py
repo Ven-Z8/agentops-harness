@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+# ruff: noqa: E501
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -250,3 +251,19 @@ def test_board_export_rejects_untruthful_source_revisions(source_revision: str) 
                 "items": [],
             }
         )
+
+
+def test_empty_live_export_remains_authoritative_for_current_state() -> None:
+    state = make_control_room_state().model_copy(
+        update={"board_export": BoardExport(project_url="https://github.com/users/Ven-Z8/projects/1", items=[])}
+    )
+    rendered = render_current(state, FIXED_TIME)
+    assert "Unassigned (live board)" in rendered
+    assert "roadmap fallback" not in rendered
+
+
+def test_live_rendering_is_deterministic_and_escapes_forged_heading() -> None:
+    export = BoardExport.model_validate({"project_url": "https://github.com/users/Ven-Z8/projects/1", "items": [{"task_id": "AO-D01-01", "title": "safe\n## forged", "status": "ready", "priority": "P0"}]})
+    first = render_board(export, FIXED_TIME)
+    assert first == render_board(export, FIXED_TIME)
+    assert "\n## forged" not in first

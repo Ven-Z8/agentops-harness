@@ -1,4 +1,5 @@
 """Deterministic, validated local snapshots for the Project Control Room."""
+# ruff: noqa: E501
 
 from __future__ import annotations
 
@@ -59,7 +60,8 @@ def _link(value: str | None, label: str) -> str:
 
 
 def _markdown(value: str) -> str:
-    return value.replace("\\", "\\\\").replace("|", "\\|").replace("[", "\\[").replace("]", "\\]")
+    value = " ".join(value.split())
+    return value.replace("\\", "\\\\").replace("|", "\\|").replace("[", "\\[").replace("]", "\\]").replace("#", "\\#")
 
 
 def _phase_summaries(items: list[BoardItem]) -> list[str]:
@@ -189,7 +191,7 @@ def render_current(state: ControlRoomState, now: datetime) -> str:
     phase = _current_phase(state)
     objective = _immediate_objective(state, phase)
     live = sorted(state.board_export.items, key=board_sort_key) if state.board_export else []
-    if live:
+    if state.board_export is not None:
         active = [item for item in live if item.status != "done"]
         phase_id = next((item.phase_id for item in active if item.phase_id), "Unassigned")
         phase_text = f"- {phase_id} (live board)"
@@ -309,7 +311,7 @@ def _codegraph_freshness(root: Path, state: ControlRoomState) -> str:
 
 def _render_current_with_freshness(state: ControlRoomState, now: datetime, freshness: str) -> str:
     rendered = render_current(state, now)
-    return rendered.replace(_codegraph_status(state), freshness)
+    return rendered.replace(_codegraph_status(state), f"{_codegraph_status(state)}\n- {freshness}")
 
 
 def _initial_board(state: ControlRoomState, now: datetime) -> str:
@@ -392,7 +394,8 @@ def _replace_pair(root: Path, current_path: str, current: str, board_path: str, 
     resolve_inside(root / board_path, root)
     prepared: list[tuple[Path, Path]] = []
     try:
-        prepared = [_prepare(root, current_path, current), _prepare(root, board_path, board)]
+        prepared.append(_prepare(root, current_path, current))
+        prepared.append(_prepare(root, board_path, board))
         for destination, temporary in prepared:
             temporary.replace(destination)
     except Exception:
