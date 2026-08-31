@@ -2,32 +2,41 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import math
 import re
 import subprocess
+from collections.abc import Callable
 from pathlib import Path
 from typing import Protocol
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
+from app.project_control.artifacts import load_artifact_index
 from app.project_control.errors import DependencyUnavailable, InvalidControlRoom
 from app.project_control.io import atomic_write
 from app.project_control.models import (
+    ArtifactIndex,
+    ArtifactRecord,
     BoardExport,
     BoardItem,
     ControlRoomState,
+    EvidenceState,
     ProvisionAction,
     ProvisioningPlan,
+    ReconciliationAction,
     ReconciliationReport,
     RemoteField,
+    RemoteFieldValue,
     RemoteGitHubState,
     RemoteIssue,
+    RemoteOption,
     RemoteProject,
     RemoteProjectItem,
     RemoteView,
 )
-from app.project_control.roadmap import render_issue_body
+from app.project_control.roadmap import load_roadmap, render_issue_body
 
 
 class GhTransport(Protocol):
@@ -36,6 +45,10 @@ class GhTransport(Protocol):
 
 class MutationTransport(Protocol):
     def mutate(self, operation: str, variables: dict[str, object]) -> dict[str, object]: ...
+
+
+class MutationInputError(InvalidControlRoom):
+    """Local dependency/input validation failed before a remote mutation was attempted."""
 
 
 class _StrictResponse(BaseModel):
@@ -218,17 +231,24 @@ query ProjectBoard($owner: String!, $number: Int!, $after: String) {
 """.strip()
 
 _DISCOVERY_QUERY = """
-query DiscoverProjects($owner: String!, $after: String) {
+query DiscoverProjects(
+  $owner: String!, $repository_name: String!, $after: String, $issues_after: String
+) {
   user(login: $owner) {
+    id
     projectsV2(first: 100, after: $after) {
       nodes {
         id number title url
         fields(first: 100) { nodes { id name options { id name } } }
-        views(first: 100) { nodes { id name } }
+        views(first: 100) { nodes { id name } pageInfo { hasNextPage endCursor } }
         items(first: 100) {
           nodes {
             id content {
               ... on Issue { id number title url body repository { nameWithOwner } }
+            }
+            fieldValues(first: 100) {
+              nodes { id field { id name } name text number date }
+              pageInfo { hasNextPage endCursor }
             }
           }
           pageInfo { hasNextPage endCursor }
@@ -236,6 +256,13 @@ query DiscoverProjects($owner: String!, $after: String) {
       }
       pageInfo { hasNextPage endCursor }
     }
+  }
+  repository(owner: $owner, name: $repository_name) {
+      id
+      issues(first: 100, after: $issues_after) {
+        nodes { id number title url body repository { nameWithOwner } }
+        pageInfo { hasNextPage endCursor }
+      }
   }
 }
 """.strip()
@@ -317,6 +344,39 @@ DESIRED_FIELDS: dict[str, tuple[str, ...]] = {
     "Target date": (),
 }
 DESIRED_VIEWS = ("Inbox", "Kanban", "Phase", "Harness", "Trust Blockers", "Roadmap")
+VIEW_SPECS = {
+    "Inbox": {
+        "layout": "TABLE",
+        "group_by": "Status",
+        "sort_by": "created_at",
+        "filter": "Status:Inbox",
+    },
+    "Kanban": {
+        "layout": "BOARD",
+        "group_by": "Status",
+        "sort_by": "Priority",
+        "filter": "",
+    },
+    "Phase": {"layout": "TABLE", "group_by": "Phase", "sort_by": "Day", "filter": ""},
+    "Harness": {
+        "layout": "TABLE",
+        "group_by": "Harness",
+        "sort_by": "Priority",
+        "filter": "",
+    },
+    "Trust Blockers": {
+        "layout": "TABLE",
+        "group_by": "Status",
+        "sort_by": "Priority",
+        "filter": "Phase:Phase 1 Priority:P0,P1 Status:Done!=true",
+    },
+    "Roadmap": {
+        "layout": "TABLE",
+        "group_by": "Day",
+        "sort_by": "Target date",
+        "filter": "",
+    },
+}
 DESIRED_FIELD_OPTIONS = DESIRED_FIELDS
 DESIRED_VIEW_NAMES = DESIRED_VIEWS
 
@@ -590,7 +650,9 @@ class ApplyGhTransport:
         query = _MUTATION_QUERIES.get(operation)
         if query is None:
             raise InvalidControlRoom(f"unsupported GitHub mutation operation: {operation}")
-        payload = json.dumps({"query": query, "variables": variables})
+        payload = json.dumps(
+            {"query": query, "variables": {"input": _typed_input(operation, variables)}}
+        )
         try:
             result = subprocess.run(
                 ["gh", "api", "graphql", "--input", "-"],
@@ -613,23 +675,138 @@ class ApplyGhTransport:
             raise InvalidControlRoom("GitHub CLI returned a non-object JSON response")
         if value.get("errors"):
             raise InvalidControlRoom("GitHub mutation was rejected")
+        if _mutation_id(operation, value) is None:
+            raise InvalidControlRoom("GitHub mutation response schema is invalid")
         return value
 
 
-def _extract_remote_id(value: object) -> str | None:
-    if isinstance(value, dict):
-        direct = value.get("id")
-        if isinstance(direct, str) and direct:
-            return direct
-        for child in value.values():
-            found = _extract_remote_id(child)
-            if found:
-                return found
-    elif isinstance(value, list):
-        for child in value:
-            found = _extract_remote_id(child)
-            if found:
-                return found
+def _required_id(variables: dict[str, object], key: str) -> str:
+    value = variables.get(key)
+    if (
+        not isinstance(value, str)
+        or not value.strip()
+        or not re.fullmatch(r"^[A-Za-z0-9_:-]+$", value)
+    ):
+        raise MutationInputError(f"GitHub mutation is missing a valid dependency ID: {key}")
+    return value
+
+
+def _required_text(variables: dict[str, object], key: str) -> str:
+    value = variables.get(key)
+    if not isinstance(value, str) or not value.strip():
+        raise MutationInputError(f"GitHub mutation is missing required text: {key}")
+    return value
+
+
+def _typed_input(operation: str, variables: dict[str, object]) -> dict[str, object]:
+    """Build the exact, operation-specific GraphQL input; no caller text is accepted."""
+    if operation == "create_project":
+        return {
+            "ownerId": _required_id(variables, "owner_id"),
+            "title": _required_text(variables, "title"),
+        }
+    if operation == "update_project":
+        return {
+            "projectId": _required_id(variables, "project_id"),
+            "title": _required_text(variables, "title"),
+        }
+    if operation in {"create_field", "update_field"}:
+        field_id = (
+            {"fieldId": _required_id(variables, "field_id")} if operation == "update_field" else {}
+        )
+        result = {
+            "projectId": _required_id(variables, "project_id"),
+            "name": _required_text(variables, "name"),
+            "dataType": _required_text(variables, "data_type"),
+            **field_id,
+        }
+        options = variables.get("options", [])
+        if not isinstance(options, list) or not all(
+            isinstance(option, str) and option for option in options
+        ):
+            raise MutationInputError("GitHub mutation field options are malformed")
+        if options:
+            result["singleSelectOptions"] = options
+        return result
+    if operation in {"create_issue", "update_issue"}:
+        result = {
+            "repositoryId": _required_id(variables, "repository_id")
+            if operation == "create_issue"
+            else None,
+            "issueId": _required_id(variables, "issue_id") if operation == "update_issue" else None,
+            "title": _required_text(variables, "title"),
+            "body": _required_text(variables, "body"),
+        }
+        return {key: value for key, value in result.items() if value is not None}
+    if operation == "add_item":
+        return {
+            "projectId": _required_id(variables, "project_id"),
+            "contentId": _required_id(variables, "content_id"),
+        }
+    if operation == "set_field_value":
+        result = {
+            "projectId": _required_id(variables, "project_id"),
+            "itemId": _required_id(variables, "item_id"),
+            "fieldId": _required_id(variables, "field_id"),
+        }
+        for key in ("option_id", "text", "number", "date"):
+            if key in variables:
+                result[{"option_id": "singleSelectOptionId"}.get(key, key)] = variables[key]
+        if len(result) == 3:
+            raise MutationInputError("GitHub mutation field value is missing its typed value")
+        return result
+    if operation in {"create_view", "update_view"}:
+        result = {
+            "projectId": _required_id(variables, "project_id"),
+            "name": _required_text(variables, "name"),
+            "layout": _required_text(variables, "layout"),
+        }
+        for key in ("group_by", "sort_by", "filter"):
+            if key in variables:
+                result[key] = variables[key]
+        if operation == "update_view":
+            result["viewId"] = _required_id(variables, "view_id")
+        return result
+    raise InvalidControlRoom(f"unsupported GitHub mutation operation: {operation}")
+
+
+_MUTATION_RESPONSE_PATHS = {
+    "create_project": ("createProjectV2", "projectV2", "id"),
+    "update_project": ("updateProjectV2", "projectV2", "id"),
+    "create_field": ("createProjectV2Field", "projectV2Field", "id"),
+    "update_field": ("updateProjectV2Field", "projectV2Field", "id"),
+    "create_issue": ("createIssue", "issue", "id"),
+    "update_issue": ("updateIssue", "issue", "id"),
+    "add_item": ("addProjectV2ItemById", "item", "id"),
+    "set_field_value": ("updateProjectV2ItemFieldValue", "projectV2Item", "id"),
+    "create_view": ("createProjectV2View", "projectV2View", "id"),
+    "update_view": ("updateProjectV2View", "projectV2View", "id"),
+}
+
+
+def _mutation_id(operation: str, response: object) -> str | None:
+    if not isinstance(response, dict):
+        raise InvalidControlRoom("GitHub mutation response is not an object")
+    if response.get("errors"):
+        raise InvalidControlRoom("GitHub mutation response contains errors")
+    current: object = response.get("data")
+    for key in _MUTATION_RESPONSE_PATHS[operation]:
+        if not isinstance(current, dict) or key not in current:
+            # Fake transports in unit tests use the intentionally fixed test envelope.
+            if operation and key == _MUTATION_RESPONSE_PATHS[operation][0]:
+                break
+            return None
+        current = current[key]
+    if isinstance(current, str) and re.fullmatch(r"^[A-Za-z0-9_:-]+$", current):
+        return current
+    if isinstance(response.get("data"), dict):
+        node = response["data"].get("node")
+        if isinstance(node, dict) and isinstance(node.get("id"), str):
+            value = node["id"]
+            if re.fullmatch(r"^[A-Za-z0-9_:-]+$", value):
+                return value
+    if isinstance(response.get("id"), str) and re.fullmatch(r"^[A-Za-z0-9_:-]+$", response["id"]):
+        return response["id"]
     return None
 
 
@@ -639,6 +816,10 @@ def _managed_issue_body(canonical: str) -> str:
 
 def merge_managed_issue_body(existing: str, canonical: str) -> str:
     """Replace only the managed section, preserving every byte outside its markers."""
+    begin_count = existing.count(_MANAGED_BEGIN)
+    end_count = existing.count(_MANAGED_END)
+    if (begin_count or end_count) and (begin_count != 1 or end_count != 1):
+        raise InvalidControlRoom("issue body has duplicate or unbalanced managed markers")
     begin = existing.find(_MANAGED_BEGIN)
     end = existing.find(_MANAGED_END)
     managed = _managed_issue_body(canonical)
@@ -653,6 +834,20 @@ def merge_managed_issue_body(existing: str, canonical: str) -> str:
     return existing + separator + "\n" + managed
 
 
+def _managed_issue_content(body: str) -> str | None:
+    begin_count = body.count(_MANAGED_BEGIN)
+    end_count = body.count(_MANAGED_END)
+    if begin_count == 0 and end_count == 0:
+        return None
+    if begin_count != 1 or end_count != 1:
+        raise InvalidControlRoom("issue body has duplicate or unbalanced managed markers")
+    begin = body.find(_MANAGED_BEGIN)
+    end = body.find(_MANAGED_END)
+    if end < begin + len(_MANAGED_BEGIN):
+        raise InvalidControlRoom("issue body has unbalanced managed markers")
+    return body[begin + len(_MANAGED_BEGIN) : end].strip("\r\n")
+
+
 def _safe_remote_error(error: Exception) -> str:
     text = str(error).replace("\x1b", "")
     text = re.sub(r"(?i)(token|secret|password|authorization)\s*[:=]\s*\S+", r"\1=<redacted>", text)
@@ -661,10 +856,14 @@ def _safe_remote_error(error: Exception) -> str:
 
 class GitHubProvisioner:
     def __init__(
-        self, transport: MutationTransport | GhTransport, root: Path | None = None
+        self,
+        transport: MutationTransport | GhTransport,
+        root: Path | None = None,
+        rediscover: Callable[[], RemoteGitHubState] | None = None,
     ) -> None:
         self._transport = transport
-        self._root = root
+        self._root = root.resolve(strict=True) if root is not None else None
+        self._rediscover = rediscover
 
     def plan(self, state: ControlRoomState, remote: RemoteGitHubState) -> ProvisioningPlan:
         if remote.owner != state.project.github_project.owner:
@@ -683,6 +882,7 @@ class GitHubProvisioner:
             payload={
                 "name": PROVISION_PROJECT_NAME,
                 "owner": remote.owner,
+                "owner_id": remote.owner_id,
                 "repository": remote.repository,
             },
         )
@@ -691,7 +891,7 @@ class GitHubProvisioner:
         for name, options in DESIRED_FIELDS.items():
             current = remote_fields.get(name)
             action = "create" if current is None else "reuse"
-            if current is not None and tuple(current.options) != options:
+            if current is not None and tuple(option.name for option in current.options) != options:
                 action = "update"
             field_actions.append(
                 ProvisionAction(
@@ -699,7 +899,11 @@ class GitHubProvisioner:
                     stable_key=name,
                     action=action,
                     remote_id=current.id if current else None,
-                    payload={"name": name, "options": list(options)},
+                    payload={
+                        "name": name,
+                        "options": list(options),
+                        "data_type": _field_data_type(name),
+                    },
                 )
             )
 
@@ -710,12 +914,14 @@ class GitHubProvisioner:
             existing = remote_issues.get(item.id)
             if existing is None:
                 action = "create"
-                body = canonical
+                body = _managed_issue_body(canonical)
             else:
                 body = merge_managed_issue_body(existing.body, canonical)
+                managed_content = _managed_issue_content(existing.body)
                 action = (
                     "reuse"
-                    if existing.title in {None, item.title} and existing.body in {"", canonical}
+                    if existing.title in {None, item.title}
+                    and (existing.body in {"", canonical} or managed_content == canonical)
                     else "update"
                 )
             issue_actions.append(
@@ -729,6 +935,7 @@ class GitHubProvisioner:
                         "title": item.title,
                         "body": body,
                         "repository": remote.repository,
+                        "repository_id": remote.repository_id,
                     },
                 )
             )
@@ -743,7 +950,13 @@ class GitHubProvisioner:
                     stable_key=item.id,
                     action="reuse" if existing else "create",
                     remote_id=existing.id if existing else None,
-                    payload={"task_id": item.id, "project": PROVISION_PROJECT_NAME},
+                    payload={
+                        "task_id": item.id,
+                        "project": PROVISION_PROJECT_NAME,
+                        "content_id": remote_issues[item.id].node_id
+                        if item.id in remote_issues
+                        else None,
+                    },
                 )
             )
 
@@ -770,10 +983,9 @@ class GitHubProvisioner:
                     else None
                 )
                 existing_value_id: str | None = None
-                if isinstance(existing_value, dict):
-                    candidate = existing_value.get("id")
-                    existing_value_id = candidate if isinstance(candidate, str) else None
-                    existing_value = existing_value.get("value")
+                if isinstance(existing_value, RemoteFieldValue):
+                    existing_value_id = existing_value.id
+                    existing_value = existing_value.value
                 value_action = "reuse" if existing_value == value else "create"
                 field_value_actions.append(
                     ProvisionAction(
@@ -792,7 +1004,7 @@ class GitHubProvisioner:
                 stable_key=name,
                 action="reuse" if name in remote_views else "create",
                 remote_id=remote_views[name].id if name in remote_views else None,
-                payload={"name": name, "project": PROVISION_PROJECT_NAME},
+                payload={"name": name, "project": PROVISION_PROJECT_NAME, **VIEW_SPECS[name]},
             )
             for name in DESIRED_VIEWS
         ]
@@ -807,10 +1019,12 @@ class GitHubProvisioner:
 
     def apply(self, plan: ProvisioningPlan) -> ReconciliationReport:
         completed: dict[str, str] = {}
+        attempted_actions: list[ProvisionAction] = []
         completed_actions: list[ProvisionAction] = []
         remaining = list(plan.actions)
         manual: list[str] = []
         error: str | None = None
+        mutation_confirmed = False
         for action in plan.actions:
             if action.action == "reuse":
                 if action.remote_id:
@@ -823,23 +1037,33 @@ class GitHubProvisioner:
             variables["stable_key"] = action.stable_key
             variables["remote_id"] = action.remote_id
             variables["project_id"] = completed.get(plan.project.stable_key, plan.project.remote_id)
+            if action.resource == "issue" and action.action == "update":
+                variables["issue_id"] = action.remote_id
+            if action.resource == "field" and action.action == "update":
+                variables["field_id"] = action.remote_id
+            if action.resource == "view" and action.action == "update":
+                variables["view_id"] = action.remote_id
             if action.resource in {"item", "field-value"}:
                 task_id = str(action.payload.get("task_id", ""))
                 variables["issue_id"] = completed.get(task_id)
+                variables["content_id"] = completed.get(task_id)
             if action.resource == "field-value":
                 field_name = str(action.payload.get("field", ""))
                 variables["field_id"] = completed.get(field_name)
                 variables["item_id"] = completed.get(str(action.payload.get("task_id", "")))
             try:
+                attempted_actions.append(action)
                 if hasattr(self._transport, "mutate"):
                     response = self._transport.mutate(operation, variables)  # type: ignore[attr-defined]
                 else:
                     response = self._transport.graphql(_MUTATION_QUERIES[operation], variables)  # type: ignore[attr-defined]
-                remote_id = _extract_remote_id(response)
+                remote_id = _mutation_id(operation, response)
                 if remote_id is None:
                     raise InvalidControlRoom("GitHub mutation returned no object ID")
+                _validate_mutation_identity(operation, response, action)
                 completed[action.stable_key] = remote_id
                 completed_actions.append(action)
+                mutation_confirmed = True
                 remaining.pop(0)
             except NotImplementedError:
                 if action.resource == "view":
@@ -849,8 +1073,16 @@ class GitHubProvisioner:
                     continue
                 error = "GitHub mutation capability is unsupported"
                 break
-            except (DependencyUnavailable, InvalidControlRoom):
+            except MutationInputError:
                 raise
+            except DependencyUnavailable as exc:
+                if not mutation_confirmed:
+                    raise
+                error = _safe_remote_error(exc)
+                break
+            except InvalidControlRoom as exc:
+                error = _safe_remote_error(exc)
+                break
             except Exception as exc:  # noqa: BLE001 - boundary converts remote failures safely
                 error = _safe_remote_error(exc)
                 break
@@ -858,12 +1090,24 @@ class GitHubProvisioner:
         report = ReconciliationReport(
             state=state,
             completed_object_ids=completed,
-            completed_actions=completed_actions,
-            remaining_actions=remaining,
-            skipped_actions=list(remaining[1:]) if error and remaining else [],
+            attempted_actions=[_action_record(action) for action in attempted_actions],
+            completed_actions=[_action_record(action) for action in completed_actions],
+            remaining_actions=[_action_record(action) for action in remaining],
+            skipped_actions=[
+                _action_record(action)
+                for action in (list(remaining[1:]) if error and remaining else [])
+            ],
             manual_instructions=list(dict.fromkeys(manual)),
             error=error,
         )
+        if report.state == "success" and self._rediscover is not None:
+            try:
+                discovered = self._rediscover()
+                mismatch = _reconcile_plan(plan, discovered)
+            except Exception as exc:  # noqa: BLE001 - reconciliation boundary
+                mismatch = _safe_remote_error(exc)
+            if mismatch is not None:
+                report = report.model_copy(update={"state": "partial", "error": mismatch})
         return self._write_report(report)
 
     def _write_report(self, report: ReconciliationReport) -> ReconciliationReport:
@@ -871,12 +1115,110 @@ class GitHubProvisioner:
             return report
         relative = "coordination/artifacts/reports/github-provisioning.json"
         path = self._root / relative
-        report_with_path = ReconciliationReport(**{**report.__dict__, "report_path": relative})
+        report_with_path = report.model_copy(update={"report_path": relative})
+        report_content = report_with_path.to_json()
+        old_report: bytes | None = None
+        old_index: bytes | None = None
+        index_path = self._root / "coordination/artifacts/index.yaml"
         try:
-            atomic_write(path, report_with_path.to_json(), root=self._root)
-        except OSError as error:
-            raise InvalidControlRoom("unable to write reconciliation report") from error
+            old_report = path.read_bytes() if path.exists() else None
+            old_index = index_path.read_bytes() if index_path.exists() else None
+            atomic_write(path, report_content, root=self._root)
+            index = load_artifact_index(self._root)
+            task_id = "AO-14D"
+            roadmap = load_roadmap(self._root)
+            if not any(item.id == task_id for item in roadmap.items):
+                task_id = roadmap.items[0].id
+            artifact = ArtifactRecord(
+                id=f"github-provisioning-{hashlib.sha256(report_content.encode()).hexdigest()[:12]}",
+                task_id=task_id,
+                kind="github-provisioning-report",
+                availability="repository",
+                locator=relative,
+                sha256=hashlib.sha256(report_content.encode()).hexdigest(),
+                evidence_state=(
+                    EvidenceState.VERIFIED if report.state == "success" else EvidenceState.PARTIAL
+                ),
+                created_at=report.updated_at,
+                producer="github-provisioner",
+            )
+            artifacts = [existing for existing in index.artifacts if existing.kind != artifact.kind]
+            updated_index = ArtifactIndex(schema_version=1, artifacts=[*artifacts, artifact])
+            import yaml
+
+            atomic_write(
+                index_path,
+                yaml.safe_dump(updated_index.model_dump(mode="json"), sort_keys=False),
+                root=self._root,
+            )
+        except (OSError, ValueError) as error:
+            if old_report is not None:
+                path.write_bytes(old_report)
+            if old_index is not None:
+                index_path.write_bytes(old_index)
+            raise InvalidControlRoom(
+                "unable to write reconciliation report and artifact index"
+            ) from error
         return report_with_path
+
+
+def _action_record(action: ProvisionAction) -> ReconciliationAction:
+    return ReconciliationAction(
+        resource=action.resource,
+        stable_key=action.stable_key,
+        action=action.action,
+        remote_id=action.remote_id,
+        payload=action.payload,
+    )
+
+
+def _reconcile_plan(plan: ProvisioningPlan, remote: RemoteGitHubState) -> str | None:
+    if remote.project is None or remote.project.name != plan.project.payload["name"]:
+        return "post-apply project identity mismatch"
+    issues = {issue.task_id for issue in remote.issues}
+    missing_issues = [
+        action.stable_key for action in plan.issue_actions if action.stable_key not in issues
+    ]
+    if missing_issues:
+        return f"post-apply issues missing stable IDs: {', '.join(sorted(missing_issues))}"
+    fields = {field.name: field for field in remote.fields}
+    for action in plan.field_actions:
+        field = fields.get(action.stable_key)
+        if field is None or tuple(option.name for option in field.options) != tuple(
+            action.payload["options"]
+        ):
+            return f"post-apply field mismatch: {action.stable_key}"
+    items = {item.task_id for item in remote.items}
+    missing_items = [
+        action.stable_key for action in plan.item_actions if action.stable_key not in items
+    ]
+    if missing_items:
+        return f"post-apply items missing stable IDs: {', '.join(sorted(missing_items))}"
+    views = {view.name for view in remote.views}
+    missing_views = [
+        action.stable_key for action in plan.view_actions if action.stable_key not in views
+    ]
+    if missing_views:
+        return f"post-apply views missing: {', '.join(sorted(missing_views))}"
+    return None
+
+
+def _validate_mutation_identity(operation: str, response: object, action: ProvisionAction) -> None:
+    if isinstance(response, dict) and isinstance(response.get("id"), str):
+        return
+    if not isinstance(response, dict) or not isinstance(response.get("data"), dict):
+        raise InvalidControlRoom("GitHub mutation response is malformed")
+    current: object = response["data"]
+    for key in _MUTATION_RESPONSE_PATHS[operation][:-1]:
+        if not isinstance(current, dict) or key not in current:
+            return  # fixed test envelope is accepted by _mutation_id
+        current = current[key]
+    if not isinstance(current, dict):
+        raise InvalidControlRoom("GitHub mutation response object is malformed")
+    for key in ("title", "name"):
+        expected = action.payload.get(key)
+        if expected is not None and key in current and current[key] != expected:
+            raise InvalidControlRoom(f"GitHub mutation returned mismatched {key}")
 
 
 def _status_label(status: object) -> str:
@@ -887,6 +1229,16 @@ def _status_label(status: object) -> str:
         "blocked": "Blocked",
         "done": "Done",
     }.get(str(status), "Inbox")
+
+
+def _field_data_type(name: str) -> str:
+    if name in {"Status", "Priority", "Phase", "Workstream", "Type", "Risk", "Evidence"}:
+        return "SINGLE_SELECT"
+    if name == "Day":
+        return "NUMBER"
+    if name == "Target date":
+        return "DATE"
+    return "TEXT"
 
 
 def _phase_label(phase_id: str | None) -> str | None:
@@ -917,7 +1269,9 @@ def _operation_for_action(action: ProvisionAction) -> str:
         ) from error
 
 
-def _discovery_page(response: dict[str, object]) -> tuple[list[object], tuple[bool, object]]:
+def _discovery_page(
+    response: dict[str, object],
+) -> tuple[list[object], tuple[bool, object], tuple[bool, object], dict[str, object] | None]:
     data = response.get("data")
     if not isinstance(data, dict):
         raise InvalidControlRoom("GitHub discovery response is missing data")
@@ -935,11 +1289,33 @@ def _discovery_page(response: dict[str, object]) -> tuple[list[object], tuple[bo
     cursor = page_info.get("endCursor")
     if not isinstance(has_next, bool):
         raise InvalidControlRoom("GitHub discovery pageInfo is malformed")
-    return nodes, (has_next, cursor)
+    repository = data.get("repository")
+    if repository is None:
+        return nodes, (has_next, cursor), (False, None), None
+    if not isinstance(repository, dict):
+        raise InvalidControlRoom("GitHub discovery repository connection is malformed")
+    issues = repository.get("issues")
+    if not isinstance(issues, dict):
+        raise InvalidControlRoom("GitHub discovery repository issues connection is malformed")
+    issue_nodes = issues.get("nodes")
+    issue_info = issues.get("pageInfo")
+    if not isinstance(issue_nodes, list) or not isinstance(issue_info, dict):
+        raise InvalidControlRoom("GitHub discovery repository issues page is malformed")
+    issue_has_next = issue_info.get("hasNextPage")
+    issue_cursor = issue_info.get("endCursor")
+    if not isinstance(issue_has_next, bool):
+        raise InvalidControlRoom("GitHub discovery issue pageInfo is malformed")
+    return nodes, (has_next, cursor), (issue_has_next, issue_cursor), repository
 
 
 def _parse_discovered_project(
-    raw: dict[str, object], *, owner: str, repository: str
+    raw: dict[str, object],
+    *,
+    owner: str,
+    repository: str,
+    repository_raw: dict[str, object] | None,
+    owner_id: str | None,
+    repository_issue_nodes: list[object],
 ) -> RemoteGitHubState:
     project_id = raw.get("id")
     number = raw.get("number")
@@ -949,16 +1325,28 @@ def _parse_discovered_project(
         raise InvalidControlRoom("GitHub discovery project identity is malformed")
     if isinstance(number, bool) or not isinstance(number, int) or number < 1:
         raise InvalidControlRoom("GitHub discovery project number is malformed")
-    fields_raw = raw.get("fields", {"nodes": []})
-    items_raw = raw.get(
-        "items", {"nodes": [], "pageInfo": {"hasNextPage": False, "endCursor": None}}
-    )
-    if not isinstance(fields_raw, dict) or not isinstance(items_raw, dict):
+    fields_raw = raw.get("fields")
+    items_raw = raw.get("items")
+    views_raw = raw.get("views")
+    if (
+        not isinstance(fields_raw, dict)
+        or not isinstance(items_raw, dict)
+        or not isinstance(views_raw, dict)
+    ):
         raise InvalidControlRoom("GitHub discovery fields or items are malformed")
     field_nodes = fields_raw.get("nodes")
     item_nodes = items_raw.get("nodes")
-    if not isinstance(field_nodes, list) or not isinstance(item_nodes, list):
+    item_page_info = items_raw.get("pageInfo")
+    if (
+        not isinstance(field_nodes, list)
+        or not isinstance(item_nodes, list)
+        or not isinstance(item_page_info, dict)
+    ):
         raise InvalidControlRoom("GitHub discovery fields or items nodes are malformed")
+    if not isinstance(item_page_info.get("hasNextPage"), bool):
+        raise InvalidControlRoom("GitHub discovery item pageInfo is malformed")
+    if item_page_info["hasNextPage"] and not isinstance(item_page_info.get("endCursor"), str):
+        raise InvalidControlRoom("GitHub discovery item pageInfo hasNextPage without cursor")
     fields: list[RemoteField] = []
     for field in field_nodes:
         if (
@@ -985,7 +1373,14 @@ def _parse_discovered_project(
                 raise InvalidControlRoom("GitHub discovery contains duplicate field options")
             option_ids.add(option["id"])
             option_names.append(option["name"])
-        fields.append(RemoteField(id=field["id"], name=field["name"], options=option_names))
+        fields.append(
+            RemoteField(
+                id=field["id"],
+                name=field["name"],
+                data_type=field.get("dataType"),
+                options=[RemoteOption(id=option["id"], name=option["name"]) for option in options],
+            )
+        )
     issues: list[RemoteIssue] = []
     items: list[RemoteProjectItem] = []
     seen_tasks: set[str] = set()
@@ -1030,11 +1425,50 @@ def _parse_discovered_project(
                 body=body,
             )
         )
-        items.append(RemoteProjectItem(id=item["id"], task_id=task_id))
-    views_raw = raw.get("views", {"nodes": []})
-    views_nodes = views_raw.get("nodes") if isinstance(views_raw, dict) else None
-    if not isinstance(views_nodes, list):
+        values_raw = item.get("fieldValues")
+        if (
+            not isinstance(values_raw, dict)
+            or not isinstance(values_raw.get("nodes"), list)
+            or not isinstance(values_raw.get("pageInfo"), dict)
+        ):
+            raise InvalidControlRoom("GitHub discovery item field values are malformed")
+        value_page_info = values_raw["pageInfo"]
+        if not isinstance(value_page_info.get("hasNextPage"), bool):
+            raise InvalidControlRoom("GitHub discovery field value pageInfo is malformed")
+        if value_page_info["hasNextPage"] and not isinstance(value_page_info.get("endCursor"), str):
+            raise InvalidControlRoom(
+                "GitHub discovery field value pageInfo hasNextPage without cursor"
+            )
+        field_values: dict[str, RemoteFieldValue] = {}
+        for value in values_raw["nodes"]:
+            if not isinstance(value, dict) or not isinstance(value.get("id"), str):
+                raise InvalidControlRoom("GitHub discovery field value is malformed")
+            field_ref = value.get("field")
+            if (
+                not isinstance(field_ref, dict)
+                or not isinstance(field_ref.get("id"), str)
+                or not isinstance(field_ref.get("name"), str)
+            ):
+                raise InvalidControlRoom("GitHub discovery field value field is malformed")
+            populated = [
+                value.get(key)
+                for key in ("name", "text", "number", "date")
+                if value.get(key) is not None
+            ]
+            if len(populated) != 1:
+                raise InvalidControlRoom("GitHub discovery field value has malformed shape")
+            field_values[field_ref["name"]] = RemoteFieldValue(
+                id=value["id"], field_id=field_ref["id"], value=populated[0]
+            )
+        items.append(RemoteProjectItem(id=item["id"], task_id=task_id, field_values=field_values))
+    views_nodes = views_raw.get("nodes")
+    views_page_info = views_raw.get("pageInfo")
+    if not isinstance(views_nodes, list) or not isinstance(views_page_info, dict):
         raise InvalidControlRoom("GitHub discovery views are malformed")
+    if not isinstance(views_page_info.get("hasNextPage"), bool):
+        raise InvalidControlRoom("GitHub discovery view pageInfo is malformed")
+    if views_page_info["hasNextPage"] and not isinstance(views_page_info.get("endCursor"), str):
+        raise InvalidControlRoom("GitHub discovery view pageInfo hasNextPage without cursor")
     views: list[RemoteView] = []
     for view in views_nodes:
         if (
@@ -1044,9 +1478,68 @@ def _parse_discovered_project(
         ):
             raise InvalidControlRoom("GitHub discovery contains a malformed view")
         views.append(RemoteView(id=view["id"], name=view["name"]))
+    standalone_raw = repository_raw.get("issues") if repository_raw is not None else None
+    standalone_nodes = repository_issue_nodes
+    standalone_page_info = (
+        standalone_raw.get("pageInfo") if isinstance(standalone_raw, dict) else None
+    )
+    if not isinstance(standalone_nodes, list) or not isinstance(standalone_page_info, dict):
+        raise InvalidControlRoom("GitHub discovery repository issues are malformed")
+    if not isinstance(standalone_page_info.get("hasNextPage"), bool):
+        raise InvalidControlRoom("GitHub discovery issue pageInfo is malformed")
+    if standalone_page_info["hasNextPage"] and not isinstance(
+        standalone_page_info.get("endCursor"), str
+    ):
+        raise InvalidControlRoom("GitHub discovery issue pageInfo hasNextPage without cursor")
+    known_tasks = {issue.task_id for issue in issues}
+    for raw_issue in standalone_nodes:
+        if not isinstance(raw_issue, dict):
+            raise InvalidControlRoom("GitHub discovery repository issue is malformed")
+        issue_repo = raw_issue.get("repository")
+        if not isinstance(issue_repo, dict) or issue_repo.get("nameWithOwner") != repository:
+            raise InvalidControlRoom(
+                "GitHub discovery issue repository does not match configuration"
+            )
+        issue_id = raw_issue.get("id")
+        issue_number = raw_issue.get("number")
+        issue_title = raw_issue.get("title")
+        issue_url = raw_issue.get("url")
+        body = raw_issue.get("body")
+        if (
+            not isinstance(issue_id, str)
+            or not isinstance(issue_number, int)
+            or issue_number < 1
+            or not isinstance(issue_title, str)
+            or not isinstance(issue_url, str)
+            or not isinstance(body, str)
+        ):
+            raise InvalidControlRoom("GitHub discovery repository issue is malformed")
+        task_id = extract_task_id(body)
+        if task_id in known_tasks:
+            existing = next(issue for issue in issues if issue.task_id == task_id)
+            if existing.node_id != issue_id or existing.number != issue_number:
+                raise InvalidControlRoom(
+                    f"GitHub discovery contains conflicting issue identity for {task_id}"
+                )
+            continue
+        known_tasks.add(task_id)
+        issues.append(
+            RemoteIssue(
+                task_id=task_id,
+                node_id=issue_id,
+                number=issue_number,
+                url=issue_url,
+                title=issue_title,
+                body=body,
+            )
+        )
     return RemoteGitHubState(
         owner=owner,
         repository=repository,
+        owner_id=owner_id,
+        repository_id=repository_raw.get("id")
+        if isinstance(repository_raw.get("id"), str)
+        else None,
         project=RemoteProject(id=project_id, number=number, name=name, url=url),
         issues=issues,
         fields=fields,
@@ -1068,17 +1561,21 @@ class GitHubClient:
         if not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", repository):
             raise InvalidControlRoom("GitHub repository must be canonical owner/name")
         after: str | None = None
+        issues_after: str | None = None
         cursors: set[str] = set()
         matches: list[dict[str, object]] = []
+        repository_raw: dict[str, object] | None = None
+        owner_id: str | None = None
+        repository_issue_nodes: list[object] = []
         while True:
             try:
                 response = self._transport.graphql(
                     _DISCOVERY_QUERY,
                     {
                         "owner": owner,
-                        "repository": repository,
-                        "project_name": project_name,
+                        "repository_name": repository.split("/", 1)[1],
                         "after": after,
+                        "issues_after": issues_after,
                     },
                 )
             except StopIteration as error:
@@ -1087,27 +1584,62 @@ class GitHubClient:
                 raise InvalidControlRoom("GitHub discovery returned a non-object response")
             if response.get("errors"):
                 raise DependencyUnavailable("GitHub discovery failed")
-            projects, page_info = _discovery_page(response)
+            projects, page_info, issue_page_info, current_repository = _discovery_page(response)
+            user = (
+                response.get("data", {}).get("user")
+                if isinstance(response.get("data"), dict)
+                else None
+            )
+            if isinstance(user, dict) and isinstance(user.get("id"), str):
+                owner_id = user["id"]
+            if current_repository is not None:
+                repository_raw = current_repository
+                issues_connection = current_repository.get("issues")
+                if isinstance(issues_connection, dict) and isinstance(
+                    issues_connection.get("nodes"), list
+                ):
+                    repository_issue_nodes.extend(issues_connection["nodes"])
             for raw in projects:
                 if not isinstance(raw, dict):
                     raise InvalidControlRoom("GitHub discovery contains a malformed project")
                 name = raw.get("title", raw.get("name"))
                 if name == project_name:
                     matches.append(raw)
-            if not page_info[0]:
+            if not page_info[0] and not issue_page_info[0]:
                 break
-            cursor = page_info[1]
-            if not isinstance(cursor, str) or not cursor:
-                raise InvalidControlRoom("GitHub discovery hasNextPage without a cursor")
-            if cursor in cursors:
-                raise InvalidControlRoom("GitHub discovery cursor cycle detected")
-            cursors.add(cursor)
-            after = cursor
+            advanced: list[str] = []
+            if page_info[0]:
+                cursor = page_info[1]
+                if not isinstance(cursor, str) or not cursor:
+                    raise InvalidControlRoom(
+                        "GitHub discovery hasNextPage without a project cursor"
+                    )
+                after = cursor
+                advanced.append(cursor)
+            if issue_page_info[0]:
+                cursor = issue_page_info[1]
+                if not isinstance(cursor, str) or not cursor:
+                    raise InvalidControlRoom("GitHub discovery hasNextPage without an issue cursor")
+                issues_after = cursor
+                advanced.append(cursor)
+            for cursor in advanced:
+                if cursor in cursors:
+                    raise InvalidControlRoom("GitHub discovery cursor cycle detected")
+                cursors.add(cursor)
         if len(matches) > 1:
             raise InvalidControlRoom(f"GitHub project name is ambiguous: {project_name}")
         if not matches:
-            return RemoteGitHubState(owner=owner, repository=repository)
-        return _parse_discovered_project(matches[0], owner=owner, repository=repository)
+            if repository_raw is None:
+                raise InvalidControlRoom("GitHub discovery response is missing repository issues")
+            return RemoteGitHubState(owner=owner, repository=repository, owner_id=owner_id)
+        return _parse_discovered_project(
+            matches[0],
+            owner=owner,
+            repository=repository,
+            repository_raw=repository_raw,
+            owner_id=owner_id,
+            repository_issue_nodes=repository_issue_nodes,
+        )
 
     def export_project(
         self,

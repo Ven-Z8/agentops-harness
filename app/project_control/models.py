@@ -3,10 +3,10 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 from dataclasses import field as dataclass_field
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import StrEnum
 from pathlib import PurePosixPath
-from typing import Any, Literal
+from typing import Literal
 from urllib.parse import urlsplit
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
@@ -605,7 +605,7 @@ class ControlRoomState(StrictModel):
 # is the validated read-only snapshot consumed by local renderers; these records are the
 # minimum remote identity needed by the deterministic provisioning planner.
 class RemoteProject(StrictModel):
-    id: str = Field(min_length=1)
+    id: str = Field(min_length=1, pattern=r"^[A-Za-z0-9_:-]+$")
     number: int = Field(gt=0)
     name: str = Field(min_length=1)
     url: str
@@ -614,8 +614,8 @@ class RemoteProject(StrictModel):
 
 
 class RemoteIssue(StrictModel):
-    task_id: str = Field(min_length=1)
-    node_id: str = Field(min_length=1)
+    task_id: str = Field(min_length=1, pattern=r"^AO-(?:14D|P[1-6]|D\d{2}(?:-\d{2})?)$")
+    node_id: str = Field(min_length=1, pattern=r"^[A-Za-z0-9_:-]+$")
     number: int = Field(gt=0)
     url: str
     title: str | None = None
@@ -624,31 +624,52 @@ class RemoteIssue(StrictModel):
     _validate_url = field_validator("url")(_https_url)
 
 
-class RemoteField(StrictModel):
-    id: str = Field(min_length=1)
+class RemoteOption(StrictModel):
+    id: str = Field(min_length=1, pattern=r"^[A-Za-z0-9_:-]+$")
     name: str = Field(min_length=1)
-    options: list[str] = Field(default_factory=list)
+
+
+class RemoteFieldValue(StrictModel):
+    id: str = Field(min_length=1, pattern=r"^[A-Za-z0-9_:-]+$")
+    field_id: str = Field(min_length=1, pattern=r"^[A-Za-z0-9_:-]+$")
+    value: str | int | float | None = None
+
+
+class RemoteField(StrictModel):
+    id: str = Field(min_length=1, pattern=r"^[A-Za-z0-9_:-]+$")
+    name: str = Field(min_length=1)
+    data_type: str | None = None
+    options: list[RemoteOption] = Field(default_factory=list)
 
 
 class RemoteProjectItem(StrictModel):
-    id: str = Field(min_length=1)
+    id: str = Field(min_length=1, pattern=r"^[A-Za-z0-9_:-]+$")
     task_id: str = Field(min_length=1)
-    field_values: dict[str, Any] = Field(default_factory=dict)
+    field_values: dict[str, RemoteFieldValue] = Field(default_factory=dict)
 
 
 class RemoteView(StrictModel):
-    id: str = Field(min_length=1)
+    id: str = Field(min_length=1, pattern=r"^[A-Za-z0-9_:-]+$")
     name: str = Field(min_length=1)
 
 
 class RemoteGitHubState(StrictModel):
     owner: str = Field(min_length=1)
     repository: str = Field(pattern=r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
+    owner_id: str | None = None
+    repository_id: str | None = None
     project: RemoteProject | None = None
     issues: list[RemoteIssue] = Field(default_factory=list)
     fields: list[RemoteField] = Field(default_factory=list)
     items: list[RemoteProjectItem] = Field(default_factory=list)
     views: list[RemoteView] = Field(default_factory=list)
+
+    @field_validator("owner_id", "repository_id")
+    @classmethod
+    def validate_remote_id(cls, value: str | None) -> str | None:
+        if value is not None and not re.fullmatch(r"^[A-Za-z0-9_:-]+$", value):
+            raise ValueError("remote ID must be a safe single-line identifier")
+        return value
 
     @model_validator(mode="after")
     def validate_unique_remote_keys(self) -> RemoteGitHubState:
@@ -671,9 +692,26 @@ class RemoteGitHubState(StrictModel):
         item_tasks = [item.task_id for item in self.items]
         if len(item_tasks) != len(set(item_tasks)):
             raise ValueError("duplicate remote project item stable task ID")
+        if not set(item_tasks).issubset(set(issue_ids)):
+            raise ValueError("remote project item references unknown issue stable task ID")
+        field_ids = {field.id for field in self.fields}
+        for item in self.items:
+            if not {value.field_id for value in item.field_values.values()}.issubset(field_ids):
+                raise ValueError("remote field value references unknown field ID")
         view_names = [view.name for view in self.views]
         if len(view_names) != len(set(view_names)):
             raise ValueError("duplicate remote view name")
+        all_node_ids = [
+            *([self.project.id] if self.project is not None else []),
+            *[issue.node_id for issue in self.issues],
+            *[field.id for field in self.fields],
+            *[option.id for field in self.fields for option in field.options],
+            *[item.id for item in self.items],
+            *[value.id for item in self.items for value in item.field_values.values()],
+            *[view.id for view in self.views],
+        ]
+        if len(all_node_ids) != len(set(all_node_ids)):
+            raise ValueError("duplicate remote GitHub node ID")
         return self
 
 
@@ -743,25 +781,47 @@ class ProvisioningPlan:
         return "\n".join(lines) + "\n"
 
 
-@dataclass(frozen=True)
-class ReconciliationReport:
+class ReconciliationAction(StrictModel):
+    resource: ProvisionResource
+    stable_key: str = Field(min_length=1)
+    action: ProvisionActionKind
+    remote_id: str | None = None
+    payload: dict[str, object] = Field(default_factory=dict)
+
+
+class ReconciliationReport(StrictModel):
+    model_config = ConfigDict(extra="forbid", strict=True, frozen=True)
+
+    schema_version: Literal[1] = 1
     state: Literal["success", "partial"]
-    completed_object_ids: dict[str, str] = dataclass_field(default_factory=dict)
-    completed_actions: list[ProvisionAction] = dataclass_field(default_factory=list)
-    remaining_actions: list[ProvisionAction] = dataclass_field(default_factory=list)
-    skipped_actions: list[ProvisionAction] = dataclass_field(default_factory=list)
-    manual_instructions: list[str] = dataclass_field(default_factory=list)
+    started_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    completed_object_ids: dict[str, str] = Field(default_factory=dict)
+    attempted_actions: list[ReconciliationAction] = Field(default_factory=list)
+    completed_actions: list[ReconciliationAction] = Field(default_factory=list)
+    remaining_actions: list[ReconciliationAction] = Field(default_factory=list)
+    skipped_actions: list[ReconciliationAction] = Field(default_factory=list)
+    manual_instructions: list[str] = Field(default_factory=list)
     error: str | None = None
     report_path: str | None = None
 
+    @model_validator(mode="after")
+    def validate_timestamps(self) -> ReconciliationReport:
+        if self.updated_at < self.started_at:
+            raise ValueError("reconciliation updated_at must not precede started_at")
+        return self
+
     def as_dict(self) -> dict[str, object]:
         return {
-            "schema_version": 1,
+            "schema_version": self.schema_version,
             "state": self.state,
+            "started_at": self.started_at.isoformat(),
+            "updated_at": self.updated_at.isoformat(),
             "completed_object_ids": dict(sorted(self.completed_object_ids.items())),
-            "completed_actions": [action.as_dict() for action in self.completed_actions],
-            "remaining_actions": [action.as_dict() for action in self.remaining_actions],
-            "skipped_actions": [action.as_dict() for action in self.skipped_actions],
+            "attempted_actions": [action.model_dump() for action in self.attempted_actions],
+            "completed_actions": [action.model_dump() for action in self.completed_actions],
+            "remaining_actions": [action.model_dump() for action in self.remaining_actions],
+            "skipped_actions": [action.model_dump() for action in self.skipped_actions],
             "manual_instructions": self.manual_instructions,
             "error": self.error,
             "report_path": self.report_path,

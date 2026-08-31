@@ -250,7 +250,8 @@ def _github_provision_command(args: argparse.Namespace) -> int:
         raise InvalidControlRoom("--apply requires explicit --confirm approval")
     roadmap = load_roadmap(root)
     state = ControlRoomState(project=project, roadmap=roadmap)
-    remote = GitHubClient(SubprocessGhTransport()).discover_state(
+    read_client = GitHubClient(SubprocessGhTransport())
+    remote = read_client.discover_state(
         project.github_project.owner,
         project.project.repository,
         "AgentOps Research Control Plane — 14-Day v0.1",
@@ -262,7 +263,15 @@ def _github_provision_command(args: argparse.Namespace) -> int:
         print(plan.to_json(), end="")
         return 0
     mutation_transport = ApplyGhTransport()
-    provisioner = GitHubProvisioner(mutation_transport, root=root)
+    provisioner = GitHubProvisioner(
+        mutation_transport,
+        root=root,
+        rediscover=lambda: read_client.discover_state(
+            project.github_project.owner,
+            project.project.repository,
+            "AgentOps Research Control Plane — 14-Day v0.1",
+        ),
+    )
     plan = provisioner.plan(state, remote)
     report = provisioner.apply(plan)
     print(report.to_json(), end="")

@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 
 import pytest
+from pydantic import ValidationError
 
 from app.project_control.errors import InvalidControlRoom
 from app.project_control.github import (
@@ -14,6 +15,7 @@ from app.project_control.github import (
     merge_managed_issue_body,
 )
 from app.project_control.models import (
+    ReconciliationReport,
     RemoteGitHubState,
     RemoteIssue,
     RemoteProject,
@@ -122,6 +124,69 @@ def test_issue_update_preserves_unmanaged_preamble() -> None:
     merged = merge_managed_issue_body(existing, canonical)
     assert merged.startswith("<!-- human comment -->\n\nold managed content\n")
     assert canonical in merged
+
+
+def test_new_issue_body_contains_one_managed_region() -> None:
+    state = make_control_room_state()
+    plan = GitHubProvisioner(_FakeMutationTransport()).plan(
+        state, RemoteGitHubState(owner="Ven-Z8", repository="Ven-Z8/agentops-harness")
+    )
+    body = plan.issue_actions[0].payload["body"]
+    assert body.count("<!-- agentops-managed:start -->") == 1
+    assert body.count("<!-- agentops-managed:end -->") == 1
+
+
+def test_duplicate_managed_regions_fail_closed() -> None:
+    state = make_control_room_state()
+    item = state.roadmap.items[0]
+    body = (
+        "<!-- agentops-managed:start -->x<!-- agentops-managed:end -->\n"
+        "<!-- agentops-managed:start -->y<!-- agentops-managed:end -->"
+    )
+    remote = RemoteGitHubState(
+        owner="Ven-Z8",
+        repository="Ven-Z8/agentops-harness",
+        issues=[
+            RemoteIssue(
+                task_id=item.id,
+                node_id="I_AO-D01-01",
+                number=1,
+                url="https://github.com/Ven-Z8/agentops-harness/issues/1",
+                title=item.title,
+                body=body,
+            )
+        ],
+    )
+    with pytest.raises(ValueError, match="managed"):
+        GitHubProvisioner(_FakeMutationTransport()).plan(state, remote)
+
+
+def test_reconciliation_report_is_strict_and_immutable() -> None:
+    report = ReconciliationReport(state="success")
+    with pytest.raises((TypeError, ValidationError)):
+        report.state = "partial"  # type: ignore[misc]
+    with pytest.raises(ValidationError):
+        ReconciliationReport.model_validate({"state": "success", "unknown": True})
+
+
+def test_apply_transport_wraps_operation_input_and_rejects_missing_ids(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: list[dict[str, object]] = []
+
+    class Result:
+        returncode = 0
+        stdout = '{"data":{"createProjectV2":{"projectV2":{"id":"PVT_1"}}}}'
+
+    monkeypatch.setattr(
+        "app.project_control.github.subprocess.run",
+        lambda *args, **kwargs: captured.append(json.loads(kwargs["input"])) or Result(),
+    )
+    with pytest.raises(Exception, match="owner"):
+        ApplyGhTransport().mutate("create_project", {"title": "Wanted"})
+    ApplyGhTransport().mutate("create_project", {"owner_id": "U_1", "title": "Wanted"})
+    assert set(captured[0]["variables"]) == {"input"}
+    assert captured[0]["variables"]["input"]["ownerId"] == "U_1"
 
 
 def test_allowlist_rejects_unregistered_mutation() -> None:
