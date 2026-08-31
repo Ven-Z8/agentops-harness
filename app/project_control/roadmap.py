@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 from pathlib import Path
+from shlex import split as shell_split
 
-from app.project_control.io import load_yaml
+from app.project_control.io import load_yaml, resolve_inside
 from app.project_control.models import ProjectConfig, Roadmap, RoadmapItem
 
 
@@ -15,6 +16,23 @@ def load_roadmap(root: Path) -> Roadmap:
             "Roadmap ID does not match project configuration: "
             f"{roadmap.roadmap_id!r} != {project.roadmap.id!r}"
         )
+    for item in roadmap.items:
+        if item.verification_readiness != "available":
+            continue
+        for command in item.verification_commands:
+            arguments = shell_split(command)
+            if arguments[:3] != ["uv", "run", "pytest"]:
+                continue
+            for argument in arguments[3:]:
+                test_path = argument.split("::", maxsplit=1)[0]
+                if not test_path.startswith("tests/"):
+                    continue
+                resolved = resolve_inside(root / test_path, root)
+                if not resolved.is_file():
+                    raise ValueError(
+                        f"available verification command for {item.id} references missing test: "
+                        f"{test_path}"
+                    )
     return roadmap
 
 
@@ -52,12 +70,18 @@ def render_item(item: RoadmapItem) -> list[str]:
         "## First failing test\n" + (item.test_first or "None"),
         "## Terminal semantics\n" + item.terminal_semantics,
         "## Compatibility\n" + item.compatibility,
-        render_bullets("Verification commands", item.verification_commands),
+        render_bullets(verification_heading(item), item.verification_commands),
         render_bullets("Risks", item.risks),
         "## Rollback\n" + item.rollback,
         render_bullets("Source documents", item.source_documents),
     ]
     return [f"## {item.id}: {item.title}", "", *metadata, "", *sections, ""]
+
+
+def verification_heading(item: RoadmapItem) -> str:
+    if item.verification_readiness == "planned":
+        return "Planned verification commands (not current evidence)"
+    return "Verification commands"
 
 
 def render_roadmap(roadmap: Roadmap) -> str:
@@ -90,6 +114,8 @@ def render_issue_body(item: RoadmapItem, roadmap: Roadmap) -> str:
             render_bullets("Dependencies", canonical_item.dependencies),
             render_bullets("Acceptance criteria", canonical_item.acceptance_criteria),
             render_bullets("Required evidence", canonical_item.required_evidence),
-            render_bullets("Verification commands", canonical_item.verification_commands),
+            render_bullets(
+                verification_heading(canonical_item), canonical_item.verification_commands
+            ),
         ]
     ).rstrip() + "\n"

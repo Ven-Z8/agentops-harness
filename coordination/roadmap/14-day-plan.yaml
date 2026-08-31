@@ -3,6 +3,7 @@ roadmap_id: AO-14D
 items:
   - &base
     id: AO-14D
+    verification_readiness: available
     title: AgentOps 14-Day Research Control Plane
     kind: roadmap
     day: null
@@ -30,6 +31,7 @@ items:
     github: &github {issue_number: null, issue_url: null}
   - <<: *base
     id: AO-P1
+    verification_readiness: planned
     title: Trust and Benchmark Integrity
     kind: phase
     parent_id: AO-14D
@@ -46,6 +48,7 @@ items:
     rollback: Revert the Phase 1 coordination slice while retaining truthful child evidence.
   - <<: *base
     id: AO-P2
+    verification_readiness: planned
     title: Experiment Kernel and DeepEval
     kind: phase
     parent_id: AO-14D
@@ -66,6 +69,7 @@ items:
     rollback: Revert only confirmed Phase 2 coordination updates while preserving recorded revalidation evidence.
   - <<: *base
     id: AO-P3
+    verification_readiness: planned
     title: Governed Training
     kind: phase
     parent_id: AO-14D
@@ -86,6 +90,7 @@ items:
     rollback: Revert only Phase 3 coordination updates while preserving truthful training evidence.
   - <<: *base
     id: AO-P4
+    verification_readiness: planned
     title: Swappable Loops and Skills
     kind: phase
     parent_id: AO-14D
@@ -106,6 +111,7 @@ items:
     rollback: Revert only confirmed Phase 4 coordination updates and keep revalidation evidence.
   - <<: *base
     id: AO-P5
+    verification_readiness: planned
     title: VLM and VLA Reference Paths
     kind: phase
     parent_id: AO-14D
@@ -126,6 +132,7 @@ items:
     rollback: Revert only confirmed Phase 5 coordination updates while retaining recorded evidence.
   - <<: *base
     id: AO-P6
+    verification_readiness: planned
     title: Open-Source Release
     kind: phase
     parent_id: AO-14D
@@ -146,6 +153,7 @@ items:
     rollback: Revert only release coordination updates while retaining truthful evidence and limitations.
   - <<: *base
     id: AO-D01
+    verification_readiness: planned
     title: Truthful terminal states and strict boundaries
     kind: outcome
     day: 1
@@ -165,6 +173,7 @@ items:
     rollback: Revert only a Day 1 task slice while preserving truthful evidence.
   - <<: *base
     id: AO-D01-01
+    verification_readiness: planned
     title: Capture reproducible baseline and isolate ambient configuration
     kind: task
     day: 1
@@ -185,6 +194,7 @@ items:
     rollback: Revert only the configuration-isolation slice while retaining baseline and failing evidence.
   - <<: *base
     id: AO-D01-02
+    verification_readiness: planned
     title: Separate execution, evaluation, and promotion status
     kind: task
     day: 1
@@ -206,6 +216,7 @@ items:
     rollback: Revert the schema/derivation slice while retaining migrated records and recorded failing evidence.
   - <<: *base
     id: AO-D01-03
+    verification_readiness: planned
     title: Reject unknown provider, worker, workspace, policy, and pack kinds
     kind: task
     day: 1
@@ -226,6 +237,7 @@ items:
     rollback: Revert only the boundary-validation slice while preserving rejected-input evidence.
   - <<: *base
     id: AO-D01-04
+    verification_readiness: planned
     title: Fail closed on missing evidence and failed required commands
     kind: task
     day: 1
@@ -247,6 +259,7 @@ items:
     rollback: Revert only the evidence-guard slice while preserving recorded failed evidence.
   - <<: *base
     id: AO-D02
+    verification_readiness: planned
     title: Permission, sandbox, grounding, CI, and release integrity
     kind: outcome
     day: 2
@@ -266,6 +279,7 @@ items:
     rollback: Revert only a Day 2 task slice while preserving truthful gate evidence.
   - <<: *base
     id: AO-D02-01
+    verification_readiness: planned
     title: Normalize allow, ask, and deny semantics
     kind: task
     day: 2
@@ -287,6 +301,7 @@ items:
     rollback: Revert only the permission-semantic slice while preserving approval and denial evidence.
   - <<: *base
     id: AO-D02-02
+    verification_readiness: planned
     title: Make sandbox and security claims match enforcement
     kind: task
     day: 2
@@ -308,6 +323,7 @@ items:
     rollback: Revert only the sandbox-claim slice while preserving enforcement and failing evidence.
   - <<: *base
     id: AO-D02-03
+    verification_readiness: planned
     title: Provide equal grounding packets to equivalent workers
     kind: task
     day: 2
@@ -329,6 +345,7 @@ items:
     rollback: Revert only the grounding-packet slice while preserving captured comparison evidence.
   - <<: *base
     id: AO-D02-04
+    verification_readiness: planned
     title: Run Python and JavaScript suites in CI
     kind: task
     day: 2
@@ -350,6 +367,7 @@ items:
     rollback: Revert only the CI-suite slice while preserving truthful workflow and failing-suite evidence.
   - <<: *base
     id: AO-D02-05
+    verification_readiness: planned
     title: Add OSI license and reconcile documentation and package drift
     kind: task
     day: 2
@@ -371,6 +389,7 @@ items:
     rollback: Revert only the release-metadata slice while preserving validation evidence.
   - <<: *base
     id: AO-D03
+    verification_readiness: planned
     title: Define experiment identity and immutable run records
     kind: outcome
     day: 3
@@ -393,6 +412,7 @@ items:
     rollback: Revert only confirmed Day 3 coordination updates and retain inspection evidence.
   - <<: *base
     id: AO-D04
+    verification_readiness: planned
     title: Add a DeepEval provider adapter without leaking provider schema
     kind: outcome
     day: 4
@@ -415,6 +435,7 @@ items:
     rollback: Revert only confirmed Day 4 coordination updates while retaining interface evidence.
   - <<: *base
     id: AO-D05
+    verification_readiness: planned
     title: Run split-safe coding benchmark comparison and promotion
     kind: outcome
     day: 5
@@ -437,6 +458,7 @@ items:
     rollback: Revert only confirmed Day 5 coordination updates while preserving comparison evidence.
   - <<: *base
     id: AO-D06
+    verification_readiness: planned
     title: Define governed training provider and budget contracts
     kind: outcome
     day: 6
@@ -459,6 +481,7 @@ items:
     rollback: Revert only confirmed Day 6 coordination updates while preserving current evidence.
   - <<: *base
     id: AO-D07
+    verification_readiness: planned
     title: Execute one tiny reproducible governed training run
     kind: outcome
     day: 7
@@ -481,6 +504,7 @@ items:
     rollback: Revert only confirmed Day 7 coordination updates while retaining run evidence.
   - <<: *base
     id: AO-D08
+    verification_readiness: planned
     title: Compare training evidence and make a promotion decision
     kind: outcome
     day: 8
@@ -503,6 +527,7 @@ items:
     rollback: Revert only confirmed Day 8 coordination updates while retaining decision evidence.
   - <<: *base
     id: AO-D09
+    verification_readiness: planned
     title: Validate and record a swappable inner-loop capability pack
     kind: outcome
     day: 9
@@ -525,6 +550,7 @@ items:
     rollback: Revert only confirmed Day 9 coordination updates while retaining seam evidence.
   - <<: *base
     id: AO-D10
+    verification_readiness: planned
     title: Validate and record a swappable outer-loop strategy pack
     kind: outcome
     day: 10
@@ -547,6 +573,7 @@ items:
     rollback: Revert only confirmed Day 10 coordination updates while retaining validation evidence.
   - <<: *base
     id: AO-D11
+    verification_readiness: planned
     title: Complete one small reproducible VLM workflow
     kind: outcome
     day: 11
@@ -569,6 +596,7 @@ items:
     rollback: Revert only confirmed Day 11 coordination updates while retaining workflow evidence.
   - <<: *base
     id: AO-D12
+    verification_readiness: planned
     title: Verify the VLA provider and simulator seam
     kind: outcome
     day: 12
@@ -591,6 +619,7 @@ items:
     rollback: Revert only confirmed Day 12 coordination updates while retaining verification evidence.
   - <<: *base
     id: AO-D13
+    verification_readiness: planned
     title: Close license, packaging, documentation, and release gates
     kind: outcome
     day: 13
@@ -613,6 +642,7 @@ items:
     rollback: Revert only confirmed Day 13 coordination updates while retaining gate evidence.
   - <<: *base
     id: AO-D14
+    verification_readiness: planned
     title: Reproduce v0.1 end to end and publish honest limitations
     kind: outcome
     day: 14

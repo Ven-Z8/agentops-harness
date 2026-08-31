@@ -2,7 +2,11 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+import yaml
+
 from app.project_control.roadmap import load_roadmap, render_issue_body, render_roadmap
+from tests.helpers_project_control import valid_project_config, valid_roadmap_item
 
 EXPECTED_IDS = {
     "AO-14D",
@@ -119,3 +123,67 @@ def test_parent_and_deferred_records_have_record_specific_verification_commands(
         assert any(
             VERIFICATION_MARKERS[item.id] in command for command in item.verification_commands
         )
+
+
+def test_available_roadmap_item_rejects_missing_pytest_target(tmp_path: Path) -> None:
+    project = valid_project_config()
+    item = valid_roadmap_item("AO-D01-01")
+    item["verification_readiness"] = "available"
+    item["verification_commands"] = ["uv run pytest tests/test_missing_target.py -q"]
+    (tmp_path / "coordination/roadmap").mkdir(parents=True)
+    (tmp_path / "coordination/project.yaml").write_text(yaml.safe_dump(project), encoding="utf-8")
+    (tmp_path / "coordination/roadmap/14-day-plan.yaml").write_text(
+        yaml.safe_dump({"schema_version": 1, "roadmap_id": "AO-14D", "items": [item]}),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="available.*test_missing_target.py"):
+        load_roadmap(tmp_path)
+
+
+def test_planned_roadmap_item_allows_missing_pytest_target(tmp_path: Path) -> None:
+    project = valid_project_config()
+    item = valid_roadmap_item("AO-D01-01")
+    item["verification_readiness"] = "planned"
+    item["verification_commands"] = ["uv run pytest tests/test_missing_target.py -q"]
+    (tmp_path / "coordination/roadmap").mkdir(parents=True)
+    (tmp_path / "coordination/project.yaml").write_text(yaml.safe_dump(project), encoding="utf-8")
+    (tmp_path / "coordination/roadmap/14-day-plan.yaml").write_text(
+        yaml.safe_dump({"schema_version": 1, "roadmap_id": "AO-14D", "items": [item]}),
+        encoding="utf-8",
+    )
+
+    assert load_roadmap(tmp_path).items[0].verification_readiness == "planned"
+
+
+def test_needs_revalidation_records_are_planned(repo_root: Path) -> None:
+    roadmap = load_roadmap(repo_root)
+
+    assert all(
+        item.verification_readiness == "planned"
+        for item in roadmap.items
+        if item.maturity == "needs-revalidation"
+    )
+
+
+def test_rendering_labels_planned_verification_as_not_current_evidence(repo_root: Path) -> None:
+    roadmap = load_roadmap(repo_root)
+    planned_item = next(item for item in roadmap.items if item.id == "AO-D03")
+
+    assert "## Planned verification commands (not current evidence)" in render_roadmap(roadmap)
+    assert "## Planned verification commands (not current evidence)" in render_issue_body(
+        planned_item, roadmap
+    )
+
+
+def test_available_top_level_roadmap_targets_exist(repo_root: Path) -> None:
+    roadmap = load_roadmap(repo_root)
+    item = next(item for item in roadmap.items if item.id == "AO-14D")
+
+    assert item.verification_readiness == "available"
+    for command in item.verification_commands:
+        if not command.startswith("uv run pytest"):
+            continue
+        for target in command.split()[3:]:
+            if target.startswith("tests/"):
+                assert (repo_root / target.split("::", maxsplit=1)[0]).is_file()

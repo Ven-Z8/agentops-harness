@@ -85,7 +85,7 @@ None
 Failed, blocked, or inconclusive Phase 1 work prevents opening its downstream gate and cannot imply completion.
 ## Compatibility
 Additive phase metadata preserves existing configuration and CLI contracts.
-## Verification commands
+## Planned verification commands (not current evidence)
 - uv run pytest tests/test_langgraph_workflow.py tests/test_workload.py tests/test_permission_gate.py tests/test_sandbox_worker_type_guard.py -q
 - uv run ruff check app/core app/agents app/schemas
 ## Risks
@@ -132,7 +132,7 @@ None
 Failed, blocked, or inconclusive revalidation prevents Phase 2 promotion and cannot imply kernel readiness.
 ## Compatibility
 Any future persisted-schema or provider migration is deferred until revalidation confirms it.
-## Verification commands
+## Planned verification commands (not current evidence)
 - uv run pytest tests/test_experiment_identity.py tests/test_deepeval_adapter.py tests/test_benchmark.py -q
 - uv run ruff check app/core/benchmark.py app/schemas/benchmark.py
 ## Risks
@@ -179,7 +179,7 @@ None
 Failed, blocked, or inconclusive training evidence prevents promotion and cannot imply governed readiness.
 ## Compatibility
 Future provider or persisted-run changes require explicit migration after revalidation.
-## Verification commands
+## Planned verification commands (not current evidence)
 - uv run pytest tests/test_training_contracts.py tests/test_governed_training.py tests/test_training_promotion.py -q
 - uv run ruff check app/core app/schemas
 ## Risks
@@ -226,7 +226,7 @@ None
 Failed, blocked, or inconclusive seam validation cannot imply swappability or completion.
 ## Compatibility
 Future pack migrations remain additive until contract revalidation confirms their shape.
-## Verification commands
+## Planned verification commands (not current evidence)
 - uv run pytest tests/test_capability_pack.py tests/test_strategy_pack.py -q
 - uv run ruff check app/core/packs app/schemas/pack.py
 ## Risks
@@ -273,7 +273,7 @@ None
 Failed, blocked, or inconclusive reference-path evidence cannot imply supported VLM or VLA completion.
 ## Compatibility
 Future provider configuration changes require explicit migration and compatibility review.
-## Verification commands
+## Planned verification commands (not current evidence)
 - uv run pytest tests/test_vlm_reference_workflow.py tests/test_vla_provider_seam.py -q
 - uv run ruff check app/core app/schemas
 ## Risks
@@ -322,7 +322,7 @@ None
 Failed, blocked, or inconclusive release gates prevent publication and cannot imply v0.1 completion.
 ## Compatibility
 Release metadata changes require documented package and documentation migration effects.
-## Verification commands
+## Planned verification commands (not current evidence)
 - uv run pytest tests/test_release_hygiene.py tests/test_v0_1_reproduction.py -q
 - npm test
 ## Risks
@@ -369,7 +369,7 @@ None
 Failed, blocked, or inconclusive Day 1 tasks prevent the day outcome from being completed.
 ## Compatibility
 Day 1 changes require explicit persisted-schema, configuration, or CLI migration review.
-## Verification commands
+## Planned verification commands (not current evidence)
 - uv run pytest tests/test_langgraph_workflow.py tests/test_boundary_kind_validation.py tests/test_workload.py -q
 - uv run ruff check app/core app/agents app/schemas
 ## Risks
@@ -418,7 +418,7 @@ tests/test_openhands_config.py::test_parent_dotenv_does_not_change_provider_conf
 Failed, blocked, or inconclusive baseline isolation prevents completion; configuration success is never inferred.
 ## Compatibility
 Configuration migration preserves explicit user settings and documents changed ambient-variable behavior.
-## Verification commands
+## Planned verification commands (not current evidence)
 - uv run pytest tests/test_openhands_config.py::test_parent_dotenv_does_not_change_provider_config -q
 - uv run pytest tests/test_openhands_config.py -q
 - uv run ruff check app/core/config.py app/core/workers/openhands_config.py
@@ -472,7 +472,7 @@ tests/test_langgraph_workflow.py::test_required_test_failure_cannot_complete_or_
 Failed, blocked, or inconclusive required execution or evaluation prevents completion and promotion.
 ## Compatibility
 Additive persisted-run schema change with an explicit reader migration for existing records.
-## Verification commands
+## Planned verification commands (not current evidence)
 - uv run pytest tests/test_langgraph_workflow.py::test_required_test_failure_cannot_complete_or_converge -q
 - uv run pytest tests/test_langgraph_workflow.py tests/test_benchmark.py tests/test_memory.py -q
 - uv run ruff check .
@@ -528,7 +528,7 @@ tests/test_boundary_kind_validation.py::test_unknown_boundary_kinds_fail_before_
 Failed, blocked, or inconclusive boundary validation prevents completion and no accepted kind is inferred.
 ## Compatibility
 Configuration and CLI migrations retain explicit supported kinds and reject removed kinds with actionable errors.
-## Verification commands
+## Planned verification commands (not current evidence)
 - uv run pytest tests/test_boundary_kind_validation.py::test_unknown_boundary_kinds_fail_before_execution -q
 - uv run pytest tests/test_boundary_kind_validation.py -q
 - uv run ruff check app/core app/cli.py
@@ -580,7 +580,7 @@ tests/test_workload.py::test_failed_required_command_cannot_pass
 Failed, blocked, or inconclusive evidence prevents completion; no workload pass is inferred.
 ## Compatibility
 Persisted evidence and workload schema changes require explicit reader migration.
-## Verification commands
+## Planned verification commands (not current evidence)
 - uv run pytest tests/test_workload.py::test_failed_required_command_cannot_pass -q
 - uv run pytest tests/test_workload.py -q
 - uv run ruff check app/core/workload.py app/agents/evidence_guard.py
@@ -628,7 +628,7 @@ None
 Failed, blocked, or inconclusive Day 2 tasks prevent the day outcome from being completed.
 ## Compatibility
 Day 2 changes require explicit permission, sandbox, CI, or documentation migration review.
-## Verification commands
+## Planned verification commands (not current evidence)
 - uv run pytest tests/test_permission_gate.py tests/test_sandbox_worker_type_guard.py tests/test_worker_grounding.py tests/test_release_hygiene.py -q
 - npm test
 ## Risks
@@ -680,7 +680,7 @@ tests/test_permission_gate.py::test_ask_requires_approval_and_is_not_completed
 Failed, blocked, and inconclusive permission outcomes prevent completion; approval is never inferred.
 ## Compatibility
 Permission-schema and CLI behavior changes preserve explicit legacy decisions with documented migration.
-## Verification commands
+## Planned verification commands (not current evidence)
 - uv run pytest tests/test_permission_gate.py::test_ask_requires_approval_and_is_not_completed -q
 - uv run pytest tests/test_permission_gate.py -q
 - uv run ruff check app/schemas/permission.py app/agents/permission_gate.py app/core/security.py
@@ -733,7 +733,7 @@ tests/test_sandbox_worker_type_guard.py::test_full_isolation_claim_requires_enfo
 Failed, blocked, or inconclusive sandbox enforcement prevents a full-isolation claim and completion is not inferred.
 ## Compatibility
 CLI, configuration, and documentation migration preserves accurate legacy boundary descriptions.
-## Verification commands
+## Planned verification commands (not current evidence)
 - uv run pytest tests/test_sandbox_worker_type_guard.py::test_full_isolation_claim_requires_enforced_container_boundary -q
 - uv run pytest tests/test_sandbox_worker_type_guard.py -q
 - uv run ruff check app/cli.py app/core/workspace app/core/security.py
@@ -785,7 +785,7 @@ tests/test_worker_grounding.py::test_equivalent_workers_receive_equal_grounding_
 Failed, blocked, or inconclusive grounding prevents completion and no equivalent context is inferred.
 ## Compatibility
 Worker configuration and handoff migrations preserve existing explicit grounding inputs.
-## Verification commands
+## Planned verification commands (not current evidence)
 - uv run pytest tests/test_worker_grounding.py::test_equivalent_workers_receive_equal_grounding_packet -q
 - uv run pytest tests/test_worker_grounding.py -q
 - uv run ruff check app/core/graph.py app/core/handoff.py app/prompts/workers.py app/core/workers
@@ -835,7 +835,7 @@ tests/test_release_hygiene.py::test_ci_runs_python_and_javascript_suites
 Failed, blocked, or inconclusive required suites prevent CI completion and release success is never inferred.
 ## Compatibility
 CI and package-script migrations preserve documented local commands and failure reporting.
-## Verification commands
+## Planned verification commands (not current evidence)
 - uv run pytest tests/test_release_hygiene.py::test_ci_runs_python_and_javascript_suites -q
 - uv run pytest tests/test_release_hygiene.py -q
 - uv run ruff check .
@@ -889,7 +889,7 @@ tests/test_release_hygiene.py::test_release_metadata_has_osi_license_and_consist
 Failed, blocked, or inconclusive metadata prevents release completion and no package identity is inferred.
 ## Compatibility
 Documentation and package metadata migration records user-facing identity changes explicitly.
-## Verification commands
+## Planned verification commands (not current evidence)
 - uv run pytest tests/test_release_hygiene.py::test_release_metadata_has_osi_license_and_consistent_identity -q
 - uv run pytest tests/test_release_hygiene.py -q
 - uv run ruff check .
@@ -938,7 +938,7 @@ None
 Failed, blocked, or inconclusive revalidation prevents completed identity claims.
 ## Compatibility
 Potential persisted-run migration remains deferred pending confirmed current evidence.
-## Verification commands
+## Planned verification commands (not current evidence)
 - uv run pytest tests/test_experiment_identity.py -q
 - uv run ruff check app/schemas/benchmark.py app/core/benchmark.py
 ## Risks
@@ -985,7 +985,7 @@ None
 Failed, blocked, or inconclusive adapter evidence prevents a supported-provider claim.
 ## Compatibility
 Future provider configuration migration is explicit and deferred until revalidation.
-## Verification commands
+## Planned verification commands (not current evidence)
 - uv run pytest tests/test_deepeval_adapter.py -q
 - uv run ruff check app/core/benchmark.py app/schemas/benchmark.py
 ## Risks
@@ -1032,7 +1032,7 @@ None
 Failed, blocked, or inconclusive comparison evidence prevents promotion and completion.
 ## Compatibility
 Future benchmark-record changes require explicit reader and CLI migration review.
-## Verification commands
+## Planned verification commands (not current evidence)
 - uv run pytest tests/test_benchmark.py -q
 - uv run ruff check app/core/benchmark.py app/schemas/benchmark.py
 ## Risks
@@ -1079,7 +1079,7 @@ None
 Failed, blocked, or inconclusive contract evidence prevents governed-training completion.
 ## Compatibility
 Future provider, CLI, and persisted-record migrations require explicit compatibility review.
-## Verification commands
+## Planned verification commands (not current evidence)
 - uv run pytest tests/test_training_contracts.py -q
 - uv run ruff check app/core app/schemas
 ## Risks
@@ -1126,7 +1126,7 @@ None
 Failed, blocked, or inconclusive run evidence prevents training completion and promotion.
 ## Compatibility
 Future training-record migration preserves existing run evidence and configuration semantics.
-## Verification commands
+## Planned verification commands (not current evidence)
 - uv run pytest tests/test_governed_training.py -q
 - uv run ruff check app/core app/schemas
 ## Risks
@@ -1173,7 +1173,7 @@ None
 Failed, blocked, or inconclusive comparison prevents promotion and cannot imply completion.
 ## Compatibility
 Decision and persisted-run migrations remain explicit and additive.
-## Verification commands
+## Planned verification commands (not current evidence)
 - uv run pytest tests/test_training_promotion.py -q
 - uv run ruff check app/core app/schemas
 ## Risks
@@ -1220,7 +1220,7 @@ None
 Failed, blocked, or inconclusive validation prevents a swappable-pack completion claim.
 ## Compatibility
 Future pack configuration migration is explicit and preserves supported contracts.
-## Verification commands
+## Planned verification commands (not current evidence)
 - uv run pytest tests/test_capability_pack.py -q
 - uv run ruff check app/core/packs app/schemas/pack.py
 ## Risks
@@ -1267,7 +1267,7 @@ None
 Failed, blocked, or inconclusive validation prevents a swappable-strategy completion claim.
 ## Compatibility
 Strategy-pack migration remains explicit and additive for existing loop consumers.
-## Verification commands
+## Planned verification commands (not current evidence)
 - uv run pytest tests/test_strategy_pack.py -q
 - uv run ruff check app/core/packs app/schemas/pack.py
 ## Risks
@@ -1314,7 +1314,7 @@ None
 Failed, blocked, or inconclusive workflow evidence prevents a VLM completion claim.
 ## Compatibility
 Future VLM configuration migration is documented and preserves existing provider settings.
-## Verification commands
+## Planned verification commands (not current evidence)
 - uv run pytest tests/test_vlm_reference_workflow.py -q
 - uv run ruff check app/core app/schemas
 ## Risks
@@ -1361,7 +1361,7 @@ None
 Failed, blocked, or inconclusive seam evidence prevents VLA readiness and completion claims.
 ## Compatibility
 Provider and simulator configuration migration remains explicit and backward compatible.
-## Verification commands
+## Planned verification commands (not current evidence)
 - uv run pytest tests/test_vla_provider_seam.py -q
 - uv run ruff check app/core app/schemas
 ## Risks
@@ -1408,7 +1408,7 @@ None
 Failed, blocked, or inconclusive gate evidence prevents release completion and publication.
 ## Compatibility
 Package and documentation migration effects are documented before release changes.
-## Verification commands
+## Planned verification commands (not current evidence)
 - uv run pytest tests/test_release_hygiene.py -q
 - npm test
 ## Risks
@@ -1455,7 +1455,7 @@ None
 Failed, blocked, or inconclusive reproduction prevents release completion and cannot imply v0.1 success.
 ## Compatibility
 Publication, package, and documentation changes identify explicit migration effects for users.
-## Verification commands
+## Planned verification commands (not current evidence)
 - uv run pytest tests/test_v0_1_reproduction.py -q
 - npm test
 ## Risks

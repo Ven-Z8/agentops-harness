@@ -48,6 +48,7 @@ def valid_roadmap_item(task_id: str) -> dict[str, object]:
         "terminal_semantics": "Invalid state is rejected.",
         "compatibility": "Additive coordination-only schema.",
         "verification_commands": ["uv run pytest tests/unit/test_project_control_schema.py -q"],
+        "verification_readiness": "planned",
         "risks": ["False success."],
         "rollback": "Revert this task slice.",
         "source_documents": ["coordination/designs/2026-08-30-project-control-room-design.md"],

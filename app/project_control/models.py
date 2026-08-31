@@ -152,6 +152,7 @@ class RoadmapItem(StrictModel):
     terminal_semantics: str
     compatibility: str
     verification_commands: list[str]
+    verification_readiness: Literal["planned", "available"]
     risks: list[str]
     rollback: str
     source_documents: list[str]
