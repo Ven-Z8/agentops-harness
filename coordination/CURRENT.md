@@ -15,7 +15,8 @@
 ## Confirmed baseline
 
 - Baseline commit: `39c041f699d7909d1f6853a89bf2a86835a4acd4`
-- Snapshot source revision: `111df12ebf4a4bf810fe1d17c79da2e1bc38b02b`
+- Snapshot input revision: `a32647068a99ed985f86862ebde44b1d8d6cd3cc`
+- Generated snapshot outputs are excluded; unavailable means validated inputs are dirty or provenance could not be resolved.
 
 ## Active blockers
 
