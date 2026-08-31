@@ -1,5 +1,4 @@
 """Validated discovery of repository decision records."""
-# ruff: noqa: E501
 
 from __future__ import annotations
 
@@ -32,4 +31,8 @@ def load_recent_decisions(root: Path) -> list[DecisionRecord]:
         if unknown:
             raise ValueError(f"Roadmap does not include item: {unknown[0]}")
         records.append(DecisionRecord(header, path.relative_to(root).as_posix()))
-    return sorted(records, key=lambda record: (record.header.date, record.header.decision_id), reverse=True)
+    return sorted(
+        records,
+        key=lambda record: (record.header.date, record.header.decision_id),
+        reverse=True,
+    )

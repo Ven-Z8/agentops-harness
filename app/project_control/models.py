@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import re
 from datetime import datetime
 from enum import StrEnum
 from pathlib import PurePosixPath
 from typing import Literal
+from urllib.parse import urlsplit
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -38,6 +40,37 @@ def _nonempty(value: str) -> str:
     if not value.strip():
         raise ValueError("must not be empty")
     return value
+
+
+def _single_line_identifier(value: str) -> str:
+    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]*", value):
+        raise ValueError(
+            "must be a single-line identifier using letters, digits, dots, "
+            "underscores, or hyphens"
+        )
+    return value
+
+
+def _https_url(value: str) -> str:
+    if any(ord(character) < 33 or ord(character) == 127 for character in value):
+        raise ValueError("URL must be a single line without control characters or whitespace")
+    if any(character in value for character in '<>"'):
+        raise ValueError("URL contains unsafe Markdown destination syntax")
+    try:
+        parsed = urlsplit(value)
+    except ValueError as error:
+        raise ValueError("URL must have valid syntax") from error
+    if parsed.scheme != "https" or not parsed.netloc or not parsed.hostname:
+        raise ValueError("URL must be an absolute https URL")
+    if parsed.username is not None or parsed.password is not None:
+        raise ValueError("URL must not contain credentials")
+    return value
+
+
+def _safe_link_target(value: str) -> str:
+    if value.startswith("https:"):
+        return _https_url(value)
+    return _relative_repository_path(value)
 
 
 def _relative_repository_path(value: str) -> str:
@@ -93,8 +126,8 @@ class GitHubProjectConfig(StrictModel):
             raise ValueError("GitHub project number and url must be populated together")
         if self.number is not None and self.number < 1:
             raise ValueError("GitHub project number must be positive")
-        if self.url is not None and not self.url.startswith("https://"):
-            raise ValueError("GitHub project url must be an https URL")
+        if self.url is not None:
+            _https_url(self.url)
         return self
 
 
@@ -124,8 +157,8 @@ class GitHubIssueReference(StrictModel):
             raise ValueError("GitHub issue number and url must be populated together")
         if self.issue_number is not None and self.issue_number < 1:
             raise ValueError("GitHub issue number must be positive")
-        if self.issue_url is not None and not self.issue_url.startswith("https://"):
-            raise ValueError("GitHub issue url must be an https URL")
+        if self.issue_url is not None:
+            _https_url(self.issue_url)
         return self
 
 
@@ -384,7 +417,14 @@ class BoardItem(StrictModel):
     blocker: str | None = None
     handoff: str | None = None
 
-    _validate_text = field_validator("task_id", "title")(_nonempty)
+    _validate_task_id = field_validator("task_id")(_single_line_identifier)
+    _validate_title = field_validator("title")(_nonempty)
+    _validate_optional_identifiers = field_validator("phase_id", "harness")(
+        lambda value: None if value is None else _single_line_identifier(value)
+    )
+    _validate_handoff = field_validator("handoff")(
+        lambda value: None if value is None else _safe_link_target(value)
+    )
 
     @field_validator("day")
     @classmethod
@@ -399,8 +439,8 @@ class BoardItem(StrictModel):
             raise ValueError("Board issue number and url must be populated together")
         if self.issue_number is not None and self.issue_number < 1:
             raise ValueError("Board issue number must be positive")
-        if self.issue_url is not None and not self.issue_url.startswith("https://"):
-            raise ValueError("Board issue url must be an https URL")
+        if self.issue_url is not None:
+            _https_url(self.issue_url)
         return self
 
 
@@ -409,19 +449,15 @@ class BoardExport(StrictModel):
     items: list[BoardItem]
     source_revision: str = "unavailable"
 
-    _validate_project_url = field_validator("project_url")(_nonempty)
-
     @field_validator("project_url")
     @classmethod
     def validate_project_url(cls, value: str) -> str:
-        if not value.startswith("https://"):
-            raise ValueError("Board project url must be an https URL")
-        return value
+        return _https_url(value)
 
     @field_validator("source_revision")
     @classmethod
     def validate_source_revision(cls, value: str) -> str:
-        if value != "unavailable" and not __import__("re").fullmatch(r"[0-9a-f]{40}", value):
+        if value != "unavailable" and not re.fullmatch(r"[0-9a-f]{40}", value):
             raise ValueError("Board source revision must be a full commit SHA or unavailable")
         return value
 
@@ -444,6 +480,6 @@ class ControlRoomState(StrictModel):
     @field_validator("snapshot_source_revision")
     @classmethod
     def validate_snapshot_source_revision(cls, value: str) -> str:
-        if value != "unavailable" and not __import__("re").fullmatch(r"[0-9a-f]{40}", value):
+        if value != "unavailable" and not re.fullmatch(r"[0-9a-f]{40}", value):
             raise ValueError("Snapshot source revision must be a full commit SHA or unavailable")
         return value

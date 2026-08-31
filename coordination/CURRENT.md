@@ -15,7 +15,7 @@
 ## Confirmed baseline
 
 - Baseline commit: `39c041f699d7909d1f6853a89bf2a86835a4acd4`
-- Snapshot source revision: `39152139089640de9071c120d7bcc06e25814c02`
+- Snapshot source revision: `4039cc0ea249f7f321f1699aa19e3cda900baebd`
 
 ## Active blockers
 
@@ -56,6 +56,7 @@
 
 ## Code graph freshness
 
+- Graph input provenance: `1c59f358e2ce5a0efb96910b7b755090eca5f94b`; freshness is inconclusive until validated against the current source tree before relying on it.
 - Stale: the source-tree digest differs from the manifest.
 
 ## Onboarding commands

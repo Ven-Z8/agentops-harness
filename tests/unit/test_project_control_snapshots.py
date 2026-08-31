@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-# ruff: noqa: E501
 from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
 from pydantic import ValidationError
 
+import app.project_control.snapshots as snapshots
 from app.project_control.models import BoardExport
 from app.project_control.snapshots import (
     render_board,
@@ -237,7 +237,7 @@ def test_snapshot_provenance_separates_baseline_snapshot_and_graph_revisions() -
 
     assert "Baseline commit: `39c041f699d7909d1f6853a89bf2a86835a4acd4`" in rendered
     assert "Snapshot source revision: `" + "c" * 40 + "`" in rendered
-    assert "Graph input provenance: unavailable" in rendered
+    assert rendered.count("Graph provenance unavailable; freshness inconclusive.") == 1
 
 
 @pytest.mark.parametrize("source_revision", ["", "arbitrary", "a" * 39])
@@ -255,7 +255,11 @@ def test_board_export_rejects_untruthful_source_revisions(source_revision: str) 
 
 def test_empty_live_export_remains_authoritative_for_current_state() -> None:
     state = make_control_room_state().model_copy(
-        update={"board_export": BoardExport(project_url="https://github.com/users/Ven-Z8/projects/1", items=[])}
+        update={
+            "board_export": BoardExport(
+                project_url="https://github.com/users/Ven-Z8/projects/1", items=[]
+            )
+        }
     )
     rendered = render_current(state, FIXED_TIME)
     assert "Unassigned (live board)" in rendered
@@ -263,7 +267,120 @@ def test_empty_live_export_remains_authoritative_for_current_state() -> None:
 
 
 def test_live_rendering_is_deterministic_and_escapes_forged_heading() -> None:
-    export = BoardExport.model_validate({"project_url": "https://github.com/users/Ven-Z8/projects/1", "items": [{"task_id": "AO-D01-01", "title": "safe\n## forged", "status": "ready", "priority": "P0"}]})
+    export = BoardExport.model_validate(
+        {
+            "project_url": "https://github.com/users/Ven-Z8/projects/1",
+            "items": [
+                {
+                    "task_id": "AO-D01-01",
+                    "title": "safe\n## forged",
+                    "status": "ready",
+                    "priority": "P0",
+                }
+            ],
+        }
+    )
     first = render_board(export, FIXED_TIME)
     assert first == render_board(export, FIXED_TIME)
     assert "\n## forged" not in first
+
+
+@pytest.mark.parametrize(
+    ("field_name", "value"),
+    [
+        ("project_url", "https://github.com/board\n## forged"),
+        ("task_id", "AO-D01-01| forged"),
+        ("phase_id", "AO-P1\n## forged"),
+        ("harness", "codex| forged"),
+        ("issue_url", "https://github.com/issues/1>\n## forged"),
+        ("handoff", "https://example.test/handoff>\n## forged"),
+    ],
+)
+def test_live_export_rejects_markdown_syntax_in_identifiers_and_links(
+    field_name: str, value: str
+) -> None:
+    """Permitting control text here would let a live export forge Markdown structure."""
+    item = {
+        "task_id": "AO-D01-01",
+        "title": "Safe title",
+        "status": "ready",
+        "priority": "P0",
+    }
+    export: dict[str, object] = {
+        "project_url": "https://github.com/users/Ven-Z8/projects/1",
+        "items": [item],
+    }
+    if field_name == "project_url":
+        export[field_name] = value
+    else:
+        item[field_name] = value
+        if field_name == "issue_url":
+            item["issue_number"] = 1
+
+    with pytest.raises(ValidationError):
+        BoardExport.model_validate(export)
+
+
+def test_live_rendering_escapes_display_text_across_all_untrusted_fields() -> None:
+    """Removing display escaping would let arbitrary live text forge table cells or links."""
+    export = BoardExport.model_validate(
+        {
+            "project_url": "https://github.com/users/Ven-Z8/projects/1",
+            "items": [
+                {
+                    "task_id": "AO-D01-01",
+                    "title": "safe | [forged](https://example.test)\n## heading",
+                    "status": "blocked",
+                    "priority": "P0",
+                    "dependency": "waiting | [forged](https://example.test)\n## heading",
+                    "blocker": "blocked | [forged](https://example.test)\n## heading",
+                }
+            ],
+        }
+    )
+
+    board = render_board(export, FIXED_TIME)
+    current = render_current(
+        make_control_room_state().model_copy(update={"board_export": export}), FIXED_TIME
+    )
+
+    for rendered in (board, current):
+        assert "\n## heading" not in rendered
+        assert "[forged](https://example.test)" not in rendered
+    assert "safe \\| \\[forged\\]\\(https://example.test\\) \\#\\# heading" in board
+    assert "blocked \\| \\[forged\\]\\(https://example.test\\) \\#\\# heading" in current
+
+
+def test_second_temp_prepare_failure_removes_first_temp_without_replacing_destinations(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A failed second prepare must not leak the first temp or replace either snapshot."""
+    current = tmp_path / "coordination/CURRENT.md"
+    board = tmp_path / "coordination/BOARD.md"
+    current.parent.mkdir(parents=True)
+    current.write_text("last current\n", encoding="utf-8")
+    board.write_text("last board\n", encoding="utf-8")
+    prepared: list[Path] = []
+    real_prepare = snapshots._prepare
+
+    def fail_second_prepare(root: Path, path: str, content: str) -> tuple[Path, Path]:
+        if prepared:
+            raise OSError("second temporary write failed")
+        destination, temporary = real_prepare(root, path, content)
+        prepared.append(temporary)
+        return destination, temporary
+
+    monkeypatch.setattr(snapshots, "_prepare", fail_second_prepare)
+
+    with pytest.raises(OSError, match="second temporary"):
+        snapshots._replace_pair(
+            tmp_path,
+            "coordination/CURRENT.md",
+            "new current\n",
+            "coordination/BOARD.md",
+            "new board\n",
+        )
+
+    assert current.read_text(encoding="utf-8") == "last current\n"
+    assert board.read_text(encoding="utf-8") == "last board\n"
+    assert all(not temporary.exists() for temporary in prepared)

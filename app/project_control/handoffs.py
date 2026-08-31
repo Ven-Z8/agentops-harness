@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-# ruff: noqa: E501
 import re
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -127,6 +126,9 @@ def latest_handoffs(root: Path) -> dict[str, Path]:
 def load_latest_handoffs(root: Path) -> dict[str, HandoffRecord]:
     """Return latest validated handoffs with normalized repository-relative paths."""
     return {
-        task_id: HandoffRecord(load_frontmatter(path, HandoffHeader, root=root), path.relative_to(root).as_posix())
+        task_id: HandoffRecord(
+            load_frontmatter(path, HandoffHeader, root=root),
+            path.relative_to(root).as_posix(),
+        )
         for task_id, path in latest_handoffs(root).items()
     }

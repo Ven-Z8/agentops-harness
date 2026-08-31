@@ -1,5 +1,4 @@
 """Deterministic, validated local snapshots for the Project Control Room."""
-# ruff: noqa: E501
 
 from __future__ import annotations
 
@@ -20,6 +19,7 @@ from app.project_control.models import (
     GraphManifest,
     ProjectConfig,
     RoadmapItem,
+    _safe_link_target,
 )
 from app.project_control.roadmap import load_roadmap
 
@@ -55,13 +55,18 @@ def _roadmap_board_sort_key(item: RoadmapItem) -> tuple[int, int, int, str]:
 def _link(value: str | None, label: str) -> str:
     if not value:
         return "None"
-    safe_label = label.replace("\\", "\\\\").replace("[", "\\[").replace("]", "\\]")
-    return f"[{safe_label}](<{value}>)"
+    return f"[{_markdown(label)}](<{_safe_link_target(value)}>)"
 
 
 def _markdown(value: str) -> str:
-    value = " ".join(value.split())
-    return value.replace("\\", "\\\\").replace("|", "\\|").replace("[", "\\[").replace("]", "\\]").replace("#", "\\#")
+    single_line = "".join(
+        " " if ord(character) < 32 or ord(character) == 127 else character
+        for character in value
+    )
+    value = " ".join(single_line.split())
+    for character in "\\|[]()<>#*_`":
+        value = value.replace(character, f"\\{character}")
+    return value
 
 
 def _phase_summaries(items: list[BoardItem]) -> list[str]:
@@ -78,7 +83,7 @@ def _phase_summaries(items: list[BoardItem]) -> list[str]:
             for status in STATUS_ORDER
             if any(item.status == status for item in phase_items)
         )
-        lines.append(f"- {phase_id}: {states}")
+        lines.append(f"- {_markdown(phase_id)}: {states}")
     return lines
 
 
@@ -105,8 +110,8 @@ def render_board(export: BoardExport, now: datetime) -> str:
     ]
     blocked = [item for item in items if item.status == "blocked"]
     lines.extend(
-        f"- {item.task_id}: {item.title}"
-        + (f" — dependency: {item.dependency}" if item.dependency else "")
+        f"- {_markdown(item.task_id)}: {_markdown(item.title)}"
+        + (f" — dependency: {_markdown(item.dependency)}" if item.dependency else "")
         for item in blocked
     )
     if not blocked:
@@ -127,14 +132,14 @@ def render_board(export: BoardExport, now: datetime) -> str:
             "| "
             + " | ".join(
                 [
-                    f"{item.task_id}: {_markdown(item.title)}",
-                    str(item.status),
+                    f"{_markdown(item.task_id)}: {_markdown(item.title)}",
+                    _markdown(str(item.status)),
                     item.priority,
                     str(item.day) if item.day is not None else "—",
-                    item.harness or "Unassigned",
+                    _markdown(item.harness or "Unassigned"),
                     issue,
                     handoff,
-                    str(item.evidence),
+                    _markdown(str(item.evidence)),
                 ]
             )
             + " |"
@@ -147,7 +152,8 @@ def render_board(export: BoardExport, now: datetime) -> str:
         assignments.setdefault(item.harness or "Unassigned", []).append(item.task_id)
     if assignments:
         lines.extend(
-            f"- {harness}: {', '.join(sorted(task_ids))}"
+            f"- {_markdown(harness)}: "
+            f"{', '.join(_markdown(task_id) for task_id in sorted(task_ids))}"
             for harness, task_ids in sorted(assignments.items())
         )
     else:
@@ -177,7 +183,7 @@ def _immediate_objective(state: ControlRoomState, phase: RoadmapItem | None) -> 
 
 def _codegraph_status(state: ControlRoomState) -> str:
     if state.graph_manifest is None:
-        return "Graph input provenance: unavailable; freshness is inconclusive."
+        return "Graph provenance unavailable; freshness inconclusive."
     return (
         f"Graph input provenance: `{state.graph_manifest.source_commit}`; freshness is "
         "inconclusive until validated "
@@ -194,15 +200,32 @@ def render_current(state: ControlRoomState, now: datetime) -> str:
     if state.board_export is not None:
         active = [item for item in live if item.status != "done"]
         phase_id = next((item.phase_id for item in active if item.phase_id), "Unassigned")
-        phase_text = f"- {phase_id} (live board)"
+        phase_text = f"- {_markdown(phase_id)} (live board)"
         objective_text = (
-            f"- {active[0].task_id}: {_markdown(active[0].title)}" if active else "- None"
+            f"- {_markdown(active[0].task_id)}: {_markdown(active[0].title)}"
+            if active
+            else "- None"
         )
         blockers = [item for item in active if item.status == "blocked"]
     else:
-        phase_text = f"- {phase.id}: {phase.title} (roadmap fallback)" if phase else "- Inconclusive."
-        objective_text = f"- {objective.id}: {objective.outcome} (roadmap fallback)" if objective else "- Inconclusive."
-        blockers = sorted((item for item in state.roadmap.items if item.status != "done" and item.blocker != "none"), key=_roadmap_board_sort_key)
+        phase_text = (
+            f"- {_markdown(phase.id)}: {_markdown(phase.title)} (roadmap fallback)"
+            if phase
+            else "- Inconclusive."
+        )
+        objective_text = (
+            f"- {_markdown(objective.id)}: {_markdown(objective.outcome)} (roadmap fallback)"
+            if objective
+            else "- Inconclusive."
+        )
+        blockers = sorted(
+            (
+                item
+                for item in state.roadmap.items
+                if item.status != "done" and item.blocker != "none"
+            ),
+            key=_roadmap_board_sort_key,
+        )
     lines = [
         "# Current Project State",
         "",
@@ -227,24 +250,36 @@ def render_current(state: ControlRoomState, now: datetime) -> str:
         "",
     ]
     lines.extend(
-        f"- {item.task_id}: {item.blocker or item.dependency or 'not specified'}"
+        f"- {_markdown(item.task_id)}: "
+        f"{_markdown(item.blocker or item.dependency or 'not specified')}"
         if isinstance(item, BoardItem)
-        else f"- {item.id}: {item.blocker}"
+        else f"- {_markdown(item.id)}: {_markdown(item.blocker)}"
         for item in blockers
     )
     if not blockers:
         lines.append("- None recorded.")
     lines.extend(["", "## Latest decisions and handoffs", ""])
     if state.decisions:
-        for decision_id, decision in sorted(state.decisions.items(), key=lambda item: (item[1].date, item[0]), reverse=True):
-            lines.append(f"- {_link(state.decision_paths.get(decision_id), f'Decision {decision_id}')}: {decision.status}")
+        decisions = sorted(
+            state.decisions.items(),
+            key=lambda item: (item[1].date, item[0]),
+            reverse=True,
+        )
+        for decision_id, decision in decisions:
+            lines.append(
+                f"- {_link(state.decision_paths.get(decision_id), f'Decision {decision_id}')}: "
+                f"{decision.status}"
+            )
     if state.handoffs:
         for task_id, handoff in sorted(
             state.handoffs.items(),
             key=lambda record: (record[1].updated_at, record[0]),
             reverse=True,
         ):
-            lines.append(f"- {_link(state.handoff_paths.get(task_id), f'Handoff {task_id}')}: {handoff.status}")
+            lines.append(
+                f"- {_link(state.handoff_paths.get(task_id), f'Handoff {task_id}')}: "
+                f"{handoff.status}"
+            )
     if not state.decisions and not state.handoffs:
         lines.append("- None recorded.")
     lines.extend(
@@ -299,7 +334,7 @@ def _load_state(root: Path, board_export: BoardExport | None) -> ControlRoomStat
 
 def _codegraph_freshness(root: Path, state: ControlRoomState) -> str:
     if state.graph_manifest is None:
-        return "Graph input provenance: unavailable; freshness is inconclusive."
+        return "Not validated: no graph manifest is present."
     try:
         validate_codegraph_freshness(root)
     except ValueError as error:
@@ -337,18 +372,22 @@ def _initial_board(state: ControlRoomState, now: datetime) -> str:
     for item in items:
         handoff = state.handoffs.get(item.id)
         lines.append(
-            f"| {item.id}: {item.title} | {item.phase_id or '—'} | {item.status} | "
+            f"| {_markdown(item.id)}: {_markdown(item.title)} | "
+            f"{_markdown(item.phase_id or '—')} | {item.status} | "
             f"{item.priority} | {item.day if item.day is not None else '—'} | not provisioned | "
             f"{_link(state.handoff_paths.get(item.id), 'handoff') if handoff else 'None'} |"
         )
     lines.extend(["", "## Phase summaries", ""])
     phase_items = [item for item in items if item.kind == "phase"]
-    lines.extend(f"- {item.id}: {item.status} — {item.title}" for item in phase_items)
+    lines.extend(
+        f"- {_markdown(item.id)}: {item.status} — {_markdown(item.title)}"
+        for item in phase_items
+    )
     if not phase_items:
         lines.append("- None recorded.")
     lines.extend(["", "## Blocked work", ""])
     blocked = [item for item in items if item.status == "blocked"]
-    lines.extend(f"- {item.id}: {item.blocker}" for item in blocked)
+    lines.extend(f"- {_markdown(item.id)}: {_markdown(item.blocker)}" for item in blocked)
     if not blocked:
         lines.append("- None recorded.")
     lines.extend(
@@ -369,7 +408,13 @@ def write_snapshots(root: Path, board_export: BoardExport | dict, now: datetime)
     state = _load_state(root, export)
     current = _render_current_with_freshness(state, now, _codegraph_freshness(root, state))
     board = render_board(export, now)
-    _replace_pair(root, state.project.generated.current, current, state.project.generated.board, board)
+    _replace_pair(
+        root,
+        state.project.generated.current,
+        current,
+        state.project.generated.board,
+        board,
+    )
 
 
 def write_initial_snapshots(root: Path, now: datetime) -> None:
@@ -378,7 +423,13 @@ def write_initial_snapshots(root: Path, now: datetime) -> None:
     state = _load_state(root, None)
     current = _render_current_with_freshness(state, now, _codegraph_freshness(root, state))
     board = _initial_board(state, now)
-    _replace_pair(root, state.project.generated.current, current, state.project.generated.board, board)
+    _replace_pair(
+        root,
+        state.project.generated.current,
+        current,
+        state.project.generated.board,
+        board,
+    )
 
 
 def _prepare(root: Path, path: str, content: str) -> tuple[Path, Path]:
