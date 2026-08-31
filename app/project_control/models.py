@@ -51,6 +51,10 @@ def _relative_repository_path(value: str) -> str:
     return value
 
 
+def _relative_repository_paths(values: list[str]) -> list[str]:
+    return [_relative_repository_path(value) for value in values]
+
+
 class ProjectIdentity(StrictModel):
     id: str
     name: str
@@ -155,6 +159,9 @@ class RoadmapItem(StrictModel):
         "compatibility",
         "rollback",
     )(_nonempty)
+    _validate_repository_paths = field_validator("likely_files", "source_documents")(
+        _relative_repository_paths
+    )
 
     @field_validator("day")
     @classmethod
@@ -325,6 +332,8 @@ class GraphManifest(StrictModel):
     counts: dict[str, int]
     generated_at: datetime
     language_coverage: dict[str, list[str]]
+
+    _validate_included_paths = field_validator("included_paths")(_relative_repository_paths)
 
 
 class BoardItem(StrictModel):

@@ -7,7 +7,13 @@ import yaml
 from pydantic import ValidationError
 
 from app.project_control.io import atomic_write, load_frontmatter, load_yaml
-from app.project_control.models import ArtifactRecord, HandoffHeader, ProjectConfig, Roadmap
+from app.project_control.models import (
+    ArtifactRecord,
+    GraphManifest,
+    HandoffHeader,
+    ProjectConfig,
+    Roadmap,
+)
 from tests.helpers_project_control import valid_project_config, valid_roadmap_item
 
 
@@ -177,3 +183,33 @@ def test_handoff_requires_full_commit_identifiers() -> None:
 
     with pytest.raises(ValidationError):
         HandoffHeader.model_validate(payload)
+
+
+@pytest.mark.parametrize("field_name", ["likely_files", "source_documents"])
+@pytest.mark.parametrize("invalid_path", ["/etc/passwd", "coordination/../escape", "./design.md"])
+def test_roadmap_rejects_non_normalized_repository_path_lists(
+    field_name: str, invalid_path: str
+) -> None:
+    item = valid_roadmap_item("AO-D01")
+    item[field_name] = [invalid_path]
+
+    with pytest.raises(ValidationError, match="repository path"):
+        Roadmap.model_validate({"schema_version": 1, "roadmap_id": "AO-14D", "items": [item]})
+
+
+@pytest.mark.parametrize("invalid_path", ["/etc/passwd", "coordination/../escape", "./design.md"])
+def test_graph_manifest_rejects_non_normalized_included_paths(invalid_path: str) -> None:
+    payload = {
+        "schema_version": 1,
+        "generator_version": "1",
+        "source_commit": "a" * 40,
+        "source_tree_digest": "b" * 64,
+        "included_paths": [invalid_path],
+        "exclusions": [],
+        "counts": {},
+        "generated_at": "2026-08-30T16:00:00Z",
+        "language_coverage": {},
+    }
+
+    with pytest.raises(ValidationError, match="repository path"):
+        GraphManifest.model_validate(payload)
