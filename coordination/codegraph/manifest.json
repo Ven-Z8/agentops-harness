@@ -26,7 +26,7 @@
     "target/",
     "vendor/"
   ],
-  "generated_at": "2026-08-31T23:01:40Z",
+  "generated_at": "2026-08-31T23:04:41Z",
   "generator_version": "1",
   "included_paths": [
     ".claude/launch.json",
@@ -366,6 +366,6 @@
     ]
   },
   "schema_version": 1,
-  "source_commit": "69068ade92829ba0ff4f4fca4ce6abdf3da330a0",
-  "source_tree_digest": "6c2e154120878065f3f7852147c98430e1e892936bd873c33ddfb326d0ac9ea4"
+  "source_commit": "2a728186b4a1b687bb6fd406c8b0c5a14a63a824",
+  "source_tree_digest": "9542ee8b1e821395849d83ca5bd9f7b6a0072f6704568e34cd1e281e3723370f"
 }

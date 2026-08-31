@@ -23652,7 +23652,7 @@
       "id": "class:python:app.project_control.github.ApplyGhTransport",
       "language": "python",
       "metadata": {
-        "line": 646,
+        "line": 649,
         "qualified_name": "app.project_control.github.ApplyGhTransport"
       },
       "name": "ApplyGhTransport",
@@ -23674,7 +23674,7 @@
       "id": "class:python:app.project_control.github.GitHubClient",
       "language": "python",
       "metadata": {
-        "line": 1551,
+        "line": 1560,
         "qualified_name": "app.project_control.github.GitHubClient"
       },
       "name": "GitHubClient",
@@ -23685,7 +23685,7 @@
       "id": "class:python:app.project_control.github.GitHubProvisioner",
       "language": "python",
       "metadata": {
-        "line": 857,
+        "line": 860,
         "qualified_name": "app.project_control.github.GitHubProvisioner"
       },
       "name": "GitHubProvisioner",
@@ -23718,7 +23718,7 @@
       "id": "class:python:app.project_control.github.SubprocessGhTransport",
       "language": "python",
       "metadata": {
-        "line": 616,
+        "line": 619,
         "qualified_name": "app.project_control.github.SubprocessGhTransport"
       },
       "name": "SubprocessGhTransport",
@@ -33090,7 +33090,7 @@
       "id": "function:python:app.project_control.github.__init__",
       "language": "python",
       "metadata": {
-        "line": 858,
+        "line": 861,
         "qualified_name": "app.project_control.github.__init__"
       },
       "name": "__init__",
@@ -33101,7 +33101,7 @@
       "id": "function:python:app.project_control.github._action_record",
       "language": "python",
       "metadata": {
-        "line": 1165,
+        "line": 1168,
         "qualified_name": "app.project_control.github._action_record"
       },
       "name": "_action_record",
@@ -33112,7 +33112,7 @@
       "id": "function:python:app.project_control.github._board_item",
       "language": "python",
       "metadata": {
-        "line": 532,
+        "line": 535,
         "qualified_name": "app.project_control.github._board_item"
       },
       "name": "_board_item",
@@ -33123,7 +33123,7 @@
       "id": "function:python:app.project_control.github._discovery_page",
       "language": "python",
       "metadata": {
-        "line": 1272,
+        "line": 1275,
         "qualified_name": "app.project_control.github._discovery_page"
       },
       "name": "_discovery_page",
@@ -33134,7 +33134,7 @@
       "id": "function:python:app.project_control.github._field_data_type",
       "language": "python",
       "metadata": {
-        "line": 1234,
+        "line": 1237,
         "qualified_name": "app.project_control.github._field_data_type"
       },
       "name": "_field_data_type",
@@ -33145,7 +33145,7 @@
       "id": "function:python:app.project_control.github._field_value",
       "language": "python",
       "metadata": {
-        "line": 457,
+        "line": 460,
         "qualified_name": "app.project_control.github._field_value"
       },
       "name": "_field_value",
@@ -33156,7 +33156,7 @@
       "id": "function:python:app.project_control.github._managed_issue_body",
       "language": "python",
       "metadata": {
-        "line": 813,
+        "line": 816,
         "qualified_name": "app.project_control.github._managed_issue_body"
       },
       "name": "_managed_issue_body",
@@ -33167,7 +33167,7 @@
       "id": "function:python:app.project_control.github._managed_issue_content",
       "language": "python",
       "metadata": {
-        "line": 837,
+        "line": 840,
         "qualified_name": "app.project_control.github._managed_issue_content"
       },
       "name": "_managed_issue_content",
@@ -33178,7 +33178,7 @@
       "id": "function:python:app.project_control.github._mutation_id",
       "language": "python",
       "metadata": {
-        "line": 787,
+        "line": 790,
         "qualified_name": "app.project_control.github._mutation_id"
       },
       "name": "_mutation_id",
@@ -33189,7 +33189,7 @@
       "id": "function:python:app.project_control.github._operation_for_action",
       "language": "python",
       "metadata": {
-        "line": 1251,
+        "line": 1254,
         "qualified_name": "app.project_control.github._operation_for_action"
       },
       "name": "_operation_for_action",
@@ -33200,7 +33200,7 @@
       "id": "function:python:app.project_control.github._parse_discovered_project",
       "language": "python",
       "metadata": {
-        "line": 1311,
+        "line": 1314,
         "qualified_name": "app.project_control.github._parse_discovered_project"
       },
       "name": "_parse_discovered_project",
@@ -33211,7 +33211,7 @@
       "id": "function:python:app.project_control.github._phase_id",
       "language": "python",
       "metadata": {
-        "line": 515,
+        "line": 518,
         "qualified_name": "app.project_control.github._phase_id"
       },
       "name": "_phase_id",
@@ -33222,7 +33222,7 @@
       "id": "function:python:app.project_control.github._phase_label",
       "language": "python",
       "metadata": {
-        "line": 1244,
+        "line": 1247,
         "qualified_name": "app.project_control.github._phase_label"
       },
       "name": "_phase_label",
@@ -33233,7 +33233,7 @@
       "id": "function:python:app.project_control.github._reconcile_plan",
       "language": "python",
       "metadata": {
-        "line": 1175,
+        "line": 1178,
         "qualified_name": "app.project_control.github._reconcile_plan"
       },
       "name": "_reconcile_plan",
@@ -33244,7 +33244,7 @@
       "id": "function:python:app.project_control.github._required_id",
       "language": "python",
       "metadata": {
-        "line": 683,
+        "line": 686,
         "qualified_name": "app.project_control.github._required_id"
       },
       "name": "_required_id",
@@ -33255,7 +33255,7 @@
       "id": "function:python:app.project_control.github._required_text",
       "language": "python",
       "metadata": {
-        "line": 694,
+        "line": 697,
         "qualified_name": "app.project_control.github._required_text"
       },
       "name": "_required_text",
@@ -33266,7 +33266,7 @@
       "id": "function:python:app.project_control.github._response",
       "language": "python",
       "metadata": {
-        "line": 444,
+        "line": 447,
         "qualified_name": "app.project_control.github._response"
       },
       "name": "_response",
@@ -33277,7 +33277,7 @@
       "id": "function:python:app.project_control.github._safe_remote_error",
       "language": "python",
       "metadata": {
-        "line": 851,
+        "line": 854,
         "qualified_name": "app.project_control.github._safe_remote_error"
       },
       "name": "_safe_remote_error",
@@ -33288,7 +33288,7 @@
       "id": "function:python:app.project_control.github._status_label",
       "language": "python",
       "metadata": {
-        "line": 1224,
+        "line": 1227,
         "qualified_name": "app.project_control.github._status_label"
       },
       "name": "_status_label",
@@ -33299,7 +33299,7 @@
       "id": "function:python:app.project_control.github._typed_input",
       "language": "python",
       "metadata": {
-        "line": 701,
+        "line": 704,
         "qualified_name": "app.project_control.github._typed_input"
       },
       "name": "_typed_input",
@@ -33310,7 +33310,7 @@
       "id": "function:python:app.project_control.github._validate_canonical_issue",
       "language": "python",
       "metadata": {
-        "line": 524,
+        "line": 527,
         "qualified_name": "app.project_control.github._validate_canonical_issue"
       },
       "name": "_validate_canonical_issue",
@@ -33321,7 +33321,7 @@
       "id": "function:python:app.project_control.github._validate_mutation_identity",
       "language": "python",
       "metadata": {
-        "line": 1206,
+        "line": 1209,
         "qualified_name": "app.project_control.github._validate_mutation_identity"
       },
       "name": "_validate_mutation_identity",
@@ -33332,7 +33332,7 @@
       "id": "function:python:app.project_control.github._write_report",
       "language": "python",
       "metadata": {
-        "line": 1113,
+        "line": 1116,
         "qualified_name": "app.project_control.github._write_report"
       },
       "name": "_write_report",
@@ -33343,7 +33343,7 @@
       "id": "function:python:app.project_control.github.apply",
       "language": "python",
       "metadata": {
-        "line": 1020,
+        "line": 1023,
         "qualified_name": "app.project_control.github.apply"
       },
       "name": "apply",
@@ -33354,7 +33354,7 @@
       "id": "function:python:app.project_control.github.discover_state",
       "language": "python",
       "metadata": {
-        "line": 1555,
+        "line": 1564,
         "qualified_name": "app.project_control.github.discover_state"
       },
       "name": "discover_state",
@@ -33365,7 +33365,7 @@
       "id": "function:python:app.project_control.github.export_project",
       "language": "python",
       "metadata": {
-        "line": 1644,
+        "line": 1653,
         "qualified_name": "app.project_control.github.export_project"
       },
       "name": "export_project",
@@ -33376,7 +33376,7 @@
       "id": "function:python:app.project_control.github.extract_task_id",
       "language": "python",
       "metadata": {
-        "line": 437,
+        "line": 440,
         "qualified_name": "app.project_control.github.extract_task_id"
       },
       "name": "extract_task_id",
@@ -33398,7 +33398,7 @@
       "id": "function:python:app.project_control.github.merge_managed_issue_body",
       "language": "python",
       "metadata": {
-        "line": 817,
+        "line": 820,
         "qualified_name": "app.project_control.github.merge_managed_issue_body"
       },
       "name": "merge_managed_issue_body",
@@ -33420,7 +33420,7 @@
       "id": "function:python:app.project_control.github.plan",
       "language": "python",
       "metadata": {
-        "line": 868,
+        "line": 871,
         "qualified_name": "app.project_control.github.plan"
       },
       "name": "plan",
@@ -48196,7 +48196,7 @@
       "id": "method:python:app.project_control.github.ApplyGhTransport.mutate",
       "language": "python",
       "metadata": {
-        "line": 649,
+        "line": 652,
         "qualified_name": "app.project_control.github.ApplyGhTransport.mutate"
       },
       "name": "mutate",
@@ -48218,7 +48218,7 @@
       "id": "method:python:app.project_control.github.GitHubClient.__init__",
       "language": "python",
       "metadata": {
-        "line": 1552,
+        "line": 1561,
         "qualified_name": "app.project_control.github.GitHubClient.__init__"
       },
       "name": "__init__",
@@ -48229,7 +48229,7 @@
       "id": "method:python:app.project_control.github.GitHubClient.discover_state",
       "language": "python",
       "metadata": {
-        "line": 1555,
+        "line": 1564,
         "qualified_name": "app.project_control.github.GitHubClient.discover_state"
       },
       "name": "discover_state",
@@ -48240,7 +48240,7 @@
       "id": "method:python:app.project_control.github.GitHubClient.export_project",
       "language": "python",
       "metadata": {
-        "line": 1644,
+        "line": 1653,
         "qualified_name": "app.project_control.github.GitHubClient.export_project"
       },
       "name": "export_project",
@@ -48251,7 +48251,7 @@
       "id": "method:python:app.project_control.github.GitHubProvisioner.__init__",
       "language": "python",
       "metadata": {
-        "line": 858,
+        "line": 861,
         "qualified_name": "app.project_control.github.GitHubProvisioner.__init__"
       },
       "name": "__init__",
@@ -48262,7 +48262,7 @@
       "id": "method:python:app.project_control.github.GitHubProvisioner._write_report",
       "language": "python",
       "metadata": {
-        "line": 1113,
+        "line": 1116,
         "qualified_name": "app.project_control.github.GitHubProvisioner._write_report"
       },
       "name": "_write_report",
@@ -48273,7 +48273,7 @@
       "id": "method:python:app.project_control.github.GitHubProvisioner.apply",
       "language": "python",
       "metadata": {
-        "line": 1020,
+        "line": 1023,
         "qualified_name": "app.project_control.github.GitHubProvisioner.apply"
       },
       "name": "apply",
@@ -48284,7 +48284,7 @@
       "id": "method:python:app.project_control.github.GitHubProvisioner.plan",
       "language": "python",
       "metadata": {
-        "line": 868,
+        "line": 871,
         "qualified_name": "app.project_control.github.GitHubProvisioner.plan"
       },
       "name": "plan",
@@ -48306,7 +48306,7 @@
       "id": "method:python:app.project_control.github.SubprocessGhTransport.graphql",
       "language": "python",
       "metadata": {
-        "line": 619,
+        "line": 622,
         "qualified_name": "app.project_control.github.SubprocessGhTransport.graphql"
       },
       "name": "graphql",
