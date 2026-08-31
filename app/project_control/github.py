@@ -26,6 +26,7 @@ from app.project_control.models import (
     ProvisionAction,
     ProvisioningPlan,
     ReconciliationAction,
+    ReconciliationId,
     ReconciliationReport,
     RemoteField,
     RemoteFieldValue,
@@ -49,6 +50,10 @@ class MutationTransport(Protocol):
 
 class MutationInputError(InvalidControlRoom):
     """Local dependency/input validation failed before a remote mutation was attempted."""
+
+
+class UnsupportedViewOperation(InvalidControlRoom):
+    """The installed GitHub schema/permissions do not expose view mutation support."""
 
 
 class _StrictResponse(BaseModel):
@@ -270,6 +275,38 @@ query DiscoverProjects(
 }
 """.strip()
 
+# Nested connections are fetched with separate fixed read-only documents.  Keeping these
+# documents explicit prevents pagination from becoming an arbitrary GraphQL surface.
+_NESTED_FIELDS_QUERY = """query ProjectFields($id: ID!, $after: String) {
+  node(id: $id) { ... on ProjectV2 { fields(first: 100, after: $after) {
+    nodes { id name dataType options { id name } } pageInfo { hasNextPage endCursor }
+  } } }
+}""".strip()
+_NESTED_OPTIONS_QUERY = """query FieldOptions($id: ID!, $after: String) {
+  node(id: $id) { ... on ProjectV2SingleSelectField { options(first: 100, after: $after) {
+    nodes { id name } pageInfo { hasNextPage endCursor }
+  } } }
+}""".strip()
+_NESTED_VIEWS_QUERY = """query ProjectViews($id: ID!, $after: String) {
+  node(id: $id) { ... on ProjectV2 { views(first: 100, after: $after) {
+    nodes { id name layout groupBy sortBy filter } pageInfo { hasNextPage endCursor }
+  } } }
+}""".strip()
+_NESTED_ITEMS_QUERY = """query ProjectItems($id: ID!, $after: String) {
+  node(id: $id) { ... on ProjectV2 { items(first: 100, after: $after) {
+    nodes { id content { ... on Issue { id number title url body repository { nameWithOwner } } }
+      fieldValues(first: 100) { nodes { id field { id name } name text number date optionId }
+        pageInfo { hasNextPage endCursor } } }
+    pageInfo { hasNextPage endCursor }
+  } } }
+}""".strip()
+_NESTED_ITEM_VALUES_QUERY = """query ItemFieldValues($id: ID!, $after: String) {
+  node(id: $id) { ... on ProjectV2Item { fieldValues(first: 100, after: $after) {
+    nodes { id field { id name } name text number date optionId }
+    pageInfo { hasNextPage endCursor }
+  } } }
+}""".strip()
+
 _KNOWN_FIELDS = {
     "Status",
     "Priority",
@@ -298,7 +335,9 @@ _IGNORED_BUILT_IN_TYPES = {"Iteration": {"ProjectV2IterationField"}}
 _CONTROL_FIELD_TYPES = {
     "Status": {"ProjectV2SingleSelectField"},
     "Priority": {"ProjectV2SingleSelectField"},
-    "Day": {"ProjectV2Field"},
+    # Legacy boards may expose Day as a number; provisioning always creates the
+    # approved single-select field and resolves its option ID.
+    "Day": {"ProjectV2SingleSelectField", "ProjectV2Field"},
     "Phase": {"ProjectV2SingleSelectField"},
     "Evidence": {"ProjectV2SingleSelectField"},
     "Harness": {"ProjectV2Field"},
@@ -307,7 +346,7 @@ _CONTROL_FIELD_TYPES = {
     "Handoff": {"ProjectV2Field"},
 }
 _CONTROL_FIELD_DATA_TYPES = {
-    "Day": {"NUMBER"},
+    "Day": {"NUMBER", "SINGLE_SELECT"},
     "Harness": {"TEXT"},
     "Dependency": {"TEXT"},
     "Blocker": {"TEXT"},
@@ -345,6 +384,20 @@ DESIRED_FIELDS: dict[str, tuple[str, ...]] = {
     "Dependency": (),
     "Handoff": (),
     "Target date": (),
+}
+FIELD_TYPES: dict[str, str] = {
+    "Status": "single-select",
+    "Priority": "single-select",
+    "Day": "single-select",
+    "Phase": "single-select",
+    "Workstream": "single-select",
+    "Type": "single-select",
+    "Risk": "single-select",
+    "Evidence": "single-select",
+    "Harness": "text",
+    "Dependency": "text",
+    "Handoff": "text",
+    "Target date": "date",
 }
 DESIRED_VIEWS = ("Inbox", "Kanban", "Phase", "Harness", "Trust Blockers", "Roadmap")
 VIEW_SPECS = {
@@ -400,11 +453,13 @@ _MUTATION_QUERIES = {
     ),
     "create_field": (
         "mutation CreateField($input: CreateProjectV2FieldInput!) { "
-        "createProjectV2Field(input: $input) { projectV2Field { id name } } }"
+        "createProjectV2Field(input: $input) { projectV2Field { id name dataType "
+        "options { id name } } }"
     ),
     "update_field": (
         "mutation UpdateField($input: UpdateProjectV2FieldInput!) { "
-        "updateProjectV2Field(input: $input) { projectV2Field { id name } } }"
+        "updateProjectV2Field(input: $input) { projectV2Field { id name dataType "
+        "options { id name } } }"
     ),
     "create_issue": (
         "mutation CreateIssue($input: CreateIssueInput!) { "
@@ -508,10 +563,17 @@ def _field_value(
             raise InvalidControlRoom(f"GitHub field {name!r} has an unsupported content type")
     elif name in {"Harness", "Dependency", "Blocker", "Handoff"} and kind != "text":
         raise InvalidControlRoom(f"GitHub field {name!r} has an unsupported content type")
-    elif name == "Day" and kind != "number":
-        raise InvalidControlRoom("GitHub field 'Day' has an unsupported content type")
     elif name == "Target date" and kind != "date":
         raise InvalidControlRoom("GitHub field 'Target date' has an unsupported content type")
+    if name == "Day":
+        if definition[1] == "ProjectV2Field" and kind == "number":
+            return name, field_value
+        if definition[1] == "ProjectV2SingleSelectField" and kind == "name":
+            match = re.fullmatch(r"Day ([1-9]|1[0-4])", str(field_value))
+            if match is None:
+                raise InvalidControlRoom("GitHub field 'Day' has an unknown option")
+            return name, int(match.group(1))
+        raise InvalidControlRoom("GitHub field 'Day' has an unsupported content type")
     return name, field_value
 
 
@@ -677,6 +739,23 @@ class ApplyGhTransport:
         if not isinstance(value, dict):
             raise InvalidControlRoom("GitHub CLI returned a non-object JSON response")
         if value.get("errors"):
+            if operation in {"create_view", "update_view"}:
+                messages = " ".join(
+                    str(error.get("message", ""))
+                    for error in value["errors"]
+                    if isinstance(error, dict)
+                ).lower()
+                if any(
+                    token in messages
+                    for token in (
+                        "unknown field",
+                        "unknown argument",
+                        "not permitted",
+                        "permission",
+                        "unsupported",
+                    )
+                ):
+                    raise UnsupportedViewOperation("GitHub view mutation is unsupported")
             raise InvalidControlRoom("GitHub mutation was rejected")
         if _mutation_id(operation, value) is None:
             raise InvalidControlRoom("GitHub mutation response schema is invalid")
@@ -752,11 +831,33 @@ def _typed_input(operation: str, variables: dict[str, object]) -> dict[str, obje
             "itemId": _required_id(variables, "item_id"),
             "fieldId": _required_id(variables, "field_id"),
         }
-        for key in ("option_id", "text", "number", "date"):
-            if key in variables:
-                result[{"option_id": "singleSelectOptionId"}.get(key, key)] = variables[key]
-        if len(result) == 3:
-            raise MutationInputError("GitHub mutation field value is missing its typed value")
+        field_type = variables.get("field_type")
+        logical = variables.get("logical_value")
+        if field_type not in {"single-select", "text", "number", "date"}:
+            raise MutationInputError("GitHub mutation field value has an invalid field type")
+        if field_type == "single-select":
+            option_id = variables.get("option_id")
+            if not isinstance(option_id, str) or not re.fullmatch(r"^[A-Za-z0-9_:-]+$", option_id):
+                raise MutationInputError("GitHub mutation field value is missing a valid option ID")
+            if not isinstance(logical, str) or not logical.strip():
+                raise MutationInputError("GitHub mutation single-select value is malformed")
+            result["singleSelectOptionId"] = option_id
+        elif field_type == "text":
+            if not isinstance(logical, str):
+                raise MutationInputError("GitHub mutation text value is malformed")
+            result["text"] = logical
+        elif field_type == "number":
+            if (
+                isinstance(logical, bool)
+                or not isinstance(logical, (int, float))
+                or not math.isfinite(logical)
+            ):
+                raise MutationInputError("GitHub mutation number value is malformed")
+            result["number"] = logical
+        else:
+            if not isinstance(logical, str) or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", logical):
+                raise MutationInputError("GitHub mutation date value is malformed")
+            result["date"] = logical
         return result
     if operation in {"create_view", "update_view"}:
         result = {
@@ -792,25 +893,44 @@ def _mutation_id(operation: str, response: object) -> str | None:
         raise InvalidControlRoom("GitHub mutation response is not an object")
     if response.get("errors"):
         raise InvalidControlRoom("GitHub mutation response contains errors")
+    if set(response) != {"data"}:
+        raise InvalidControlRoom("GitHub mutation response envelope is invalid")
     current: object = response.get("data")
     for key in _MUTATION_RESPONSE_PATHS[operation]:
         if not isinstance(current, dict) or key not in current:
-            # Fake transports in unit tests use the intentionally fixed test envelope.
-            if operation and key == _MUTATION_RESPONSE_PATHS[operation][0]:
-                break
-            return None
+            raise InvalidControlRoom("GitHub mutation response path is malformed")
         current = current[key]
     if isinstance(current, str) and re.fullmatch(r"^[A-Za-z0-9_:-]+$", current):
         return current
-    if isinstance(response.get("data"), dict):
-        node = response["data"].get("node")
-        if isinstance(node, dict) and isinstance(node.get("id"), str):
-            value = node["id"]
-            if re.fullmatch(r"^[A-Za-z0-9_:-]+$", value):
-                return value
-    if isinstance(response.get("id"), str) and re.fullmatch(r"^[A-Za-z0-9_:-]+$", response["id"]):
-        return response["id"]
     return None
+
+
+def _mutation_option_ids(operation: str, response: object) -> dict[str, str]:
+    """Return option identities from the one allowed field mutation envelope."""
+    if operation not in {"create_field", "update_field"}:
+        return {}
+    if not isinstance(response, dict) or set(response) != {"data"}:
+        raise InvalidControlRoom("GitHub field mutation response envelope is invalid")
+    current: object = response.get("data")
+    for key in _MUTATION_RESPONSE_PATHS[operation][:-1]:
+        if not isinstance(current, dict) or key not in current:
+            raise InvalidControlRoom("GitHub field mutation response path is malformed")
+        current = current[key]
+    if not isinstance(current, dict) or not isinstance(current.get("options"), list):
+        raise InvalidControlRoom("GitHub field mutation response options are malformed")
+    result: dict[str, str] = {}
+    for option in current["options"]:
+        if (
+            not isinstance(option, dict)
+            or set(option) != {"id", "name"}
+            or not isinstance(option["id"], str)
+            or not re.fullmatch(r"^[A-Za-z0-9_:-]+$", option["id"])
+            or not isinstance(option["name"], str)
+            or option["name"] in result
+        ):
+            raise InvalidControlRoom("GitHub field mutation returned malformed options")
+        result[option["name"]] = option["id"]
+    return result
 
 
 def _managed_issue_body(canonical: str) -> str:
@@ -832,7 +952,7 @@ def merge_managed_issue_body(existing: str, canonical: str) -> str:
         prefix = existing[:begin]
         return prefix + managed.rstrip("\n") + suffix
     if not existing:
-        return canonical
+        return managed
     separator = "" if existing.endswith("\n") else "\n"
     return existing + separator + "\n" + managed
 
@@ -887,6 +1007,7 @@ class GitHubProvisioner:
                 "owner": remote.owner,
                 "owner_id": remote.owner_id,
                 "repository": remote.repository,
+                "repository_id": remote.repository_id,
             },
         )
         remote_fields = {field.name: field for field in remote.fields}
@@ -906,6 +1027,10 @@ class GitHubProvisioner:
                         "name": name,
                         "options": list(options),
                         "data_type": _field_data_type(name),
+                        "field_type": FIELD_TYPES[name],
+                        "option_ids": {option.name: option.id for option in current.options}
+                        if current is not None
+                        else {},
                     },
                 )
             )
@@ -924,7 +1049,7 @@ class GitHubProvisioner:
                 action = (
                     "reuse"
                     if existing.title in {None, item.title}
-                    and (existing.body in {"", canonical} or managed_content == canonical)
+                    and (existing.body == "" or managed_content == canonical)
                     else "update"
                 )
             issue_actions.append(
@@ -970,33 +1095,58 @@ class GitHubProvisioner:
                 "Priority": item.priority,
                 "Day": f"Day {item.day}" if item.day is not None else None,
                 "Phase": _phase_label(item.phase_id),
+                "Workstream": "Trust",
                 "Type": item.kind,
                 "Risk": item.risk.capitalize() if item.risk == "critical" else item.risk,
                 "Evidence": "Missing",
                 "Harness": "Unassigned",
+                "Dependency": ", ".join(item.dependencies) if item.dependencies else "",
+                "Handoff": "",
+                "Target date": None,
             }
             for field_name, value in values.items():
                 if value is None:
                     continue
                 stable_key = f"{item.id}:{field_name}"
                 existing_item = remote_items.get(item.id)
-                existing_value = (
-                    existing_item.field_values.get(field_name)
-                    if existing_item is not None
-                    else None
+                existing_value = next(
+                    (
+                        value
+                        for value in (existing_item.field_values if existing_item else ())
+                        if value.field_id
+                        == next(
+                            (field.id for field in remote.fields if field.name == field_name), ""
+                        )
+                    ),
+                    None,
                 )
                 existing_value_id: str | None = None
                 if isinstance(existing_value, RemoteFieldValue):
                     existing_value_id = existing_value.id
                     existing_value = existing_value.value
                 value_action = "reuse" if existing_value == value else "create"
+                field_type = FIELD_TYPES[field_name]
+                field_definition = next(
+                    (field for field in remote.fields if field.name == field_name), None
+                )
+                option_ids = (
+                    {option.name: option.id for option in field_definition.options}
+                    if field_definition
+                    else {}
+                )
                 field_value_actions.append(
                     ProvisionAction(
                         resource="field-value",
                         stable_key=stable_key,
                         action=value_action,
                         remote_id=existing_value_id,
-                        payload={"task_id": item.id, "field": field_name, "value": value},
+                        payload={
+                            "task_id": item.id,
+                            "field": field_name,
+                            "field_type": field_type,
+                            "logical_value": value,
+                            "option_id": option_ids.get(value) if isinstance(value, str) else None,
+                        },
                     )
                 )
 
@@ -1022,6 +1172,7 @@ class GitHubProvisioner:
 
     def apply(self, plan: ProvisioningPlan) -> ReconciliationReport:
         completed: dict[str, str] = {}
+        completed_options: dict[str, dict[str, str]] = {}
         attempted_actions: list[ProvisionAction] = []
         completed_actions: list[ProvisionAction] = []
         remaining = list(plan.actions)
@@ -1054,6 +1205,11 @@ class GitHubProvisioner:
                 field_name = str(action.payload.get("field", ""))
                 variables["field_id"] = completed.get(field_name)
                 variables["item_id"] = completed.get(str(action.payload.get("task_id", "")))
+                if action.payload.get("field_type") == "single-select" and not variables.get(
+                    "option_id"
+                ):
+                    logical = action.payload.get("logical_value")
+                    variables["option_id"] = completed_options.get(field_name, {}).get(str(logical))
             try:
                 attempted_actions.append(action)
                 if hasattr(self._transport, "mutate"):
@@ -1065,10 +1221,12 @@ class GitHubProvisioner:
                     raise InvalidControlRoom("GitHub mutation returned no object ID")
                 _validate_mutation_identity(operation, response, action)
                 completed[action.stable_key] = remote_id
+                if action.resource == "field":
+                    completed_options[action.stable_key] = _mutation_option_ids(operation, response)
                 completed_actions.append(action)
                 mutation_confirmed = True
                 remaining.pop(0)
-            except NotImplementedError:
+            except (NotImplementedError, UnsupportedViewOperation):
                 if action.resource == "view":
                     manual.extend(MANUAL_VIEW_INSTRUCTIONS)
                     remaining.pop(0)
@@ -1092,25 +1250,36 @@ class GitHubProvisioner:
         state = "partial" if error or manual else "success"
         report = ReconciliationReport(
             state=state,
-            completed_object_ids=completed,
-            attempted_actions=[_action_record(action) for action in attempted_actions],
-            completed_actions=[_action_record(action) for action in completed_actions],
-            remaining_actions=[_action_record(action) for action in remaining],
-            skipped_actions=[
+            completed_object_ids=tuple(
+                ReconciliationId(stable_key=key, remote_id=value)
+                for key, value in sorted(completed.items())
+            ),
+            attempted_actions=tuple(_action_record(action) for action in attempted_actions),
+            completed_actions=tuple(_action_record(action) for action in completed_actions),
+            remaining_actions=tuple(_action_record(action) for action in remaining),
+            skipped_actions=tuple(
                 _action_record(action)
                 for action in (list(remaining[1:]) if error and remaining else [])
-            ],
-            manual_instructions=list(dict.fromkeys(manual)),
+            ),
+            manual_instructions=tuple(dict.fromkeys(manual)),
             error=error,
         )
-        if report.state == "success" and self._rediscover is not None:
-            try:
-                discovered = self._rediscover()
-                mismatch = _reconcile_plan(plan, discovered)
-            except Exception as exc:  # noqa: BLE001 - reconciliation boundary
-                mismatch = _safe_remote_error(exc)
-            if mismatch is not None:
-                report = report.model_copy(update={"state": "partial", "error": mismatch})
+        if report.state == "success":
+            if self._rediscover is None:
+                report = report.model_copy(
+                    update={
+                        "state": "partial",
+                        "error": "post-apply read-only rediscovery is required",
+                    }
+                )
+            else:
+                try:
+                    discovered = self._rediscover()
+                    mismatch = _reconcile_plan(plan, discovered)
+                except Exception as exc:  # noqa: BLE001 - reconciliation boundary
+                    mismatch = _safe_remote_error(exc)
+                if mismatch is not None:
+                    report = report.model_copy(update={"state": "partial", "error": mismatch})
         return self._write_report(report)
 
     def _write_report(self, report: ReconciliationReport) -> ReconciliationReport:
@@ -1154,14 +1323,27 @@ class GitHubProvisioner:
                 yaml.safe_dump(updated_index.model_dump(mode="json"), sort_keys=False),
                 root=self._root,
             )
-        except (OSError, ValueError) as error:
-            if old_report is not None:
-                path.write_bytes(old_report)
-            if old_index is not None:
-                index_path.write_bytes(old_index)
-            raise InvalidControlRoom(
-                "unable to write reconciliation report and artifact index"
-            ) from error
+        except Exception as error:  # noqa: BLE001 - local persistence boundary
+            rollback_errors: list[str] = []
+            for target, previous, label in (
+                (path, old_report, "report"),
+                (index_path, old_index, "artifact index"),
+            ):
+                try:
+                    if previous is None:
+                        if target.exists():
+                            target.unlink()
+                    else:
+                        atomic_write(target, previous.decode("utf-8"), root=self._root)
+                except Exception as rollback_error:  # noqa: BLE001
+                    rollback_errors.append(
+                        f"{label} rollback failed: {_safe_remote_error(rollback_error)}"
+                    )
+            detail = "; ".join(rollback_errors)
+            message = "unable to write reconciliation report and artifact index"
+            if detail:
+                message += f" ({detail})"
+            raise InvalidControlRoom(message) from error
         return report_with_path
 
 
@@ -1176,8 +1358,19 @@ def _action_record(action: ProvisionAction) -> ReconciliationAction:
 
 
 def _reconcile_plan(plan: ProvisioningPlan, remote: RemoteGitHubState) -> str | None:
+    if remote.owner != plan.project.payload.get(
+        "owner"
+    ) or remote.repository != plan.project.payload.get("repository"):
+        return "post-apply owner or repository identity mismatch"
+    if remote.owner_id != plan.project.payload.get("owner_id"):
+        return "post-apply owner identity ID mismatch"
+    if remote.repository_id != plan.project.payload.get("repository_id"):
+        return "post-apply repository identity ID mismatch"
+    expected_project_id = plan.project.remote_id
     if remote.project is None or remote.project.name != plan.project.payload["name"]:
         return "post-apply project identity mismatch"
+    if expected_project_id is not None and remote.project.id != expected_project_id:
+        return "post-apply project node ID mismatch"
     issues = {issue.task_id for issue in remote.issues}
     missing_issues = [
         action.stable_key for action in plan.issue_actions if action.stable_key not in issues
@@ -1187,37 +1380,73 @@ def _reconcile_plan(plan: ProvisioningPlan, remote: RemoteGitHubState) -> str | 
     fields = {field.name: field for field in remote.fields}
     for action in plan.field_actions:
         field = fields.get(action.stable_key)
-        if field is None or tuple(option.name for option in field.options) != tuple(
-            action.payload["options"]
-        ):
+        if field is None:
             return f"post-apply field mismatch: {action.stable_key}"
+        if field.data_type != action.payload.get("data_type"):
+            return f"post-apply field type mismatch: {action.stable_key}"
+        if tuple(option.name for option in field.options) != tuple(action.payload["options"]):
+            return f"post-apply field options mismatch: {action.stable_key}"
+        expected_options = action.payload.get("option_ids", {})
+        if (
+            isinstance(expected_options, dict)
+            and expected_options
+            and {option.name: option.id for option in field.options} != expected_options
+        ):
+            return f"post-apply field option IDs mismatch: {action.stable_key}"
     items = {item.task_id for item in remote.items}
     missing_items = [
         action.stable_key for action in plan.item_actions if action.stable_key not in items
     ]
     if missing_items:
         return f"post-apply items missing stable IDs: {', '.join(sorted(missing_items))}"
-    views = {view.name for view in remote.views}
-    missing_views = [
-        action.stable_key for action in plan.view_actions if action.stable_key not in views
-    ]
-    if missing_views:
-        return f"post-apply views missing: {', '.join(sorted(missing_views))}"
+    item_by_task = {item.task_id: item for item in remote.items}
+    field_by_name = {field.name: field for field in remote.fields}
+    for action in plan.field_value_actions:
+        task_id = str(action.payload.get("task_id"))
+        field_name = str(action.payload.get("field"))
+        item = item_by_task.get(task_id)
+        field = field_by_name.get(field_name)
+        if item is None or field is None:
+            return f"post-apply field value dependency missing: {action.stable_key}"
+        value = next((entry for entry in item.field_values if entry.field_id == field.id), None)
+        if value is None or value.value != action.payload.get("logical_value"):
+            return f"post-apply field value mismatch: {action.stable_key}"
+        if value.field_type != action.payload.get("field_type"):
+            return f"post-apply field value type mismatch: {action.stable_key}"
+        expected_option_id = action.payload.get("option_id")
+        if expected_option_id is not None and value.option_id != expected_option_id:
+            return f"post-apply field value option mismatch: {action.stable_key}"
+    views = {view.name: view for view in remote.views}
+    for action in plan.view_actions:
+        view = views.get(action.stable_key)
+        if view is None:
+            return f"post-apply views missing: {action.stable_key}"
+        for key, remote_key in (
+            ("layout", "layout"),
+            ("group_by", "group_by"),
+            ("sort_by", "sort_by"),
+            ("filter", "filter"),
+        ):
+            if getattr(view, remote_key) != action.payload.get(key):
+                return f"post-apply view {key} mismatch: {action.stable_key}"
     return None
 
 
 def _validate_mutation_identity(operation: str, response: object, action: ProvisionAction) -> None:
-    if isinstance(response, dict) and isinstance(response.get("id"), str):
-        return
     if not isinstance(response, dict) or not isinstance(response.get("data"), dict):
         raise InvalidControlRoom("GitHub mutation response is malformed")
     current: object = response["data"]
     for key in _MUTATION_RESPONSE_PATHS[operation][:-1]:
         if not isinstance(current, dict) or key not in current:
-            return  # fixed test envelope is accepted by _mutation_id
+            raise InvalidControlRoom("GitHub mutation response path is malformed")
         current = current[key]
     if not isinstance(current, dict):
         raise InvalidControlRoom("GitHub mutation response object is malformed")
+    returned_id = current.get("id")
+    if not isinstance(returned_id, str) or not re.fullmatch(r"^[A-Za-z0-9_:-]+$", returned_id):
+        raise InvalidControlRoom("GitHub mutation response identity is malformed")
+    if action.remote_id is not None and returned_id != action.remote_id:
+        raise InvalidControlRoom("GitHub mutation returned an unexpected object identity")
     for key in ("title", "name"):
         expected = action.payload.get(key)
         if expected is not None and key in current and current[key] != expected:
@@ -1235,10 +1464,8 @@ def _status_label(status: object) -> str:
 
 
 def _field_data_type(name: str) -> str:
-    if name in {"Status", "Priority", "Phase", "Workstream", "Type", "Risk", "Evidence"}:
+    if name in {"Status", "Priority", "Day", "Phase", "Workstream", "Type", "Risk", "Evidence"}:
         return "SINGLE_SELECT"
-    if name == "Day":
-        return "NUMBER"
     if name == "Target date":
         return "DATE"
     return "TEXT"
@@ -1367,6 +1594,8 @@ def _parse_discovered_project(
         if field["name"] not in _KNOWN_FIELDS | _IGNORED_BUILT_INS:
             raise InvalidControlRoom(f"GitHub discovery contains unknown field: {field['name']}")
         options = field.get("options", [])
+        if isinstance(options, dict):
+            options = options.get("nodes")
         if not isinstance(options, list):
             raise InvalidControlRoom("GitHub discovery field options are malformed")
         option_names: list[str] = []
@@ -1387,11 +1616,14 @@ def _parse_discovered_project(
                 id=field["id"],
                 name=field["name"],
                 data_type=field.get("dataType"),
-                options=[RemoteOption(id=option["id"], name=option["name"]) for option in options],
+                options=tuple(
+                    RemoteOption(id=option["id"], name=option["name"]) for option in options
+                ),
             )
         )
     issues: list[RemoteIssue] = []
     items: list[RemoteProjectItem] = []
+    field_by_name = {field.name: field for field in fields}
     seen_tasks: set[str] = set()
     for item in item_nodes:
         if not isinstance(item, dict) or not isinstance(item.get("id"), str):
@@ -1448,7 +1680,7 @@ def _parse_discovered_project(
             raise InvalidControlRoom(
                 "GitHub discovery field value pageInfo hasNextPage without cursor"
             )
-        field_values: dict[str, RemoteFieldValue] = {}
+        field_values: list[RemoteFieldValue] = []
         for value in values_raw["nodes"]:
             if not isinstance(value, dict) or not isinstance(value.get("id"), str):
                 raise InvalidControlRoom("GitHub discovery field value is malformed")
@@ -1460,15 +1692,38 @@ def _parse_discovered_project(
             ):
                 raise InvalidControlRoom("GitHub discovery field value field is malformed")
             populated = [
-                value.get(key)
+                (key, value.get(key))
                 for key in ("name", "text", "number", "date")
                 if value.get(key) is not None
             ]
-            if len(populated) != 1:
+            if len(populated) != 1 or any(
+                existing.field_id == field_ref["id"] for existing in field_values
+            ):
                 raise InvalidControlRoom("GitHub discovery field value has malformed shape")
-            field_values[field_ref["name"]] = RemoteFieldValue(
-                id=value["id"], field_id=field_ref["id"], value=populated[0]
-            )
+            kind, raw_value = populated[0]
+            typed = {
+                "name": {
+                    "field_type": "single-select",
+                    "option_name": raw_value,
+                    "option_id": value.get("optionId")
+                    or next(
+                        (
+                            option.id
+                            for option in (
+                                field_by_name[field_ref["name"]].options
+                                if field_ref["name"] in field_by_name
+                                else ()
+                            )
+                            if option.name == raw_value
+                        ),
+                        None,
+                    ),
+                },
+                "text": {"field_type": "text", "text": raw_value},
+                "number": {"field_type": "number", "number": raw_value},
+                "date": {"field_type": "date", "date": raw_value},
+            }[kind]
+            field_values.append(RemoteFieldValue(id=value["id"], field_id=field_ref["id"], **typed))
         items.append(RemoteProjectItem(id=item["id"], task_id=task_id, field_values=field_values))
     views_nodes = views_raw.get("nodes")
     views_page_info = views_raw.get("pageInfo")
@@ -1486,7 +1741,16 @@ def _parse_discovered_project(
             or not isinstance(view.get("name"), str)
         ):
             raise InvalidControlRoom("GitHub discovery contains a malformed view")
-        views.append(RemoteView(id=view["id"], name=view["name"]))
+        views.append(
+            RemoteView(
+                id=view["id"],
+                name=view["name"],
+                layout=view.get("layout"),
+                group_by=view.get("groupBy", view.get("group_by")),
+                sort_by=view.get("sortBy", view.get("sort_by")),
+                filter=view.get("filter"),
+            )
+        )
     standalone_raw = repository_raw.get("issues") if repository_raw is not None else None
     standalone_nodes = repository_issue_nodes
     standalone_page_info = (
@@ -1550,16 +1814,138 @@ def _parse_discovered_project(
         if isinstance(repository_raw.get("id"), str)
         else None,
         project=RemoteProject(id=project_id, number=number, name=name, url=url),
-        issues=issues,
-        fields=fields,
-        items=items,
-        views=views,
+        issues=tuple(issues),
+        fields=tuple(fields),
+        items=tuple(items),
+        views=tuple(views),
     )
 
 
 class GitHubClient:
     def __init__(self, transport: GhTransport) -> None:
         self._transport = transport
+
+    def _connection_pages(
+        self,
+        query: str,
+        node_id: str,
+        connection: str,
+        initial_nodes: list[object],
+        initial_page: dict[str, object],
+    ) -> list[object]:
+        """Fetch every nested page and reject malformed or cyclic cursors."""
+        nodes = list(initial_nodes)
+        page = initial_page
+        seen_cursors: set[str] = set()
+        seen_nodes: set[str] = {
+            value["id"]
+            for value in nodes
+            if isinstance(value, dict) and isinstance(value.get("id"), str)
+        }
+        while True:
+            has_next = page.get("hasNextPage")
+            cursor = page.get("endCursor")
+            if not isinstance(has_next, bool):
+                raise InvalidControlRoom(f"GitHub discovery {connection} pageInfo is malformed")
+            if not has_next:
+                return nodes
+            if not isinstance(cursor, str) or not cursor or cursor in seen_cursors:
+                raise InvalidControlRoom(
+                    f"GitHub discovery {connection} cursor cycle or missing cursor"
+                )
+            seen_cursors.add(cursor)
+            response = self._transport.graphql(query, {"id": node_id, "after": cursor})
+            if not isinstance(response, dict) or response.get("errors"):
+                raise DependencyUnavailable("GitHub discovery failed")
+            data = response.get("data")
+            node = data.get("node") if isinstance(data, dict) else None
+            connection_data = node.get(connection) if isinstance(node, dict) else None
+            if (
+                not isinstance(connection_data, dict)
+                or not isinstance(connection_data.get("nodes"), list)
+                or not isinstance(connection_data.get("pageInfo"), dict)
+            ):
+                raise InvalidControlRoom(f"GitHub discovery nested {connection} page is malformed")
+            for value in connection_data["nodes"]:
+                if isinstance(value, dict) and isinstance(value.get("id"), str):
+                    if value["id"] in seen_nodes:
+                        raise InvalidControlRoom(
+                            f"GitHub discovery duplicate nested {connection} node"
+                        )
+                    seen_nodes.add(value["id"])
+                nodes.append(value)
+            page = connection_data["pageInfo"]
+
+    def _expand_discovered_project(self, raw: dict[str, object]) -> dict[str, object]:
+        expanded = dict(raw)
+        project_id = raw.get("id")
+        if not isinstance(project_id, str):
+            raise InvalidControlRoom("GitHub discovery project identity is malformed")
+        for key, query in (
+            ("fields", _NESTED_FIELDS_QUERY),
+            ("views", _NESTED_VIEWS_QUERY),
+            ("items", _NESTED_ITEMS_QUERY),
+        ):
+            connection = raw.get(key)
+            if (
+                not isinstance(connection, dict)
+                or not isinstance(connection.get("nodes"), list)
+                or not isinstance(connection.get("pageInfo"), dict)
+            ):
+                raise InvalidControlRoom(f"GitHub discovery {key} connection is malformed")
+            expanded[key] = dict(connection)
+            expanded[key]["nodes"] = self._connection_pages(
+                query, project_id, key, connection["nodes"], connection["pageInfo"]
+            )
+        # Field options have their own connection and must be paginated independently.
+        field_nodes = []
+        for field in expanded["fields"]["nodes"]:
+            if not isinstance(field, dict):
+                raise InvalidControlRoom("GitHub discovery field is malformed")
+            options = field.get("options", [])
+            if isinstance(options, dict):
+                if not isinstance(options.get("nodes"), list) or not isinstance(
+                    options.get("pageInfo"), dict
+                ):
+                    raise InvalidControlRoom(
+                        "GitHub discovery field options connection is malformed"
+                    )
+                field = dict(field)
+                field["options"] = self._connection_pages(
+                    _NESTED_OPTIONS_QUERY,
+                    str(field["id"]),
+                    "options",
+                    options["nodes"],
+                    options["pageInfo"],
+                )
+            field_nodes.append(field)
+        expanded["fields"]["nodes"] = field_nodes
+        # Each item has an independently paginated field-value connection.
+        expanded_items = []
+        for item in expanded["items"]["nodes"]:
+            if not isinstance(item, dict):
+                raise InvalidControlRoom("GitHub discovery item is malformed")
+            values = item.get("fieldValues")
+            if (
+                not isinstance(values, dict)
+                or not isinstance(values.get("nodes"), list)
+                or not isinstance(values.get("pageInfo"), dict)
+            ):
+                raise InvalidControlRoom(
+                    "GitHub discovery item field values connection is malformed"
+                )
+            item = dict(item)
+            item["fieldValues"] = dict(values)
+            item["fieldValues"]["nodes"] = self._connection_pages(
+                _NESTED_ITEM_VALUES_QUERY,
+                str(item["id"]),
+                "fieldValues",
+                values["nodes"],
+                values["pageInfo"],
+            )
+            expanded_items.append(item)
+        expanded["items"]["nodes"] = expanded_items
+        return expanded
 
     def discover_state(self, owner: str, repository: str, project_name: str) -> RemoteGitHubState:
         """Discover a named project with read-only, strict, paginated requests."""
@@ -1571,7 +1957,8 @@ class GitHubClient:
             raise InvalidControlRoom("GitHub repository must be canonical owner/name")
         after: str | None = None
         issues_after: str | None = None
-        cursors: set[str] = set()
+        project_cursors: set[str] = set()
+        issue_cursors: set[str] = set()
         matches: list[dict[str, object]] = []
         repository_raw: dict[str, object] | None = None
         owner_id: str | None = None
@@ -1616,7 +2003,6 @@ class GitHubClient:
                     matches.append(raw)
             if not page_info[0] and not issue_page_info[0]:
                 break
-            advanced: list[str] = []
             if page_info[0]:
                 cursor = page_info[1]
                 if not isinstance(cursor, str) or not cursor:
@@ -1624,25 +2010,82 @@ class GitHubClient:
                         "GitHub discovery hasNextPage without a project cursor"
                     )
                 after = cursor
-                advanced.append(cursor)
             if issue_page_info[0]:
                 cursor = issue_page_info[1]
                 if not isinstance(cursor, str) or not cursor:
                     raise InvalidControlRoom("GitHub discovery hasNextPage without an issue cursor")
                 issues_after = cursor
-                advanced.append(cursor)
-            for cursor in advanced:
-                if cursor in cursors:
+            if page_info[0]:
+                cursor = page_info[1]
+                if cursor in project_cursors:
                     raise InvalidControlRoom("GitHub discovery cursor cycle detected")
-                cursors.add(cursor)
+                project_cursors.add(cursor)
+            if issue_page_info[0]:
+                cursor = issue_page_info[1]
+                if cursor in issue_cursors:
+                    raise InvalidControlRoom("GitHub discovery cursor cycle detected")
+                issue_cursors.add(cursor)
         if len(matches) > 1:
             raise InvalidControlRoom(f"GitHub project name is ambiguous: {project_name}")
         if not matches:
             if repository_raw is None:
                 raise InvalidControlRoom("GitHub discovery response is missing repository issues")
-            return RemoteGitHubState(owner=owner, repository=repository, owner_id=owner_id)
+            standalone: list[RemoteIssue] = []
+            seen_standalone: set[str] = set()
+            for raw_issue in repository_issue_nodes:
+                if not isinstance(raw_issue, dict):
+                    raise InvalidControlRoom("GitHub discovery repository issue is malformed")
+                issue_id, number, title, url, body = (
+                    raw_issue.get("id"),
+                    raw_issue.get("number"),
+                    raw_issue.get("title"),
+                    raw_issue.get("url"),
+                    raw_issue.get("body"),
+                )
+                if (
+                    not isinstance(issue_id, str)
+                    or not isinstance(number, int)
+                    or number < 1
+                    or not isinstance(title, str)
+                    or not isinstance(url, str)
+                    or not isinstance(body, str)
+                ):
+                    raise InvalidControlRoom("GitHub discovery repository issue is malformed")
+                issue_repo = raw_issue.get("repository")
+                if (
+                    not isinstance(issue_repo, dict)
+                    or issue_repo.get("nameWithOwner") != repository
+                ):
+                    raise InvalidControlRoom(
+                        "GitHub discovery issue repository does not match configuration"
+                    )
+                task_id = extract_task_id(body)
+                if task_id in seen_standalone:
+                    raise InvalidControlRoom(
+                        f"GitHub discovery contains duplicate stable task ID: {task_id}"
+                    )
+                seen_standalone.add(task_id)
+                standalone.append(
+                    RemoteIssue(
+                        task_id=task_id,
+                        node_id=issue_id,
+                        number=number,
+                        url=url,
+                        title=title,
+                        body=body,
+                    )
+                )
+            return RemoteGitHubState(
+                owner=owner,
+                repository=repository,
+                owner_id=owner_id,
+                repository_id=repository_raw.get("id")
+                if isinstance(repository_raw.get("id"), str)
+                else None,
+                issues=tuple(standalone),
+            )
         return _parse_discovered_project(
-            matches[0],
+            self._expand_discovered_project(matches[0]),
             owner=owner,
             repository=repository,
             repository_raw=repository_raw,

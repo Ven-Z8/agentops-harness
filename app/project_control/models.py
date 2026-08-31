@@ -630,39 +630,102 @@ class RemoteOption(StrictModel):
 
 
 class RemoteFieldValue(StrictModel):
+    model_config = ConfigDict(extra="forbid", strict=True, frozen=True)
     id: str = Field(min_length=1, pattern=r"^[A-Za-z0-9_:-]+$")
     field_id: str = Field(min_length=1, pattern=r"^[A-Za-z0-9_:-]+$")
-    value: str | int | float | None = None
+    field_type: Literal["single-select", "text", "number", "date"]
+    option_id: str | None = Field(default=None, pattern=r"^[A-Za-z0-9_:-]+$")
+    option_name: str | None = Field(default=None, min_length=1)
+    text: str | None = None
+    number: int | float | None = None
+    date: str | None = None
+
+    @model_validator(mode="after")
+    def validate_typed_value(self) -> RemoteFieldValue:
+        if isinstance(self.number, bool):
+            raise ValueError("remote number field value must not be boolean")
+        populated = {
+            "single-select": (self.option_id, self.option_name),
+            "text": (self.text,),
+            "number": (self.number,),
+            "date": (self.date,),
+        }[self.field_type]
+        other_values = {
+            "single-select": (self.text, self.number, self.date),
+            "text": (self.option_id, self.option_name, self.number, self.date),
+            "number": (self.option_id, self.option_name, self.text, self.date),
+            "date": (self.option_id, self.option_name, self.text, self.number),
+        }[self.field_type]
+        if not any(value is not None for value in populated) or any(
+            value is not None for value in other_values
+        ):
+            raise ValueError("remote field value has exactly one typed value")
+        return self
+
+    @property
+    def value(self) -> str | int | float | None:
+        if self.field_type == "single-select":
+            return self.option_name or self.option_id
+        if self.field_type == "text":
+            return self.text
+        if self.field_type == "number":
+            return self.number
+        return self.date
 
 
 class RemoteField(StrictModel):
+    model_config = ConfigDict(extra="forbid", strict=True, frozen=True)
     id: str = Field(min_length=1, pattern=r"^[A-Za-z0-9_:-]+$")
     name: str = Field(min_length=1)
     data_type: str | None = None
-    options: list[RemoteOption] = Field(default_factory=list)
+    options: tuple[RemoteOption, ...] = ()
+
+    @field_validator("options", mode="before")
+    @classmethod
+    def freeze_options(cls, value: object) -> object:
+        return tuple(value) if isinstance(value, (list, tuple)) else value
 
 
 class RemoteProjectItem(StrictModel):
+    model_config = ConfigDict(extra="forbid", strict=True, frozen=True)
     id: str = Field(min_length=1, pattern=r"^[A-Za-z0-9_:-]+$")
     task_id: str = Field(min_length=1, pattern=r"^AO-(?:14D|P[1-6]|D\d{2}(?:-\d{2})?)$")
-    field_values: dict[str, RemoteFieldValue] = Field(default_factory=dict)
+    field_values: tuple[RemoteFieldValue, ...] = ()
+
+    @field_validator("field_values", mode="before")
+    @classmethod
+    def freeze_field_values(cls, value: object) -> object:
+        if isinstance(value, dict):
+            return tuple(value.values())
+        return tuple(value) if isinstance(value, (list, tuple)) else value
 
 
 class RemoteView(StrictModel):
+    model_config = ConfigDict(extra="forbid", strict=True, frozen=True)
     id: str = Field(min_length=1, pattern=r"^[A-Za-z0-9_:-]+$")
     name: str = Field(min_length=1)
+    layout: str | None = None
+    group_by: str | None = None
+    sort_by: str | None = None
+    filter: str | None = None
 
 
 class RemoteGitHubState(StrictModel):
+    model_config = ConfigDict(extra="forbid", strict=True, frozen=True)
     owner: str = Field(min_length=1)
     repository: str = Field(pattern=r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
     owner_id: str | None = None
     repository_id: str | None = None
     project: RemoteProject | None = None
-    issues: list[RemoteIssue] = Field(default_factory=list)
-    fields: list[RemoteField] = Field(default_factory=list)
-    items: list[RemoteProjectItem] = Field(default_factory=list)
-    views: list[RemoteView] = Field(default_factory=list)
+    issues: tuple[RemoteIssue, ...] = ()
+    fields: tuple[RemoteField, ...] = ()
+    items: tuple[RemoteProjectItem, ...] = ()
+    views: tuple[RemoteView, ...] = ()
+
+    @field_validator("issues", "fields", "items", "views", mode="before")
+    @classmethod
+    def freeze_collections(cls, value: object) -> object:
+        return tuple(value) if isinstance(value, (list, tuple)) else value
 
     @field_validator("owner_id", "repository_id")
     @classmethod
@@ -684,7 +747,7 @@ class RemoteGitHubState(StrictModel):
         if len(field_names) != len(set(field_names)):
             raise ValueError("duplicate remote field name")
         for field in self.fields:
-            if len(field.options) != len(set(field.options)):
+            if len(field.options) != len({option.id for option in field.options}):
                 raise ValueError(f"duplicate options for remote field: {field.name}")
         item_ids = [item.id for item in self.items]
         if len(item_ids) != len(set(item_ids)):
@@ -696,7 +759,7 @@ class RemoteGitHubState(StrictModel):
             raise ValueError("remote project item references unknown issue stable task ID")
         field_ids = {field.id for field in self.fields}
         for item in self.items:
-            if not {value.field_id for value in item.field_values.values()}.issubset(field_ids):
+            if not {value.field_id for value in item.field_values}.issubset(field_ids):
                 raise ValueError("remote field value references unknown field ID")
         view_names = [view.name for view in self.views]
         if len(view_names) != len(set(view_names)):
@@ -707,7 +770,7 @@ class RemoteGitHubState(StrictModel):
             *[field.id for field in self.fields],
             *[option.id for field in self.fields for option in field.options],
             *[item.id for item in self.items],
-            *[value.id for item in self.items for value in item.field_values.values()],
+            *[value.id for item in self.items for value in item.field_values],
             *[view.id for view in self.views],
         ]
         if len(all_node_ids) != len(set(all_node_ids)):
@@ -740,22 +803,32 @@ class ProvisionAction:
 @dataclass(frozen=True)
 class ProvisioningPlan:
     project: ProvisionAction
-    field_actions: list[ProvisionAction] = dataclass_field(default_factory=list)
-    issue_actions: list[ProvisionAction] = dataclass_field(default_factory=list)
-    item_actions: list[ProvisionAction] = dataclass_field(default_factory=list)
-    field_value_actions: list[ProvisionAction] = dataclass_field(default_factory=list)
-    view_actions: list[ProvisionAction] = dataclass_field(default_factory=list)
+    field_actions: tuple[ProvisionAction, ...] = ()
+    issue_actions: tuple[ProvisionAction, ...] = ()
+    item_actions: tuple[ProvisionAction, ...] = ()
+    field_value_actions: tuple[ProvisionAction, ...] = ()
+    view_actions: tuple[ProvisionAction, ...] = ()
+
+    def __post_init__(self) -> None:
+        for name in (
+            "field_actions",
+            "issue_actions",
+            "item_actions",
+            "field_value_actions",
+            "view_actions",
+        ):
+            object.__setattr__(self, name, tuple(getattr(self, name)))
 
     @property
-    def actions(self) -> list[ProvisionAction]:
-        return [
+    def actions(self) -> tuple[ProvisionAction, ...]:
+        return (
             self.project,
             *sorted(self.field_actions, key=lambda action: action.stable_key),
             *sorted(self.issue_actions, key=lambda action: action.stable_key),
             *sorted(self.item_actions, key=lambda action: action.stable_key),
             *sorted(self.field_value_actions, key=lambda action: action.stable_key),
             *sorted(self.view_actions, key=lambda action: action.stable_key),
-        ]
+        )
 
     def as_dict(self) -> dict[str, object]:
         return {"actions": [action.as_dict() for action in self.actions]}
@@ -782,11 +855,28 @@ class ProvisioningPlan:
 
 
 class ReconciliationAction(StrictModel):
+    model_config = ConfigDict(extra="forbid", strict=True, frozen=True)
     resource: ProvisionResource
     stable_key: str = Field(min_length=1)
     action: ProvisionActionKind
     remote_id: str | None = None
-    payload: dict[str, object] = Field(default_factory=dict)
+    payload: tuple[tuple[str, object], ...] = ()
+
+    @model_validator(mode="before")
+    @classmethod
+    def freeze_payload(cls, value: object) -> object:
+        if isinstance(value, dict) and isinstance(value.get("payload"), dict):
+            value = dict(value)
+            value["payload"] = tuple(
+                (key, _freeze_report_value(item)) for key, item in sorted(value["payload"].items())
+            )
+        return value
+
+
+class ReconciliationId(StrictModel):
+    model_config = ConfigDict(extra="forbid", strict=True, frozen=True)
+    stable_key: str = Field(min_length=1)
+    remote_id: str = Field(min_length=1, pattern=r"^[A-Za-z0-9_:-]+$")
 
 
 class ReconciliationReport(StrictModel):
@@ -796,12 +886,12 @@ class ReconciliationReport(StrictModel):
     state: Literal["success", "partial"]
     started_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
-    completed_object_ids: dict[str, str] = Field(default_factory=dict)
-    attempted_actions: list[ReconciliationAction] = Field(default_factory=list)
-    completed_actions: list[ReconciliationAction] = Field(default_factory=list)
-    remaining_actions: list[ReconciliationAction] = Field(default_factory=list)
-    skipped_actions: list[ReconciliationAction] = Field(default_factory=list)
-    manual_instructions: list[str] = Field(default_factory=list)
+    completed_object_ids: tuple[ReconciliationId, ...] = ()
+    attempted_actions: tuple[ReconciliationAction, ...] = ()
+    completed_actions: tuple[ReconciliationAction, ...] = ()
+    remaining_actions: tuple[ReconciliationAction, ...] = ()
+    skipped_actions: tuple[ReconciliationAction, ...] = ()
+    manual_instructions: tuple[str, ...] = ()
     error: str | None = None
     report_path: str | None = None
 
@@ -817,12 +907,14 @@ class ReconciliationReport(StrictModel):
             "state": self.state,
             "started_at": self.started_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
-            "completed_object_ids": dict(sorted(self.completed_object_ids.items())),
-            "attempted_actions": [action.model_dump() for action in self.attempted_actions],
-            "completed_actions": [action.model_dump() for action in self.completed_actions],
-            "remaining_actions": [action.model_dump() for action in self.remaining_actions],
-            "skipped_actions": [action.model_dump() for action in self.skipped_actions],
-            "manual_instructions": self.manual_instructions,
+            "completed_object_ids": {
+                item.stable_key: item.remote_id for item in self.completed_object_ids
+            },
+            "attempted_actions": [_report_action_dict(action) for action in self.attempted_actions],
+            "completed_actions": [_report_action_dict(action) for action in self.completed_actions],
+            "remaining_actions": [_report_action_dict(action) for action in self.remaining_actions],
+            "skipped_actions": [_report_action_dict(action) for action in self.skipped_actions],
+            "manual_instructions": list(self.manual_instructions),
             "error": self.error,
             "report_path": self.report_path,
         }
@@ -831,3 +923,32 @@ class ReconciliationReport(StrictModel):
         import json
 
         return json.dumps(self.as_dict(), ensure_ascii=False, sort_keys=True, indent=2) + "\n"
+
+
+def _report_action_dict(action: ReconciliationAction) -> dict[str, object]:
+    return {
+        "resource": action.resource,
+        "stable_key": action.stable_key,
+        "action": action.action,
+        "remote_id": action.remote_id,
+        "payload": {key: _thaw_report_value(value) for key, value in action.payload},
+    }
+
+
+def _freeze_report_value(value: object) -> object:
+    if isinstance(value, dict):
+        return tuple((str(key), _freeze_report_value(item)) for key, item in sorted(value.items()))
+    if isinstance(value, (list, tuple)):
+        return tuple(_freeze_report_value(item) for item in value)
+    return value
+
+
+def _thaw_report_value(value: object) -> object:
+    if isinstance(value, tuple):
+        if value and all(
+            isinstance(item, tuple) and len(item) == 2 and isinstance(item[0], str)
+            for item in value
+        ):
+            return {key: _thaw_report_value(item) for key, item in value}
+        return [_thaw_report_value(item) for item in value]
+    return value

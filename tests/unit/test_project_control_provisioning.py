@@ -12,10 +12,13 @@ from app.project_control.github import (
     MANUAL_VIEW_INSTRUCTIONS,
     ApplyGhTransport,
     GitHubProvisioner,
+    _mutation_id,
+    _typed_input,
     merge_managed_issue_body,
 )
 from app.project_control.models import (
     ReconciliationReport,
+    RemoteFieldValue,
     RemoteGitHubState,
     RemoteIssue,
     RemoteProject,
@@ -101,6 +104,53 @@ def test_desired_schema_and_views_are_exact() -> None:
         "Done",
     )
     assert DESIRED_VIEWS == ("Inbox", "Kanban", "Phase", "Harness", "Trust Blockers", "Roadmap")
+
+
+def test_round2_field_value_inputs_are_typed_and_day_is_single_select() -> None:
+    cases = (
+        (
+            "single-select",
+            {"logical_value": "Day 1", "option_id": "OPT_DAY"},
+            "singleSelectOptionId",
+        ),
+        ("text", {"logical_value": "codex"}, "text"),
+        ("number", {"logical_value": 3}, "number"),
+        ("date", {"logical_value": "2026-09-01"}, "date"),
+    )
+    for field_type, value, key in cases:
+        payload = _typed_input(
+            "set_field_value",
+            {"project_id": "P", "item_id": "I", "field_id": "F", "field_type": field_type, **value},
+        )
+        assert tuple(
+            name for name in payload if name in {"singleSelectOptionId", "text", "number", "date"}
+        ) == (key,)
+    with pytest.raises(InvalidControlRoom):
+        _typed_input(
+            "set_field_value",
+            {
+                "project_id": "P",
+                "item_id": "I",
+                "field_id": "F",
+                "field_type": "number",
+                "logical_value": True,
+            },
+        )
+
+
+def test_round2_mutation_identity_has_no_legacy_fallbacks() -> None:
+    with pytest.raises(InvalidControlRoom):
+        _mutation_id("create_project", {"id": "P"})
+    with pytest.raises(InvalidControlRoom):
+        _mutation_id("create_project", {"data": {"node": {"id": "P"}}})
+
+
+def test_round2_remote_values_are_frozen_typed_models() -> None:
+    value = RemoteFieldValue(id="V", field_id="F", field_type="number", number=2)
+    with pytest.raises(ValidationError):
+        value.number = 3  # type: ignore[misc]
+    with pytest.raises(ValidationError):
+        RemoteFieldValue(id="V", field_id="F", field_type="number", number=True)
 
 
 def test_plan_is_dependency_ordered_and_printable() -> None:
@@ -262,4 +312,24 @@ class _FakeMutationTransport:
         self.calls.append((operation, variables))
         if self.fail_after is not None and len(self.calls) > self.fail_after:
             raise RuntimeError("injected mutation failure")
-        return {"id": f"NODE_{len(self.calls)}"}
+        paths = {
+            "create_project": ("createProjectV2", "projectV2"),
+            "update_project": ("updateProjectV2", "projectV2"),
+            "create_field": ("createProjectV2Field", "projectV2Field"),
+            "update_field": ("updateProjectV2Field", "projectV2Field"),
+            "create_issue": ("createIssue", "issue"),
+            "update_issue": ("updateIssue", "issue"),
+            "add_item": ("addProjectV2ItemById", "item"),
+            "set_field_value": ("updateProjectV2ItemFieldValue", "projectV2Item"),
+            "create_view": ("createProjectV2View", "projectV2View"),
+            "update_view": ("updateProjectV2View", "projectV2View"),
+        }
+        root, node = paths[operation]
+        value: dict[str, object] = {"id": f"NODE_{len(self.calls)}"}
+        if operation in {"create_field", "update_field"}:
+            value["name"] = variables.get("name", "Field")
+            value["options"] = [
+                {"id": f"OPT_{index}", "name": name}
+                for index, name in enumerate(variables.get("options", []), 1)
+            ]
+        return {"data": {root: {node: value}}}
