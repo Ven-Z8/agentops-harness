@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import subprocess
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -9,6 +10,7 @@ from pydantic import ValidationError
 import app.project_control.snapshots as snapshots
 from app.project_control.models import BoardExport
 from app.project_control.snapshots import (
+    _snapshot_source_revision,
     render_board,
     render_current,
     write_initial_snapshots,
@@ -384,3 +386,121 @@ def test_second_temp_prepare_failure_removes_first_temp_without_replacing_destin
     assert current.read_text(encoding="utf-8") == "last current\n"
     assert board.read_text(encoding="utf-8") == "last board\n"
     assert all(not temporary.exists() for temporary in prepared)
+
+
+@pytest.mark.parametrize(
+    ("changed_path", "expect_change"),
+    [
+        ("coordination/BOARD.md", False),
+        ("coordination/project.yaml", True),
+        ("app/project_control/snapshots.py", True),
+    ],
+)
+def test_snapshot_source_revision_ignores_outputs_but_tracks_inputs_and_renderer(
+    tmp_path: Path, changed_path: str, expect_change: bool
+) -> None:
+    """Including generated outputs in provenance would make a snapshot invalidate itself."""
+    _init_snapshot_git_repository(tmp_path)
+    before = _snapshot_source_revision(tmp_path)
+    changed = tmp_path / changed_path
+    changed.parent.mkdir(parents=True, exist_ok=True)
+    changed.write_text("changed\n", encoding="utf-8")
+    _git(tmp_path, "add", changed_path)
+    _git(tmp_path, "commit", "-m", "change fixture path")
+
+    after = _snapshot_source_revision(tmp_path)
+
+    assert (after != before) is expect_change
+
+
+def test_fixed_clock_snapshot_reproduces_committed_bytes_after_output_only_commit(
+    tmp_path: Path,
+) -> None:
+    """A final output-only commit must not alter the provenance rendered into its own snapshots."""
+    _init_snapshot_git_repository(tmp_path)
+    fixed_time = datetime(2026, 8, 30, 18, 0, tzinfo=UTC)
+    write_initial_snapshots(tmp_path, fixed_time)
+    _git(tmp_path, "add", "coordination/CURRENT.md", "coordination/BOARD.md")
+    _git(tmp_path, "commit", "-m", "generated snapshots")
+    expected = {
+        path: (tmp_path / path).read_bytes()
+        for path in ("coordination/CURRENT.md", "coordination/BOARD.md")
+    }
+
+    write_initial_snapshots(tmp_path, fixed_time)
+
+    assert {
+        path: (tmp_path / path).read_bytes()
+        for path in ("coordination/CURRENT.md", "coordination/BOARD.md")
+    } == expected
+
+
+@pytest.mark.parametrize(
+    "handoff",
+    [
+        "coordination/handoffs/x>\n## forged",
+        "javascript:alert(1)",
+        "coordination/%2e%2e/BOARD.md",
+        r"coordination\\handoffs\\x.md",
+        "../coordination/handoffs/x.md",
+        "/coordination/handoffs/x.md",
+    ],
+)
+def test_board_export_rejects_unsafe_relative_handoff_links(handoff: str) -> None:
+    """Accepting a malformed handoff target would let untrusted board data forge a link."""
+    with pytest.raises(ValidationError):
+        BoardExport.model_validate(
+            {
+                "project_url": "https://github.com/users/Ven-Z8/projects/1",
+                "items": [
+                    {
+                        "task_id": "AO-D01-01",
+                        "title": "Safe title",
+                        "status": "ready",
+                        "priority": "P0",
+                        "handoff": handoff,
+                    }
+                ],
+            }
+        )
+
+
+def test_board_export_renders_safe_normalized_relative_handoff_link() -> None:
+    export = BoardExport.model_validate(
+        {
+            "project_url": "https://github.com/users/Ven-Z8/projects/1",
+            "items": [
+                {
+                    "task_id": "AO-D01-01",
+                    "title": "Safe title",
+                    "status": "ready",
+                    "priority": "P0",
+                    "handoff": "coordination/handoffs/2026-08-30-AO-D01-01-codex.md",
+                }
+            ],
+        }
+    )
+
+    rendered = render_board(export, FIXED_TIME)
+
+    assert "[handoff](<coordination/handoffs/2026-08-30-AO-D01-01-codex.md>)" in rendered
+
+
+def _init_snapshot_git_repository(root: Path) -> None:
+    _git(root, "init")
+    _git(root, "config", "user.email", "tests@example.test")
+    _git(root, "config", "user.name", "Snapshot Tests")
+    seed_control_room(root)
+    artifacts = root / "coordination/artifacts/index.yaml"
+    artifacts.parent.mkdir(parents=True)
+    artifacts.write_text("schema_version: 1\nartifacts: []\n", encoding="utf-8")
+    (root / "app/project_control").mkdir(parents=True)
+    (root / "app/project_control/snapshots.py").write_text("source\n", encoding="utf-8")
+    (root / "coordination/CURRENT.md").write_text("output\n", encoding="utf-8")
+    (root / "coordination/BOARD.md").write_text("output\n", encoding="utf-8")
+    _git(root, "add", ".")
+    _git(root, "commit", "-m", "fixture inputs")
+
+
+def _git(root: Path, *arguments: str) -> None:
+    subprocess.run(["git", *arguments], cwd=root, check=True, capture_output=True, text=True)

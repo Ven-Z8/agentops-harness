@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import subprocess
 from datetime import UTC, datetime
 from pathlib import Path
@@ -19,7 +20,8 @@ from app.project_control.models import (
     GraphManifest,
     ProjectConfig,
     RoadmapItem,
-    _safe_link_target,
+    _https_url,
+    _safe_relative_link_target,
 )
 from app.project_control.roadmap import load_roadmap
 
@@ -52,10 +54,16 @@ def _roadmap_board_sort_key(item: RoadmapItem) -> tuple[int, int, int, str]:
     )
 
 
-def _link(value: str | None, label: str) -> str:
+def _local_link(value: str | None, label: str) -> str:
     if not value:
         return "None"
-    return f"[{_markdown(label)}](<{_safe_link_target(value)}>)"
+    return f"[{_markdown(label)}](<{_safe_relative_link_target(value)}>)"
+
+
+def _url_link(value: str | None, label: str) -> str:
+    if not value:
+        return "None"
+    return f"[{_markdown(label)}](<{_https_url(value)}>)"
 
 
 def _markdown(value: str) -> str:
@@ -98,7 +106,7 @@ def render_board(export: BoardExport, now: datetime) -> str:
         "> GitHub Issues and Projects are authoritative for live execution state.",
         "",
         f"- Generated at: {timestamp}",
-        f"- GitHub project: {_link(export.project_url, export.project_url)}",
+        f"- GitHub project: {_url_link(export.project_url, export.project_url)}",
         f"- Snapshot source revision: `{export.source_revision}`",
         "",
         "## Phase summaries",
@@ -126,8 +134,8 @@ def render_board(export: BoardExport, now: datetime) -> str:
         ]
     )
     for item in items:
-        issue = _link(item.issue_url, f"#{item.issue_number}") if item.issue_url else "None"
-        handoff = _link(item.handoff, "handoff")
+        issue = _url_link(item.issue_url, f"#{item.issue_number}") if item.issue_url else "None"
+        handoff = _local_link(item.handoff, "handoff")
         lines.append(
             "| "
             + " | ".join(
@@ -266,8 +274,9 @@ def render_current(state: ControlRoomState, now: datetime) -> str:
             reverse=True,
         )
         for decision_id, decision in decisions:
+            label = f"Decision {decision_id}"
             lines.append(
-                f"- {_link(state.decision_paths.get(decision_id), f'Decision {decision_id}')}: "
+                f"- {_local_link(state.decision_paths.get(decision_id), label)}: "
                 f"{decision.status}"
             )
     if state.handoffs:
@@ -277,7 +286,7 @@ def render_current(state: ControlRoomState, now: datetime) -> str:
             reverse=True,
         ):
             lines.append(
-                f"- {_link(state.handoff_paths.get(task_id), f'Handoff {task_id}')}: "
+                f"- {_local_link(state.handoff_paths.get(task_id), f'Handoff {task_id}')}: "
                 f"{handoff.status}"
             )
     if not state.decisions and not state.handoffs:
@@ -301,9 +310,41 @@ def render_current(state: ControlRoomState, now: datetime) -> str:
     return "\n".join(lines).rstrip() + "\n"
 
 
+_SNAPSHOT_PROVENANCE_PATHS = (
+    "app/project_control/artifacts.py",
+    "app/project_control/codegraph.py",
+    "app/project_control/decisions.py",
+    "app/project_control/handoffs.py",
+    "app/project_control/io.py",
+    "app/project_control/models.py",
+    "app/project_control/roadmap.py",
+    "app/project_control/snapshots.py",
+    "coordination/project.yaml",
+    "coordination/roadmap/14-day-plan.yaml",
+    "coordination/artifacts/index.yaml",
+    "coordination/codegraph/manifest.json",
+    "coordination/decisions",
+    "coordination/handoffs",
+)
+
+
 def _snapshot_source_revision(root: Path) -> str:
-    result = subprocess.run(["git", "rev-parse", "HEAD"], cwd=root, capture_output=True, text=True)
-    return result.stdout.strip() if result.returncode == 0 else "unavailable"
+    """Return the latest commit affecting validated inputs and snapshot implementation.
+
+    Generated snapshots and orchestration reports are deliberately excluded so
+    an output-only commit cannot make the provenance embedded in its outputs
+    change on the next fixed-clock generation.
+    """
+    result = subprocess.run(
+        ["git", "log", "-1", "--format=%H", "--", *_SNAPSHOT_PROVENANCE_PATHS],
+        cwd=root,
+        capture_output=True,
+        text=True,
+    )
+    revision = result.stdout.strip()
+    if result.returncode == 0 and re.fullmatch(r"[0-9a-f]{40}", revision):
+        return revision
+    return "unavailable"
 
 
 def _load_state(root: Path, board_export: BoardExport | None) -> ControlRoomState:
@@ -375,7 +416,7 @@ def _initial_board(state: ControlRoomState, now: datetime) -> str:
             f"| {_markdown(item.id)}: {_markdown(item.title)} | "
             f"{_markdown(item.phase_id or '—')} | {item.status} | "
             f"{item.priority} | {item.day if item.day is not None else '—'} | not provisioned | "
-            f"{_link(state.handoff_paths.get(item.id), 'handoff') if handoff else 'None'} |"
+            f"{_local_link(state.handoff_paths.get(item.id), 'handoff') if handoff else 'None'} |"
         )
     lines.extend(["", "## Phase summaries", ""])
     phase_items = [item for item in items if item.kind == "phase"]

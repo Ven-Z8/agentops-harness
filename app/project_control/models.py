@@ -5,7 +5,7 @@ from datetime import datetime
 from enum import StrEnum
 from pathlib import PurePosixPath
 from typing import Literal
-from urllib.parse import urlsplit
+from urllib.parse import unquote, urlsplit
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -67,12 +67,6 @@ def _https_url(value: str) -> str:
     return value
 
 
-def _safe_link_target(value: str) -> str:
-    if value.startswith("https:"):
-        return _https_url(value)
-    return _relative_repository_path(value)
-
-
 def _relative_repository_path(value: str) -> str:
     if not value or value != value.strip():
         raise ValueError("repository path must be a non-empty normalized relative path")
@@ -84,6 +78,17 @@ def _relative_repository_path(value: str) -> str:
     if str(path) != normalized_value:
         raise ValueError("repository path must be normalized")
     return value
+
+
+def _safe_relative_link_target(value: str) -> str:
+    """Validate a normalized repository path before placing it in a Markdown link."""
+    if any(ord(character) < 33 or ord(character) == 127 for character in value):
+        raise ValueError("link target must be a single line without control characters")
+    if value != unquote(value) or "\\" in value:
+        raise ValueError("link target must not use encoded or escaped path syntax")
+    if any(character in value for character in ":<>[]()#?`"):
+        raise ValueError("link target contains unsafe Markdown destination syntax")
+    return _relative_repository_path(value)
 
 
 def _relative_repository_paths(values: list[str]) -> list[str]:
@@ -423,7 +428,7 @@ class BoardItem(StrictModel):
         lambda value: None if value is None else _single_line_identifier(value)
     )
     _validate_handoff = field_validator("handoff")(
-        lambda value: None if value is None else _safe_link_target(value)
+        lambda value: None if value is None else _safe_relative_link_target(value)
     )
 
     @field_validator("day")
