@@ -85,6 +85,27 @@ def test_artifact_index_rejects_duplicate_ids_and_invalid_evidence_contracts() -
         ArtifactRecord.model_validate(immutable)
 
 
+@pytest.mark.parametrize("sha256", [None, "not-a-sha", "a" * 63, "a" * 65])
+def test_verified_artifact_requires_immutable_valid_sha256(sha256: str | None) -> None:
+    record = {
+        "id": "artifact-AO-D01-01-verified",
+        "task_id": "AO-D01-01",
+        "kind": "report",
+        "availability": "repository",
+        "locator": "coordination/artifacts/report.md",
+        "sha256": sha256,
+        "created_at": "2026-08-30T16:00:00Z",
+        "producer": "codex",
+        "evidence_state": "verified",
+    }
+    with pytest.raises(ValidationError, match="verified evidence"):
+        ArtifactRecord.model_validate(record)
+
+    record["immutable"] = True
+    with pytest.raises(ValidationError, match="sha256"):
+        ArtifactRecord.model_validate(record)
+
+
 def test_render_artifact_summary_sorts_and_marks_local_and_unavailable_evidence() -> None:
     index = ArtifactIndex.model_validate(
         {

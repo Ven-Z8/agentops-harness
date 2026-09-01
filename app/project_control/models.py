@@ -475,6 +475,11 @@ class ArtifactRecord(StrictModel):
             raise ValueError("remote artifact requires a durable https locator")
         if self.availability == "repository" and self.locator:
             _relative_repository_path(self.locator)
+        if self.evidence_state is EvidenceState.VERIFIED:
+            if not self.immutable:
+                raise ValueError("verified evidence must be immutable")
+            if not self.sha256 or not re.fullmatch(r"[0-9a-fA-F]{64}", self.sha256):
+                raise ValueError("verified evidence requires a valid 64-hex sha256")
         if self.immutable and self.availability in {"repository", "remote"} and not self.sha256:
             raise ValueError("immutable external evidence requires sha256")
         return self
