@@ -1,11 +1,11 @@
 # Repository code graph
 
-- Generated at: 2026-09-01T13:43:36Z
-- Source commit: `5ab8b02330dd38023026537d3f5a94c7f2848bdd`
-- Source tree digest: `8e594be7274df48a5a310e962501b950e192193ee87b2afd71c567282df79f36`
+- Generated at: 2026-09-01T13:51:54Z
+- Source commit: `e7ffa7ed8861a3ce610715ffb7910b55d63a1fd8`
+- Source tree digest: `5e9306761e2f40360037ae4c6ff354ca0bd6c1ee083a233625610c2d351d82d5`
 - Included files: 312
-- Nodes: 2602
-- Edges: 3863
+- Nodes: 2613
+- Edges: 3877
 
 ## Language coverage
 
