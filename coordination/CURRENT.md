@@ -2,7 +2,7 @@
 
 > Generated from validated repository state; do not edit manually.
 
-- Generated at: 2026-09-01T13:43:51Z
+- Generated at: 2026-08-30T18:00:00Z
 
 ## Current phase
 
@@ -15,7 +15,7 @@
 ## Confirmed baseline
 
 - Baseline commit: `39c041f699d7909d1f6853a89bf2a86835a4acd4`
-- Snapshot input revision: `41b706c50d9bac8c6e7cd495de6a25d53b065247`
+- Snapshot input revision: `27406189d596a69f3dff952763f0e50130abf0e6`
 - Generated snapshot outputs are excluded; unavailable means validated inputs are dirty or provenance could not be resolved.
 
 ## Active blockers
@@ -51,13 +51,17 @@
 - AO-D11: deferred until kernel contracts
 - AO-D12: deferred until kernel contracts
 
+## Verification evidence
+
+- artifact-AO-D01-01-task-9-verification: verified (SHA-256: `d610b509e943db0857b80e0f55469ea19f68ee6c9f1e5f22d03cc50a78135679`)
+
 ## Latest decisions and handoffs
 
 - None recorded.
 
 ## Code graph freshness
 
-- Graph input provenance: `5ab8b02330dd38023026537d3f5a94c7f2848bdd`; freshness is inconclusive until validated against the current source tree before relying on it.
+- Graph input provenance: `dcd99376661cd56adc0d659fa277db53e511784a`; freshness is inconclusive until validated against the current source tree before relying on it.
 - Fresh: the manifest source-tree digest matches tracked inputs.
 
 ## Onboarding commands
