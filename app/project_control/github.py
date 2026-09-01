@@ -1195,6 +1195,7 @@ class GitHubProvisioner:
         completed_actions: list[ProvisionAction] = []
         remaining = list(plan.actions)
         manual: list[str] = []
+        unsupported_view_actions: set[str] = set()
         error: str | None = None
         mutation_confirmed = False
         for action in plan.actions:
@@ -1251,10 +1252,10 @@ class GitHubProvisioner:
                 if action.resource == "field":
                     completed_options[action.stable_key] = _mutation_option_ids(operation, response)
                     expected_names = tuple(action.payload.get("options", ()))
-                    if set(completed_options[action.stable_key]) != set(expected_names):
+                    if tuple(completed_options[action.stable_key]) != expected_names:
                         raise InvalidControlRoom(
-                            "GitHub field mutation returned an incomplete option list: "
-                            f"{action.stable_key}"
+                            "GitHub field mutation returned an incomplete or reordered "
+                            f"option list: {action.stable_key}"
                         )
                     completed.update(
                         {
@@ -1268,6 +1269,7 @@ class GitHubProvisioner:
             except (NotImplementedError, UnsupportedViewOperation):
                 if action.resource == "view":
                     manual.extend(MANUAL_VIEW_INSTRUCTIONS)
+                    unsupported_view_actions.add(action.stable_key)
                     remaining.pop(0)
                     remaining.append(action)
                     continue
@@ -1317,7 +1319,12 @@ class GitHubProvisioner:
                 try:
                     discovered = self._rediscover()
                     mismatch = _reconcile_plan(
-                        plan, discovered, completed, resolved_issues, resolved_items
+                        plan,
+                        discovered,
+                        completed,
+                        resolved_issues,
+                        resolved_items,
+                        unsupported_view_actions,
                     )
                 except Exception as exc:  # noqa: BLE001 - reconciliation boundary
                     mismatch = _safe_remote_error(exc)
@@ -1407,10 +1414,12 @@ def _reconcile_plan(
     completed: dict[str, str] | None = None,
     resolved_issues: dict[str, str] | None = None,
     resolved_items: dict[str, str] | None = None,
+    unsupported_view_actions: set[str] | None = None,
 ) -> str | None:
     completed = completed or {}
     resolved_issues = resolved_issues or {}
     resolved_items = resolved_items or {}
+    unsupported_view_actions = unsupported_view_actions or set()
     if remote.owner != plan.project.payload.get(
         "owner"
     ) or remote.repository != plan.project.payload.get("repository"):
@@ -1522,6 +1531,8 @@ def _reconcile_plan(
             return f"post-apply field value option mismatch: {action.stable_key}"
     views = {view.name: view for view in remote.views}
     for action in plan.view_actions:
+        if action.stable_key in unsupported_view_actions:
+            continue
         view = views.get(action.stable_key)
         if view is None:
             return f"post-apply views missing: {action.stable_key}"

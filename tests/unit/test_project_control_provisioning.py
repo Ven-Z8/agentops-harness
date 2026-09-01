@@ -10,6 +10,7 @@ from app.project_control.github import (
     DESIRED_FIELDS,
     DESIRED_VIEWS,
     MANUAL_VIEW_INSTRUCTIONS,
+    VIEW_SPECS,
     ApplyGhTransport,
     GitHubProvisioner,
     _mutation_id,
@@ -17,11 +18,15 @@ from app.project_control.github import (
     merge_managed_issue_body,
 )
 from app.project_control.models import (
+    ProvisionAction,
+    ProvisioningPlan,
     ReconciliationReport,
+    RemoteField,
     RemoteFieldValue,
     RemoteGitHubState,
     RemoteIssue,
     RemoteProject,
+    RemoteView,
 )
 from app.project_control.roadmap import render_issue_body
 from tests.helpers_project_control import make_control_room_state
@@ -275,6 +280,167 @@ def test_unsupported_views_are_partial_with_six_manual_instructions() -> None:
     assert report.state == "partial"
     assert len(report.manual_instructions) == 6
     assert tuple(report.manual_instructions) == MANUAL_VIEW_INSTRUCTIONS
+
+
+@pytest.mark.parametrize(
+    "returned_options",
+    (
+        ("Ready", "Inbox"),
+        ("Inbox", "Inbox"),
+        ("Inbox",),
+        ("Inbox", "Ready", "Blocked"),
+    ),
+    ids=("reordered", "duplicate", "missing", "extra"),
+)
+def test_field_mutation_option_names_must_exactly_match_the_desired_order(
+    returned_options: tuple[str, ...],
+) -> None:
+    plan = _field_and_views_plan(with_views=False)
+
+    class WrongOptions(_FakeMutationTransport):
+        def mutate(self, operation: str, variables: dict[str, object]) -> dict[str, object]:
+            response = super().mutate(operation, variables)
+            if operation == "create_field":
+                response["data"]["createProjectV2Field"]["projectV2Field"]["options"] = [
+                    {"id": f"OPT_{index}", "name": name}
+                    for index, name in enumerate(returned_options, start=1)
+                ]
+            return response
+
+    report = GitHubProvisioner(
+        WrongOptions(), rediscover=lambda: _rediscovered_field_and_views_state()
+    ).apply(plan)
+
+    assert report.state == "partial"
+    assert report.error is not None
+    assert [action.stable_key for action in report.attempted_actions] == ["Status"]
+    assert [action.stable_key for action in report.completed_actions] == ["project"]
+    assert report.remaining_actions[0].stable_key == "Status"
+
+
+def test_unsupported_views_are_excluded_from_post_apply_rediscovery_only() -> None:
+    plan = _field_and_views_plan()
+
+    class ViewsUnsupported(_FakeMutationTransport):
+        def mutate(self, operation: str, variables: dict[str, object]) -> dict[str, object]:
+            if operation == "create_view":
+                raise NotImplementedError
+            return super().mutate(operation, variables)
+
+    rediscovered = _rediscovered_field_and_views_state()
+    report = GitHubProvisioner(ViewsUnsupported(), rediscover=lambda: rediscovered).apply(plan)
+
+    assert report.state == "partial"
+    assert report.error is None
+    assert tuple(report.manual_instructions) == MANUAL_VIEW_INSTRUCTIONS
+
+
+def test_supported_views_still_require_exact_post_apply_configuration() -> None:
+    plan = _field_and_views_plan()
+
+    class SomeViewsUnsupported(_FakeMutationTransport):
+        def mutate(self, operation: str, variables: dict[str, object]) -> dict[str, object]:
+            if operation == "create_view" and variables["name"] != "Inbox":
+                raise NotImplementedError
+            return super().mutate(operation, variables)
+
+    rediscovered = _rediscovered_field_and_views_state(
+        views=(RemoteView(id="NODE_2", name="Inbox", layout="BOARD"),)
+    )
+    report = GitHubProvisioner(SomeViewsUnsupported(), rediscover=lambda: rediscovered).apply(plan)
+
+    assert report.state == "partial"
+    assert report.manual_instructions == MANUAL_VIEW_INSTRUCTIONS
+    assert report.error == "post-apply view layout mismatch: Inbox"
+
+
+def test_unrelated_view_failures_remain_normal_partial_errors() -> None:
+    plan = _field_and_views_plan()
+
+    class BrokenView(_FakeMutationTransport):
+        def mutate(self, operation: str, variables: dict[str, object]) -> dict[str, object]:
+            if operation == "create_view":
+                raise RuntimeError("injected view failure")
+            return super().mutate(operation, variables)
+
+    report = GitHubProvisioner(BrokenView()).apply(plan)
+
+    assert report.state == "partial"
+    assert report.manual_instructions == ()
+    assert report.error is not None
+    assert report.error.startswith("injected view failure")
+
+
+def _field_and_views_plan(*, with_views: bool = True) -> ProvisioningPlan:
+    return ProvisioningPlan(
+        project=ProvisionAction(
+            resource="project",
+            stable_key="project",
+            action="reuse",
+            remote_id="P1",
+            payload={
+                "name": "Wanted",
+                "owner": "Ven-Z8",
+                "repository": "Ven-Z8/agentops-harness",
+                "owner_id": "U1",
+                "repository_id": "R1",
+            },
+        ),
+        field_actions=(
+            ProvisionAction(
+                resource="field",
+                stable_key="Status",
+                action="create",
+                remote_id=None,
+                payload={
+                    "name": "Status",
+                    "data_type": "SINGLE_SELECT",
+                    "options": ("Inbox", "Ready"),
+                },
+            ),
+        ),
+        view_actions=(
+            tuple(
+                ProvisionAction(
+                    resource="view",
+                    stable_key=name,
+                    action="create",
+                    remote_id=None,
+                    payload={"name": name, "project": "Wanted", **VIEW_SPECS[name]},
+                )
+                for name in DESIRED_VIEWS
+            )
+            if with_views
+            else ()
+        ),
+    )
+
+
+def _rediscovered_field_and_views_state(*, views: tuple[RemoteView, ...] = ()) -> RemoteGitHubState:
+    return RemoteGitHubState(
+        owner="Ven-Z8",
+        repository="Ven-Z8/agentops-harness",
+        owner_id="U1",
+        repository_id="R1",
+        project=RemoteProject(
+            id="P1",
+            number=1,
+            name="Wanted",
+            url="https://github.com/users/Ven-Z8/projects/1",
+        ),
+        fields=(
+            RemoteField(
+                id="NODE_1",
+                name="Status",
+                data_type="SINGLE_SELECT",
+                options=(
+                    {"id": "OPT_1", "name": "Inbox"},
+                    {"id": "OPT_2", "name": "Ready"},
+                ),
+            ),
+        ),
+        views=views,
+    )
 
 
 def test_discovery_rejects_ambiguous_project_names() -> None:
