@@ -237,8 +237,63 @@ query ProjectBoard($owner: String!, $number: Int!, $after: String) {
 }
 """.strip()
 
-_DISCOVERY_QUERY = """
-query DiscoverProjects(
+_DISCOVERY_FIELD_DEFINITION_SELECTION = """{
+  __typename
+  ... on ProjectV2Field { id name dataType }
+  ... on ProjectV2SingleSelectField { id name dataType options { id name } }
+  ... on ProjectV2IterationField { id name dataType }
+  ... on ProjectV2MultiSelectField { id name dataType }
+}"""
+_DISCOVERY_FIELD_REFERENCE_SELECTION = """{
+  __typename
+  ... on ProjectV2Field { id name }
+  ... on ProjectV2SingleSelectField { id name }
+  ... on ProjectV2IterationField { id name }
+  ... on ProjectV2MultiSelectField { id name }
+}"""
+_DISCOVERY_FIELD_VALUE_SELECTION = (
+    """{
+  __typename
+  ... on ProjectV2ItemFieldValueCommon {
+    id
+    field """
+    + _DISCOVERY_FIELD_REFERENCE_SELECTION
+    + """
+  }
+  ... on ProjectV2ItemFieldTextValue {
+    id
+    field """
+    + _DISCOVERY_FIELD_REFERENCE_SELECTION
+    + """
+    text
+  }
+  ... on ProjectV2ItemFieldNumberValue {
+    id
+    field """
+    + _DISCOVERY_FIELD_REFERENCE_SELECTION
+    + """
+    number
+  }
+  ... on ProjectV2ItemFieldDateValue {
+    id
+    field """
+    + _DISCOVERY_FIELD_REFERENCE_SELECTION
+    + """
+    date
+  }
+  ... on ProjectV2ItemFieldSingleSelectValue {
+    id
+    field """
+    + _DISCOVERY_FIELD_REFERENCE_SELECTION
+    + """
+    name
+    optionId
+  }
+}"""
+)
+
+_DISCOVERY_QUERY = (
+    """query DiscoverProjects(
   $owner: String!, $repository_name: String!, $after: String, $issues_after: String
 ) {
   user(login: $owner) {
@@ -247,13 +302,9 @@ query DiscoverProjects(
       nodes {
         id number title url
         fields(first: 1) {
-          nodes {
-            __typename
-            ... on ProjectV2Field { id name dataType }
-            ... on ProjectV2SingleSelectField { id name dataType options { id name } }
-            ... on ProjectV2IterationField { id name dataType }
-            ... on ProjectV2MultiSelectField { id name dataType }
-          }
+          nodes """
+    + _DISCOVERY_FIELD_DEFINITION_SELECTION
+    + """
           pageInfo { hasNextPage endCursor }
         }
         views(first: 1) { nodes { id name } pageInfo { hasNextPage endCursor } }
@@ -263,64 +314,9 @@ query DiscoverProjects(
               ... on Issue { id number title url body repository { nameWithOwner } }
             }
             fieldValues(first: 1) {
-              nodes {
-                __typename
-                ... on ProjectV2ItemFieldValueCommon {
-                  id
-                  field {
-                    __typename
-                    ... on ProjectV2Field { id name }
-                    ... on ProjectV2SingleSelectField { id name }
-                    ... on ProjectV2IterationField { id name }
-                    ... on ProjectV2MultiSelectField { id name }
-                  }
-                }
-                ... on ProjectV2ItemFieldTextValue {
-                  id
-                  field {
-                    __typename
-                    ... on ProjectV2Field { id name }
-                    ... on ProjectV2SingleSelectField { id name }
-                    ... on ProjectV2IterationField { id name }
-                    ... on ProjectV2MultiSelectField { id name }
-                  }
-                  text
-                }
-                ... on ProjectV2ItemFieldNumberValue {
-                  id
-                  field {
-                    __typename
-                    ... on ProjectV2Field { id name }
-                    ... on ProjectV2SingleSelectField { id name }
-                    ... on ProjectV2IterationField { id name }
-                    ... on ProjectV2MultiSelectField { id name }
-                  }
-                  number
-                }
-                ... on ProjectV2ItemFieldDateValue {
-                  id
-                  field {
-                    __typename
-                    ... on ProjectV2Field { id name }
-                    ... on ProjectV2SingleSelectField { id name }
-                    ... on ProjectV2IterationField { id name }
-                    ... on ProjectV2MultiSelectField { id name }
-                  }
-                  date
-                }
-                ... on ProjectV2ItemFieldSingleSelectValue {
-                  id
-                  field {
-                    __typename
-                    ... on ProjectV2Field { id name }
-                    ... on ProjectV2SingleSelectField { id name }
-                    ... on ProjectV2IterationField { id name }
-                    ... on ProjectV2MultiSelectField { id name }
-                  }
-                  name
-                  optionId
-                }
-              }
+              nodes """
+    + _DISCOVERY_FIELD_VALUE_SELECTION
+    + """
               pageInfo { hasNextPage endCursor }
             }
           }
@@ -338,156 +334,64 @@ query DiscoverProjects(
       }
   }
 }
-""".strip()
+"""
+).strip()
 
 # Nested connections are fetched with separate fixed read-only documents.  Keeping these
 # documents explicit prevents pagination from becoming an arbitrary GraphQL surface.
-_NESTED_FIELDS_QUERY = """query ProjectFields($id: ID!, $after: String) {
+_NESTED_FIELDS_QUERY = (
+    """query ProjectFields($id: ID!, $after: String) {
   node(id: $id) { ... on ProjectV2 { fields(first: 100, after: $after) {
-    nodes {
-      __typename
-      ... on ProjectV2Field { id name dataType }
-      ... on ProjectV2SingleSelectField { id name dataType options { id name } }
-      ... on ProjectV2IterationField { id name dataType }
-      ... on ProjectV2MultiSelectField { id name dataType }
-    }
+    nodes """
+    + _DISCOVERY_FIELD_DEFINITION_SELECTION
+    + """
     pageInfo { hasNextPage endCursor }
   } } }
-}""".strip()
+}"""
+).strip()
 _NESTED_VIEWS_QUERY = """query ProjectViews($id: ID!, $after: String) {
   node(id: $id) { ... on ProjectV2 { views(first: 100, after: $after) {
     nodes { id name layout groupBy sortBy filter } pageInfo { hasNextPage endCursor }
   } } }
 }""".strip()
-_NESTED_ITEMS_QUERY = """query ProjectItems($id: ID!, $after: String) {
+_NESTED_ITEMS_QUERY = (
+    """query ProjectItems($id: ID!, $after: String) {
   node(id: $id) { ... on ProjectV2 { items(first: 100, after: $after) {
     nodes { id content { ... on Issue { id number title url body repository { nameWithOwner } } }
       fieldValues(first: 100) {
-        nodes {
-          __typename
-          ... on ProjectV2ItemFieldValueCommon {
-            id
-            field {
-              __typename
-              ... on ProjectV2Field { id name }
-              ... on ProjectV2SingleSelectField { id name }
-              ... on ProjectV2IterationField { id name }
-              ... on ProjectV2MultiSelectField { id name }
-            }
-          }
-          ... on ProjectV2ItemFieldTextValue {
-            id
-            field {
-              __typename
-              ... on ProjectV2Field { id name }
-              ... on ProjectV2SingleSelectField { id name }
-              ... on ProjectV2IterationField { id name }
-              ... on ProjectV2MultiSelectField { id name }
-            }
-            text
-          }
-          ... on ProjectV2ItemFieldNumberValue {
-            id
-            field {
-              __typename
-              ... on ProjectV2Field { id name }
-              ... on ProjectV2SingleSelectField { id name }
-              ... on ProjectV2IterationField { id name }
-              ... on ProjectV2MultiSelectField { id name }
-            }
-            number
-          }
-          ... on ProjectV2ItemFieldDateValue {
-            id
-            field {
-              __typename
-              ... on ProjectV2Field { id name }
-              ... on ProjectV2SingleSelectField { id name }
-              ... on ProjectV2IterationField { id name }
-              ... on ProjectV2MultiSelectField { id name }
-            }
-            date
-          }
-          ... on ProjectV2ItemFieldSingleSelectValue {
-            id
-            field {
-              __typename
-              ... on ProjectV2Field { id name }
-              ... on ProjectV2SingleSelectField { id name }
-              ... on ProjectV2IterationField { id name }
-              ... on ProjectV2MultiSelectField { id name }
-            }
-            name
-            optionId
-          }
-        }
+        nodes """
+    + _DISCOVERY_FIELD_VALUE_SELECTION
+    + """
         pageInfo { hasNextPage endCursor } } }
     pageInfo { hasNextPage endCursor }
   } } }
-}""".strip()
-_NESTED_ITEM_VALUES_QUERY = """query ItemFieldValues($id: ID!, $after: String) {
+}"""
+).strip()
+_NESTED_ITEM_VALUES_QUERY = (
+    """query ItemFieldValues($id: ID!, $after: String) {
   node(id: $id) { ... on ProjectV2Item { fieldValues(first: 100, after: $after) {
-    nodes {
-      __typename
-      ... on ProjectV2ItemFieldValueCommon {
-        id
-        field {
-          __typename
-          ... on ProjectV2Field { id name }
-          ... on ProjectV2SingleSelectField { id name }
-          ... on ProjectV2IterationField { id name }
-          ... on ProjectV2MultiSelectField { id name }
-        }
-      }
-      ... on ProjectV2ItemFieldTextValue {
-        id
-        field {
-          __typename
-          ... on ProjectV2Field { id name }
-          ... on ProjectV2SingleSelectField { id name }
-          ... on ProjectV2IterationField { id name }
-          ... on ProjectV2MultiSelectField { id name }
-        }
-        text
-      }
-      ... on ProjectV2ItemFieldNumberValue {
-        id
-        field {
-          __typename
-          ... on ProjectV2Field { id name }
-          ... on ProjectV2SingleSelectField { id name }
-          ... on ProjectV2IterationField { id name }
-          ... on ProjectV2MultiSelectField { id name }
-        }
-        number
-      }
-      ... on ProjectV2ItemFieldDateValue {
-        id
-        field {
-          __typename
-          ... on ProjectV2Field { id name }
-          ... on ProjectV2SingleSelectField { id name }
-          ... on ProjectV2IterationField { id name }
-          ... on ProjectV2MultiSelectField { id name }
-        }
-        date
-      }
-      ... on ProjectV2ItemFieldSingleSelectValue {
-        id
-        field {
-          __typename
-          ... on ProjectV2Field { id name }
-          ... on ProjectV2SingleSelectField { id name }
-          ... on ProjectV2IterationField { id name }
-          ... on ProjectV2MultiSelectField { id name }
-        }
-        name
-        optionId
-      }
-    }
+    nodes """
+    + _DISCOVERY_FIELD_VALUE_SELECTION
+    + """
     pageInfo { hasNextPage endCursor }
   } } }
-}""".strip()
+}"""
+).strip()
+
+_DISCOVERY_FIELD_TYPES = frozenset(
+    {
+        "ProjectV2Field",
+        "ProjectV2SingleSelectField",
+        "ProjectV2IterationField",
+        "ProjectV2MultiSelectField",
+    }
+)
+_DISCOVERY_VALUE_SHAPES = {
+    "ProjectV2ItemFieldTextValue": ("text", "ProjectV2Field"),
+    "ProjectV2ItemFieldNumberValue": ("number", "ProjectV2Field"),
+    "ProjectV2ItemFieldDateValue": ("date", "ProjectV2Field"),
+    "ProjectV2ItemFieldSingleSelectValue": ("name", "ProjectV2SingleSelectField"),
+}
 
 _KNOWN_FIELDS = {
     "Status",
@@ -1887,6 +1791,7 @@ def _parse_discovered_project(
     if item_page_info["hasNextPage"] and not isinstance(item_page_info.get("endCursor"), str):
         raise InvalidControlRoom("GitHub discovery item pageInfo hasNextPage without cursor")
     fields: list[RemoteField] = []
+    field_definitions: dict[str, tuple[str, str, RemoteField]] = {}
     for field in field_nodes:
         if (
             not isinstance(field, dict)
@@ -1896,7 +1801,12 @@ def _parse_discovered_project(
             raise InvalidControlRoom("GitHub discovery contains a malformed field")
         if field["name"] not in _KNOWN_FIELDS | _IGNORED_BUILT_INS:
             raise InvalidControlRoom(f"GitHub discovery contains unknown field: {field['name']}")
-        options = field.get("options")
+        typename = field.get("__typename")
+        if not isinstance(typename, str) or typename not in _DISCOVERY_FIELD_TYPES:
+            raise InvalidControlRoom("GitHub discovery field definition type is malformed")
+        options = field.get("options", None)
+        if typename != "ProjectV2SingleSelectField" and "options" not in field:
+            options = []
         if not isinstance(options, list):
             raise InvalidControlRoom("GitHub discovery field options are malformed")
         option_names: list[str] = []
@@ -1912,19 +1822,18 @@ def _parse_discovered_project(
                 raise InvalidControlRoom("GitHub discovery contains duplicate field options")
             option_ids.add(option["id"])
             option_names.append(option["name"])
-        fields.append(
-            RemoteField(
-                id=field["id"],
-                name=field["name"],
-                data_type=field.get("dataType"),
-                options=tuple(
-                    RemoteOption(id=option["id"], name=option["name"]) for option in options
-                ),
-            )
+        parsed_field = RemoteField(
+            id=field["id"],
+            name=field["name"],
+            data_type=field.get("dataType"),
+            options=tuple(
+                RemoteOption(id=option["id"], name=option["name"]) for option in options
+            ),
         )
+        fields.append(parsed_field)
+        field_definitions[field["id"]] = (field["name"], typename, parsed_field)
     issues: list[RemoteIssue] = []
     items: list[RemoteProjectItem] = []
-    field_by_name = {field.name: field for field in fields}
     seen_tasks: set[str] = set()
     for item in item_nodes:
         if not isinstance(item, dict) or not isinstance(item.get("id"), str):
@@ -1985,22 +1894,44 @@ def _parse_discovered_project(
         for value in values_raw["nodes"]:
             if not isinstance(value, dict) or not isinstance(value.get("id"), str):
                 raise InvalidControlRoom("GitHub discovery field value is malformed")
+            value_type = value.get("__typename")
+            if not isinstance(value_type, str) or value_type not in _DISCOVERY_VALUE_SHAPES:
+                raise InvalidControlRoom("GitHub discovery field value type is malformed")
             field_ref = value.get("field")
             if (
                 not isinstance(field_ref, dict)
                 or not isinstance(field_ref.get("id"), str)
                 or not isinstance(field_ref.get("name"), str)
+                or not isinstance(field_ref.get("__typename"), str)
             ):
                 raise InvalidControlRoom("GitHub discovery field value field is malformed")
+            definition = field_definitions.get(field_ref["id"])
+            if (
+                definition is None
+                or field_ref["name"] != definition[0]
+                or field_ref["__typename"] != definition[1]
+            ):
+                raise InvalidControlRoom(
+                    "GitHub discovery field value field does not match definition"
+                )
+            expected_kind, expected_definition_type = _DISCOVERY_VALUE_SHAPES[value_type]
+            if definition[1] != expected_definition_type:
+                raise InvalidControlRoom(
+                    "GitHub discovery field value type does not match definition"
+                )
             populated = [
                 (key, value.get(key))
                 for key in ("name", "text", "number", "date")
                 if value.get(key) is not None
             ]
-            if len(populated) != 1 or any(
-                existing.field_id == field_ref["id"] for existing in field_values
+            if (
+                len(populated) != 1
+                or populated[0][0] != expected_kind
+                or any(
+                    existing.field_id == field_ref["id"] for existing in field_values
+                )
             ):
-                raise InvalidControlRoom("GitHub discovery field value has malformed shape")
+                raise InvalidControlRoom("GitHub discovery field value has malformed union shape")
             kind, raw_value = populated[0]
             typed = {
                 "name": {
@@ -2010,11 +1941,7 @@ def _parse_discovered_project(
                     or next(
                         (
                             option.id
-                            for option in (
-                                field_by_name[field_ref["name"]].options
-                                if field_ref["name"] in field_by_name
-                                else ()
-                            )
+                            for option in definition[2].options
                             if option.name == raw_value
                         ),
                         None,

@@ -13,25 +13,6 @@ from app.project_control.github import (
 )
 
 
-def test_discovery_boundary_emits_schema_valid_union_fragments() -> None:
-    transport = FakeTransport([])
-    with pytest.raises(InvalidControlRoom):
-        GitHubClient(transport).discover_state(
-            "Ven-Z8", "Ven-Z8/agentops-harness", "AgentOps Research Control Plane — 14-Day v0.1"
-        )
-    query = transport.calls[0][0]
-    assert "__typename" in query
-    assert "... on ProjectV2SingleSelectField" in query
-    assert "... on ProjectV2ItemFieldValueCommon" in query
-    assert "field { id name }" not in query
-    assert "... on ProjectV2IterationField" in query
-    assert "... on ProjectV2MultiSelectField" in query
-    assert "fields(first: 1)" in query
-    assert "views(first: 1)" in query
-    assert "items(first: 1)" in query
-    assert "fieldValues(first: 1)" in query
-
-
 class FakeTransport:
     def __init__(self, responses: list[dict[str, object]]) -> None:
         self.responses = iter(responses)
@@ -40,6 +21,289 @@ class FakeTransport:
     def graphql(self, query: str, variables: dict[str, object]) -> dict[str, object]:
         self.calls.append((query, variables))
         return next(self.responses)
+
+
+def discovery_responses() -> list[dict[str, object]]:
+    issue = {
+        "id": "I_1",
+        "number": 1,
+        "title": "Capture reproducible baseline",
+        "url": "https://github.com/Ven-Z8/agentops-harness/issues/1",
+        "body": "Task ID: AO-D01-01\n",
+        "repository": {"nameWithOwner": "Ven-Z8/agentops-harness"},
+    }
+    text_definition = {
+        "id": "F_HARNESS",
+        "name": "Harness",
+        "__typename": "ProjectV2Field",
+        "dataType": "TEXT",
+    }
+    date_definition = {
+        "id": "F_TARGET_DATE",
+        "name": "Target date",
+        "__typename": "ProjectV2Field",
+        "dataType": "DATE",
+    }
+    iteration_definition = {
+        "id": "F_ITERATION",
+        "name": "Iteration",
+        "__typename": "ProjectV2IterationField",
+        "dataType": "ITERATION",
+    }
+    multi_select_definition = {
+        "id": "F_LABELS",
+        "name": "Labels",
+        "__typename": "ProjectV2MultiSelectField",
+        "dataType": "MULTI_SELECT",
+    }
+    return [
+        {
+            "data": {
+                "user": {
+                    "id": "U_1",
+                    "projectsV2": {
+                        "nodes": [
+                            {
+                                "id": "P_1",
+                                "number": 1,
+                                "title": "AgentOps Research Control Plane — 14-Day v0.1",
+                                "url": "https://github.com/users/Ven-Z8/projects/1",
+                                "fields": {
+                                    "nodes": [
+                                        {
+                                            "id": "F_STATUS",
+                                            "name": "Status",
+                                            "__typename": "ProjectV2SingleSelectField",
+                                            "dataType": "SINGLE_SELECT",
+                                            "options": [{"id": "O_READY", "name": "Ready"}],
+                                        }
+                                    ],
+                                    "pageInfo": {
+                                        "hasNextPage": True,
+                                        "endCursor": "FIELDS_1",
+                                    },
+                                },
+                                "views": {
+                                    "nodes": [],
+                                    "pageInfo": {"hasNextPage": False, "endCursor": None},
+                                },
+                                "items": {
+                                    "nodes": [
+                                        {
+                                            "id": "ITEM_1",
+                                            "content": issue,
+                                            "fieldValues": {
+                                                "nodes": [
+                                                    {
+                                                        "id": "V_HARNESS",
+                                                        "__typename": "ProjectV2ItemFieldTextValue",
+                                                        "field": {
+                                                            "id": "F_HARNESS",
+                                                            "name": "Harness",
+                                                            "__typename": "ProjectV2Field",
+                                                        },
+                                                        "text": "Codex",
+                                                    }
+                                                ],
+                                                "pageInfo": {
+                                                    "hasNextPage": True,
+                                                    "endCursor": "VALUES_1",
+                                                },
+                                            },
+                                        }
+                                    ],
+                                    "pageInfo": {"hasNextPage": False, "endCursor": None},
+                                },
+                            }
+                        ],
+                        "pageInfo": {"hasNextPage": False, "endCursor": None},
+                    },
+                },
+                "repository": {
+                    "id": "R_1",
+                    "issues": {
+                        "nodes": [issue],
+                        "pageInfo": {"hasNextPage": False, "endCursor": None},
+                    },
+                },
+            }
+        },
+        {
+            "data": {
+                "node": {
+                    "fields": {
+                        "nodes": [
+                            text_definition,
+                            date_definition,
+                            iteration_definition,
+                            multi_select_definition,
+                        ],
+                        "pageInfo": {"hasNextPage": False, "endCursor": None},
+                    }
+                }
+            }
+        },
+        {
+            "data": {
+                "node": {
+                    "fieldValues": {
+                        "nodes": [
+                            {
+                                "id": "V_TARGET_DATE",
+                                "__typename": "ProjectV2ItemFieldDateValue",
+                                "field": {
+                                    "id": "F_TARGET_DATE",
+                                    "name": "Target date",
+                                    "__typename": "ProjectV2Field",
+                                },
+                                "date": "2026-09-14",
+                            },
+                            {
+                                "id": "V_STATUS",
+                                "__typename": "ProjectV2ItemFieldSingleSelectValue",
+                                "field": {
+                                    "id": "F_STATUS",
+                                    "name": "Status",
+                                    "__typename": "ProjectV2SingleSelectField",
+                                },
+                                "name": "Ready",
+                                "optionId": "O_READY",
+                            },
+                        ],
+                        "pageInfo": {"hasNextPage": False, "endCursor": None},
+                    }
+                }
+            }
+        },
+    ]
+
+
+def test_discovery_parses_schema_shaped_fields_values_and_nested_pages() -> None:
+    transport = FakeTransport(discovery_responses())
+
+    state = GitHubClient(transport).discover_state(
+        "Ven-Z8",
+        "Ven-Z8/agentops-harness",
+        "AgentOps Research Control Plane — 14-Day v0.1",
+    )
+
+    assert [(field.name, field.data_type) for field in state.fields] == [
+        ("Status", "SINGLE_SELECT"),
+        ("Harness", "TEXT"),
+        ("Target date", "DATE"),
+        ("Iteration", "ITERATION"),
+        ("Labels", "MULTI_SELECT"),
+    ]
+    assert [
+        (value.field_id, value.field_type, value.value)
+        for value in state.items[0].field_values
+    ] == [
+        ("F_HARNESS", "text", "Codex"),
+        ("F_TARGET_DATE", "date", "2026-09-14"),
+        ("F_STATUS", "single-select", "Ready"),
+    ]
+    assert [variables for _, variables in transport.calls[1:]] == [
+        {"id": "P_1", "after": "FIELDS_1"},
+        {"id": "ITEM_1", "after": "VALUES_1"},
+    ]
+    initial_query, fields_query, values_query = [query for query, _ in transport.calls]
+    assert all(
+        selection in initial_query
+        for selection in (
+            "fields(first: 1)",
+            "views(first: 1)",
+            "items(first: 1)",
+            "fieldValues(first: 1)",
+        )
+    )
+    assert "query ProjectFields" in fields_query
+    assert "fields(first: 100, after: $after)" in fields_query
+    assert "query ItemFieldValues" in values_query
+    assert "fieldValues(first: 100, after: $after)" in values_query
+    assert all("__typename" in query for query in (initial_query, fields_query, values_query))
+    assert "... on ProjectV2MultiSelectField" in fields_query
+    assert "... on ProjectV2ItemFieldSingleSelectValue" in values_query
+    assert all("mutation" not in query.lower() for query, _ in transport.calls)
+
+
+def test_discovery_requires_options_for_single_select_definition() -> None:
+    responses = discovery_responses()
+    definition = responses[0]["data"]["user"]["projectsV2"]["nodes"][0]["fields"]["nodes"][0]
+    del definition["options"]
+
+    with pytest.raises(InvalidControlRoom, match="field options"):
+        GitHubClient(FakeTransport(responses)).discover_state(
+            "Ven-Z8",
+            "Ven-Z8/agentops-harness",
+            "AgentOps Research Control Plane — 14-Day v0.1",
+        )
+
+
+@pytest.mark.parametrize("typename", [None, "ProjectV2RepositoryField"])
+def test_discovery_rejects_missing_or_unsupported_field_definition_typename(typename) -> None:
+    responses = discovery_responses()
+    definition = responses[0]["data"]["user"]["projectsV2"]["nodes"][0]["fields"]["nodes"][0]
+    if typename is None:
+        del definition["__typename"]
+    else:
+        definition["__typename"] = typename
+
+    with pytest.raises(InvalidControlRoom, match="field.*type|field.*malformed"):
+        GitHubClient(FakeTransport(responses)).discover_state(
+            "Ven-Z8",
+            "Ven-Z8/agentops-harness",
+            "AgentOps Research Control Plane — 14-Day v0.1",
+        )
+
+
+@pytest.mark.parametrize(
+    "typename",
+    [None, "ProjectV2ItemFieldRepositoryValue", "ProjectV2ItemFieldDateValue"],
+)
+def test_discovery_rejects_missing_or_inconsistent_field_value_typename(typename) -> None:
+    responses = discovery_responses()
+    value = responses[0]["data"]["user"]["projectsV2"]["nodes"][0]["items"]["nodes"][0][
+        "fieldValues"
+    ]["nodes"][0]
+    if typename is None:
+        del value["__typename"]
+    else:
+        value["__typename"] = typename
+
+    with pytest.raises(InvalidControlRoom, match="field value.*type|field value.*shape"):
+        GitHubClient(FakeTransport(responses)).discover_state(
+            "Ven-Z8",
+            "Ven-Z8/agentops-harness",
+            "AgentOps Research Control Plane — 14-Day v0.1",
+        )
+
+
+@pytest.mark.parametrize(
+    ("key", "value"),
+    [
+        ("__typename", None),
+        ("__typename", "ProjectV2SingleSelectField"),
+        ("__typename", "ProjectV2RepositoryField"),
+        ("id", "F_TARGET_DATE"),
+        ("name", "Target date"),
+    ],
+)
+def test_discovery_requires_nested_field_reference_to_match_definition(key, value) -> None:
+    responses = discovery_responses()
+    field = responses[0]["data"]["user"]["projectsV2"]["nodes"][0]["items"]["nodes"][0][
+        "fieldValues"
+    ]["nodes"][0]["field"]
+    if value is None:
+        del field[key]
+    else:
+        field[key] = value
+
+    with pytest.raises(InvalidControlRoom, match="field value.*field|definition"):
+        GitHubClient(FakeTransport(responses)).discover_state(
+            "Ven-Z8",
+            "Ven-Z8/agentops-harness",
+            "AgentOps Research Control Plane — 14-Day v0.1",
+        )
 
 
 def project_response(
