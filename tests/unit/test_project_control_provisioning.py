@@ -5,7 +5,7 @@ import json
 import pytest
 from pydantic import ValidationError
 
-from app.project_control.errors import InvalidControlRoom
+from app.project_control.errors import DependencyUnavailable, InvalidControlRoom
 from app.project_control.github import (
     DESIRED_FIELDS,
     DESIRED_VIEWS,
@@ -14,6 +14,7 @@ from app.project_control.github import (
     ApplyGhTransport,
     GitHubProvisioner,
     _mutation_id,
+    _mutation_option_ids,
     _typed_input,
     merge_managed_issue_body,
 )
@@ -117,6 +118,10 @@ def test_desired_schema_and_views_are_exact() -> None:
         "In review",
         "Blocked",
         "Done",
+    )
+    assert all(
+        DESIRED_FIELDS[name] == ()
+        for name in ("Harness", "Dependency", "Handoff", "Target date")
     )
     assert DESIRED_VIEWS == ("Inbox", "Kanban", "Phase", "Harness", "Trust Blockers", "Roadmap")
 
@@ -268,6 +273,210 @@ def test_apply_transport_wraps_operation_input_and_rejects_missing_ids(
     ApplyGhTransport().mutate("create_project", {"owner_id": "U_1", "title": "Wanted"})
     assert set(captured[0]["variables"]) == {"input"}
     assert captured[0]["variables"]["input"]["ownerId"] == "U_1"
+
+
+@pytest.mark.parametrize(
+    ("operation", "root", "variables"),
+    (
+        (
+            "create_field",
+            "createProjectV2Field",
+            {
+                "project_id": "PVT_1",
+                "name": "Day",
+                "data_type": "SINGLE_SELECT",
+                "options": ["Day 1"],
+            },
+        ),
+        (
+            "update_field",
+            "updateProjectV2Field",
+            {
+                "project_id": "PVT_1",
+                "field_id": "PVTF_1",
+                "name": "Day",
+                "data_type": "SINGLE_SELECT",
+                "options": ["Day 1"],
+            },
+        ),
+    ),
+)
+def test_field_mutation_documents_select_union_variants(
+    operation: str,
+    root: str,
+    variables: dict[str, object],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: list[dict[str, object]] = []
+    response = {
+        "data": {
+            root: {
+                "projectV2Field": {
+                    "__typename": "ProjectV2SingleSelectField",
+                    "id": "PVTF_1",
+                    "name": "Day",
+                    "dataType": "SINGLE_SELECT",
+                    "options": [{"id": "OPT_1", "name": "Day 1"}],
+                }
+            }
+        }
+    }
+
+    class Result:
+        returncode = 0
+        stdout = json.dumps(response)
+
+    monkeypatch.setattr(
+        "app.project_control.github.subprocess.run",
+        lambda *args, **kwargs: captured.append(json.loads(kwargs["input"])) or Result(),
+    )
+
+    assert ApplyGhTransport().mutate(operation, variables) == response
+
+    query = " ".join(captured[0]["query"].split())
+    assert "projectV2Field { __typename" in query
+    assert "... on ProjectV2Field { id name dataType }" in query
+    assert (
+        "... on ProjectV2SingleSelectField { id name dataType options { id name } }" in query
+    )
+    assert "... on ProjectV2IterationField { id name dataType }" in query
+    assert "... on ProjectV2MultiSelectField { id name dataType }" in query
+    assert "projectV2Field { id name dataType options" not in query
+
+
+@pytest.mark.parametrize(
+    ("operation", "root"),
+    (
+        ("create_field", "createProjectV2Field"),
+        ("update_field", "updateProjectV2Field"),
+    ),
+)
+@pytest.mark.parametrize(
+    "typename",
+    ("ProjectV2Field", "ProjectV2IterationField", "ProjectV2MultiSelectField"),
+)
+def test_field_mutation_options_allow_omission_for_exact_non_select_variants(
+    operation: str,
+    root: str,
+    typename: str,
+) -> None:
+    response = {
+        "data": {
+            root: {
+                "projectV2Field": {
+                    "__typename": typename,
+                    "id": "PVTF_1",
+                    "name": "Field",
+                    "dataType": "TEXT",
+                }
+            }
+        }
+    }
+
+    assert _mutation_option_ids(operation, response) == {}
+
+
+def test_field_mutation_options_require_options_for_single_select() -> None:
+    response = {
+        "data": {
+            "createProjectV2Field": {
+                "projectV2Field": {
+                    "__typename": "ProjectV2SingleSelectField",
+                    "id": "PVTF_1",
+                    "name": "Day",
+                    "dataType": "SINGLE_SELECT",
+                }
+            }
+        }
+    }
+
+    with pytest.raises(InvalidControlRoom, match="options"):
+        _mutation_option_ids("create_field", response)
+
+
+@pytest.mark.parametrize(
+    "field",
+    (
+        {
+            "__typename": "ProjectV2RepositoryField",
+            "id": "PVTF_1",
+            "name": "Repository",
+            "dataType": "REPOSITORY",
+            "options": [],
+        },
+        {
+            "__typename": "ProjectV2Field",
+            "id": "PVTF_1",
+            "name": "Harness",
+            "dataType": "TEXT",
+            "options": [],
+        },
+    ),
+)
+def test_field_mutation_options_reject_unknown_or_impossible_variant_shape(
+    field: dict[str, object],
+) -> None:
+    response = {
+        "data": {"createProjectV2Field": {"projectV2Field": field}},
+    }
+
+    with pytest.raises(InvalidControlRoom, match="type|options"):
+        _mutation_option_ids("create_field", response)
+
+
+@pytest.mark.parametrize(
+    ("stdout", "stderr"),
+    (
+        (
+            json.dumps(
+                {
+                    "errors": [
+                        {
+                            "message": (
+                                "Selections can't be made directly on unions "
+                                "(token=TOP_SECRET)"
+                            )
+                        }
+                    ]
+                }
+            ),
+            "",
+        ),
+        (
+            "",
+            "gh: GraphQL: Selections can't be made directly on unions "
+            "(token=TOP_SECRET)",
+        ),
+    ),
+    ids=("structured-stdout", "graphql-stderr"),
+)
+def test_apply_transport_preserves_sanitized_graphql_validation_evidence(
+    stdout: str,
+    stderr: str,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class Result:
+        returncode = 1
+
+    Result.stdout = stdout
+    Result.stderr = stderr
+
+    monkeypatch.setattr("app.project_control.github.subprocess.run", lambda *_a, **_k: Result())
+
+    with pytest.raises(InvalidControlRoom) as raised:
+        ApplyGhTransport().mutate(
+            "create_field",
+            {
+                "project_id": "PVT_1",
+                "name": "Day",
+                "data_type": "SINGLE_SELECT",
+                "options": ["Day 1"],
+            },
+        )
+
+    assert not isinstance(raised.value, DependencyUnavailable)
+    assert "Selections can't be made directly on unions" in str(raised.value)
+    assert "TOP_SECRET" not in str(raised.value)
 
 
 def test_allowlist_rejects_unregistered_mutation() -> None:
@@ -524,9 +733,16 @@ class _FakeMutationTransport:
         root, node = paths[operation]
         value: dict[str, object] = {"id": f"NODE_{len(self.calls)}"}
         if operation in {"create_field", "update_field"}:
+            value["__typename"] = (
+                "ProjectV2SingleSelectField"
+                if variables.get("data_type") == "SINGLE_SELECT"
+                else "ProjectV2Field"
+            )
+            value["dataType"] = variables.get("data_type", "TEXT")
             value["name"] = variables.get("name", "Field")
-            value["options"] = [
-                {"id": f"OPT_{index}", "name": name}
-                for index, name in enumerate(variables.get("options", []), 1)
-            ]
+            if value["__typename"] == "ProjectV2SingleSelectField":
+                value["options"] = [
+                    {"id": f"OPT_{index}", "name": name}
+                    for index, name in enumerate(variables.get("options", []), 1)
+                ]
         return {"data": {root: {node: value}}}

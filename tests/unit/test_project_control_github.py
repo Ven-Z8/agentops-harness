@@ -178,6 +178,47 @@ def discovery_responses() -> list[dict[str, object]]:
     ]
 
 
+LIVE_DEFAULT_BUILT_INS = (
+    "Title",
+    "Assignees",
+    "Labels",
+    "Milestone",
+    "Repository",
+    "Reviewers",
+    "Iteration",
+    "Linked pull requests",
+    "Parent issue",
+    "Sub-issues progress",
+    "Created",
+    "Updated",
+    "Closed",
+)
+
+
+def test_discovery_accepts_complete_live_default_builtin_set() -> None:
+    responses = discovery_responses()
+    fields = responses[1]["data"]["node"]["fields"]["nodes"]
+    existing = {field["name"] for field in fields}
+    fields.extend(
+        {
+            "id": f"F_BUILTIN_{index}",
+            "name": name,
+            "__typename": "ProjectV2Field",
+            "dataType": name.upper().replace(" ", "_").replace("-", "_"),
+        }
+        for index, name in enumerate(LIVE_DEFAULT_BUILT_INS, start=1)
+        if name not in existing
+    )
+
+    state = GitHubClient(FakeTransport(responses)).discover_state(
+        "Ven-Z8",
+        "Ven-Z8/agentops-harness",
+        "AgentOps Research Control Plane — 14-Day v0.1",
+    )
+
+    assert set(LIVE_DEFAULT_BUILT_INS) <= {field.name for field in state.fields}
+
+
 def test_discovery_parses_schema_shaped_fields_values_and_nested_pages() -> None:
     transport = FakeTransport(discovery_responses())
 

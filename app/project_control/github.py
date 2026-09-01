@@ -416,6 +416,12 @@ _IGNORED_BUILT_INS = {
     "Repository",
     "Reviewers",
     "Iteration",
+    "Linked pull requests",
+    "Parent issue",
+    "Sub-issues progress",
+    "Created",
+    "Updated",
+    "Closed",
 }
 _IGNORED_BUILT_IN_TYPES = {"Iteration": {"ProjectV2IterationField"}}
 _CONTROL_FIELD_TYPES = {
@@ -466,7 +472,7 @@ DESIRED_FIELDS: dict[str, tuple[str, ...]] = {
     "Type": ("Roadmap", "phase", "outcome", "task", "decision", "research"),
     "Risk": ("Critical", "high", "medium", "low"),
     "Evidence": ("Missing", "inconclusive", "partial", "verified"),
-    "Harness": ("Unassigned",),
+    "Harness": (),
     "Dependency": (),
     "Handoff": (),
     "Target date": (),
@@ -539,13 +545,15 @@ _MUTATION_QUERIES = {
     ),
     "create_field": (
         "mutation CreateField($input: CreateProjectV2FieldInput!) { "
-        "createProjectV2Field(input: $input) { projectV2Field { id name dataType "
-        "options { id name } } }"
+        "createProjectV2Field(input: $input) { projectV2Field "
+        + _DISCOVERY_FIELD_DEFINITION_SELECTION
+        + " } }"
     ),
     "update_field": (
         "mutation UpdateField($input: UpdateProjectV2FieldInput!) { "
-        "updateProjectV2Field(input: $input) { projectV2Field { id name dataType "
-        "options { id name } } }"
+        "updateProjectV2Field(input: $input) { projectV2Field "
+        + _DISCOVERY_FIELD_DEFINITION_SELECTION
+        + " } }"
     ),
     "create_issue": (
         "mutation CreateIssue($input: CreateIssueInput!) { "
@@ -817,6 +825,9 @@ class ApplyGhTransport:
         except (OSError, subprocess.SubprocessError) as error:
             raise DependencyUnavailable("GitHub CLI could not be executed") from error
         if result.returncode != 0:
+            evidence = _graphql_failure_evidence(result.stdout, result.stderr)
+            if evidence is not None:
+                raise InvalidControlRoom(f"GitHub mutation GraphQL request failed: {evidence}")
             raise DependencyUnavailable("GitHub CLI is unavailable or unauthenticated")
         try:
             value = json.loads(result.stdout)
@@ -1006,7 +1017,16 @@ def _mutation_option_ids(operation: str, response: object) -> dict[str, str]:
         if not isinstance(current, dict) or key not in current:
             raise InvalidControlRoom("GitHub field mutation response path is malformed")
         current = current[key]
-    if not isinstance(current, dict) or not isinstance(current.get("options"), list):
+    if not isinstance(current, dict):
+        raise InvalidControlRoom("GitHub field mutation response path is malformed")
+    typename = current.get("__typename")
+    if typename in _DISCOVERY_FIELD_TYPES - {"ProjectV2SingleSelectField"}:
+        if "options" in current:
+            raise InvalidControlRoom("GitHub field mutation response options are malformed")
+        return {}
+    if typename != "ProjectV2SingleSelectField":
+        raise InvalidControlRoom("GitHub field mutation response type is malformed")
+    if not isinstance(current.get("options"), list):
         raise InvalidControlRoom("GitHub field mutation response options are malformed")
     result: dict[str, str] = {}
     ids: set[str] = set()
@@ -1068,6 +1088,29 @@ def _safe_remote_error(error: Exception) -> str:
     text = str(error).replace("\x1b", "")
     text = re.sub(r"(?i)(token|secret|password|authorization)\s*[:=]\s*\S+", r"\1=<redacted>", text)
     return text[:500] or error.__class__.__name__
+
+
+def _graphql_failure_evidence(stdout: str, stderr: str) -> str | None:
+    messages: list[str] = []
+    try:
+        value = json.loads(stdout)
+    except (json.JSONDecodeError, TypeError):
+        value = None
+    errors = value.get("errors") if isinstance(value, dict) else None
+    if isinstance(errors, list):
+        messages.extend(
+            str(error["message"])
+            for error in errors
+            if isinstance(error, dict) and isinstance(error.get("message"), str)
+        )
+    if not messages and isinstance(stderr, str) and re.search(
+        r"(?i)graphql|can't be made directly on unions|cannot query field|unknown field",
+        stderr,
+    ):
+        messages.append(stderr)
+    if not messages:
+        return None
+    return _safe_remote_error(InvalidControlRoom("; ".join(messages)))
 
 
 class GitHubProvisioner:
