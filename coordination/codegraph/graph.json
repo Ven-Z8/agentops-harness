@@ -10653,6 +10653,12 @@
     {
       "metadata": {},
       "source": "file:app/project_control/snapshots.py",
+      "target": "import:python:app.project_control.models.VerificationEvidence",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/project_control/snapshots.py",
       "target": "import:python:app.project_control.models._https_url",
       "type": "imports"
     },
@@ -20931,6 +20937,12 @@
     {
       "metadata": {},
       "source": "file:tests/unit/test_project_control_snapshots.py",
+      "target": "import:python:app.project_control.models.VerificationEvidence",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_snapshots.py",
       "target": "import:python:app.project_control.snapshots",
       "type": "imports"
     },
@@ -24600,7 +24612,7 @@
       "id": "class:python:app.project_control.models.ProvisionAction",
       "language": "python",
       "metadata": {
-        "line": 879,
+        "line": 880,
         "qualified_name": "app.project_control.models.ProvisionAction"
       },
       "name": "ProvisionAction",
@@ -24611,7 +24623,7 @@
       "id": "class:python:app.project_control.models.ProvisioningPlan",
       "language": "python",
       "metadata": {
-        "line": 902,
+        "line": 903,
         "qualified_name": "app.project_control.models.ProvisioningPlan"
       },
       "name": "ProvisioningPlan",
@@ -24622,7 +24634,7 @@
       "id": "class:python:app.project_control.models.ReconciliationAction",
       "language": "python",
       "metadata": {
-        "line": 956,
+        "line": 957,
         "qualified_name": "app.project_control.models.ReconciliationAction"
       },
       "name": "ReconciliationAction",
@@ -24633,7 +24645,7 @@
       "id": "class:python:app.project_control.models.ReconciliationId",
       "language": "python",
       "metadata": {
-        "line": 975,
+        "line": 976,
         "qualified_name": "app.project_control.models.ReconciliationId"
       },
       "name": "ReconciliationId",
@@ -24644,7 +24656,7 @@
       "id": "class:python:app.project_control.models.ReconciliationReport",
       "language": "python",
       "metadata": {
-        "line": 981,
+        "line": 982,
         "qualified_name": "app.project_control.models.ReconciliationReport"
       },
       "name": "ReconciliationReport",
@@ -24655,7 +24667,7 @@
       "id": "class:python:app.project_control.models.RemoteField",
       "language": "python",
       "metadata": {
-        "line": 753,
+        "line": 754,
         "qualified_name": "app.project_control.models.RemoteField"
       },
       "name": "RemoteField",
@@ -24666,7 +24678,7 @@
       "id": "class:python:app.project_control.models.RemoteFieldValue",
       "language": "python",
       "metadata": {
-        "line": 682,
+        "line": 683,
         "qualified_name": "app.project_control.models.RemoteFieldValue"
       },
       "name": "RemoteFieldValue",
@@ -24677,7 +24689,7 @@
       "id": "class:python:app.project_control.models.RemoteGitHubState",
       "language": "python",
       "metadata": {
-        "line": 804,
+        "line": 805,
         "qualified_name": "app.project_control.models.RemoteGitHubState"
       },
       "name": "RemoteGitHubState",
@@ -24688,7 +24700,7 @@
       "id": "class:python:app.project_control.models.RemoteIssue",
       "language": "python",
       "metadata": {
-        "line": 661,
+        "line": 662,
         "qualified_name": "app.project_control.models.RemoteIssue"
       },
       "name": "RemoteIssue",
@@ -24699,7 +24711,7 @@
       "id": "class:python:app.project_control.models.RemoteOption",
       "language": "python",
       "metadata": {
-        "line": 674,
+        "line": 675,
         "qualified_name": "app.project_control.models.RemoteOption"
       },
       "name": "RemoteOption",
@@ -24710,7 +24722,7 @@
       "id": "class:python:app.project_control.models.RemoteProject",
       "language": "python",
       "metadata": {
-        "line": 650,
+        "line": 651,
         "qualified_name": "app.project_control.models.RemoteProject"
       },
       "name": "RemoteProject",
@@ -24721,7 +24733,7 @@
       "id": "class:python:app.project_control.models.RemoteProjectItem",
       "language": "python",
       "metadata": {
-        "line": 766,
+        "line": 767,
         "qualified_name": "app.project_control.models.RemoteProjectItem"
       },
       "name": "RemoteProjectItem",
@@ -24732,7 +24744,7 @@
       "id": "class:python:app.project_control.models.RemoteView",
       "language": "python",
       "metadata": {
-        "line": 794,
+        "line": 795,
         "qualified_name": "app.project_control.models.RemoteView"
       },
       "name": "RemoteView",
@@ -34156,7 +34168,7 @@
       "id": "function:python:app.project_control.models.__post_init__",
       "language": "python",
       "metadata": {
-        "line": 886,
+        "line": 887,
         "qualified_name": "app.project_control.models.__post_init__"
       },
       "name": "__post_init__",
@@ -34167,7 +34179,7 @@
       "id": "function:python:app.project_control.models._freeze_plan_value",
       "language": "python",
       "metadata": {
-        "line": 1045,
+        "line": 1046,
         "qualified_name": "app.project_control.models._freeze_plan_value"
       },
       "name": "_freeze_plan_value",
@@ -34178,7 +34190,7 @@
       "id": "function:python:app.project_control.models._freeze_report_value",
       "language": "python",
       "metadata": {
-        "line": 1037,
+        "line": 1038,
         "qualified_name": "app.project_control.models._freeze_report_value"
       },
       "name": "_freeze_report_value",
@@ -34244,7 +34256,7 @@
       "id": "function:python:app.project_control.models._report_action_dict",
       "language": "python",
       "metadata": {
-        "line": 1027,
+        "line": 1028,
         "qualified_name": "app.project_control.models._report_action_dict"
       },
       "name": "_report_action_dict",
@@ -34288,7 +34300,7 @@
       "id": "function:python:app.project_control.models._thaw_plan_value",
       "language": "python",
       "metadata": {
-        "line": 1053,
+        "line": 1054,
         "qualified_name": "app.project_control.models._thaw_plan_value"
       },
       "name": "_thaw_plan_value",
@@ -34299,7 +34311,7 @@
       "id": "function:python:app.project_control.models._thaw_report_value",
       "language": "python",
       "metadata": {
-        "line": 1061,
+        "line": 1062,
         "qualified_name": "app.project_control.models._thaw_report_value"
       },
       "name": "_thaw_report_value",
@@ -34310,7 +34322,7 @@
       "id": "function:python:app.project_control.models.actions",
       "language": "python",
       "metadata": {
-        "line": 922,
+        "line": 923,
         "qualified_name": "app.project_control.models.actions"
       },
       "name": "actions",
@@ -34321,7 +34333,7 @@
       "id": "function:python:app.project_control.models.as_dict",
       "language": "python",
       "metadata": {
-        "line": 891,
+        "line": 892,
         "qualified_name": "app.project_control.models.as_dict"
       },
       "name": "as_dict",
@@ -34343,7 +34355,7 @@
       "id": "function:python:app.project_control.models.freeze_collections",
       "language": "python",
       "metadata": {
-        "line": 818,
+        "line": 819,
         "qualified_name": "app.project_control.models.freeze_collections"
       },
       "name": "freeze_collections",
@@ -34354,7 +34366,7 @@
       "id": "function:python:app.project_control.models.freeze_field_values",
       "language": "python",
       "metadata": {
-        "line": 781,
+        "line": 782,
         "qualified_name": "app.project_control.models.freeze_field_values"
       },
       "name": "freeze_field_values",
@@ -34365,7 +34377,7 @@
       "id": "function:python:app.project_control.models.freeze_options",
       "language": "python",
       "metadata": {
-        "line": 762,
+        "line": 763,
         "qualified_name": "app.project_control.models.freeze_options"
       },
       "name": "freeze_options",
@@ -34376,7 +34388,7 @@
       "id": "function:python:app.project_control.models.freeze_payload",
       "language": "python",
       "metadata": {
-        "line": 966,
+        "line": 967,
         "qualified_name": "app.project_control.models.freeze_payload"
       },
       "name": "freeze_payload",
@@ -34387,7 +34399,7 @@
       "id": "function:python:app.project_control.models.reject_duplicate_fields",
       "language": "python",
       "metadata": {
-        "line": 787,
+        "line": 788,
         "qualified_name": "app.project_control.models.reject_duplicate_fields"
       },
       "name": "reject_duplicate_fields",
@@ -34431,7 +34443,7 @@
       "id": "function:python:app.project_control.models.to_json",
       "language": "python",
       "metadata": {
-        "line": 935,
+        "line": 936,
         "qualified_name": "app.project_control.models.to_json"
       },
       "name": "to_json",
@@ -34442,7 +34454,7 @@
       "id": "function:python:app.project_control.models.to_markdown",
       "language": "python",
       "metadata": {
-        "line": 940,
+        "line": 941,
         "qualified_name": "app.project_control.models.to_markdown"
       },
       "name": "to_markdown",
@@ -34508,7 +34520,7 @@
       "id": "function:python:app.project_control.models.validate_iso_date",
       "language": "python",
       "metadata": {
-        "line": 730,
+        "line": 731,
         "qualified_name": "app.project_control.models.validate_iso_date"
       },
       "name": "validate_iso_date",
@@ -34541,7 +34553,7 @@
       "id": "function:python:app.project_control.models.validate_remote_id",
       "language": "python",
       "metadata": {
-        "line": 823,
+        "line": 824,
         "qualified_name": "app.project_control.models.validate_remote_id"
       },
       "name": "validate_remote_id",
@@ -34563,7 +34575,7 @@
       "id": "function:python:app.project_control.models.validate_safe_text",
       "language": "python",
       "metadata": {
-        "line": 723,
+        "line": 724,
         "qualified_name": "app.project_control.models.validate_safe_text"
       },
       "name": "validate_safe_text",
@@ -34574,7 +34586,7 @@
       "id": "function:python:app.project_control.models.validate_snapshot_source_revision",
       "language": "python",
       "metadata": {
-        "line": 641,
+        "line": 642,
         "qualified_name": "app.project_control.models.validate_snapshot_source_revision"
       },
       "name": "validate_snapshot_source_revision",
@@ -34640,7 +34652,7 @@
       "id": "function:python:app.project_control.models.validate_timestamps",
       "language": "python",
       "metadata": {
-        "line": 998,
+        "line": 999,
         "qualified_name": "app.project_control.models.validate_timestamps"
       },
       "name": "validate_timestamps",
@@ -34651,7 +34663,7 @@
       "id": "function:python:app.project_control.models.validate_typed_value",
       "language": "python",
       "metadata": {
-        "line": 694,
+        "line": 695,
         "qualified_name": "app.project_control.models.validate_typed_value"
       },
       "name": "validate_typed_value",
@@ -34673,7 +34685,7 @@
       "id": "function:python:app.project_control.models.validate_unique_remote_keys",
       "language": "python",
       "metadata": {
-        "line": 829,
+        "line": 830,
         "qualified_name": "app.project_control.models.validate_unique_remote_keys"
       },
       "name": "validate_unique_remote_keys",
@@ -34684,7 +34696,7 @@
       "id": "function:python:app.project_control.models.value",
       "language": "python",
       "metadata": {
-        "line": 743,
+        "line": 744,
         "qualified_name": "app.project_control.models.value"
       },
       "name": "value",
@@ -34783,7 +34795,7 @@
       "id": "function:python:app.project_control.snapshots._codegraph_freshness",
       "language": "python",
       "metadata": {
-        "line": 455,
+        "line": 466,
         "qualified_name": "app.project_control.snapshots._codegraph_freshness"
       },
       "name": "_codegraph_freshness",
@@ -34794,7 +34806,7 @@
       "id": "function:python:app.project_control.snapshots._codegraph_status",
       "language": "python",
       "metadata": {
-        "line": 196,
+        "line": 197,
         "qualified_name": "app.project_control.snapshots._codegraph_status"
       },
       "name": "_codegraph_status",
@@ -34805,7 +34817,7 @@
       "id": "function:python:app.project_control.snapshots._current_phase",
       "language": "python",
       "metadata": {
-        "line": 176,
+        "line": 177,
         "qualified_name": "app.project_control.snapshots._current_phase"
       },
       "name": "_current_phase",
@@ -34816,7 +34828,7 @@
       "id": "function:python:app.project_control.snapshots._excluded_snapshot_output",
       "language": "python",
       "metadata": {
-        "line": 414,
+        "line": 420,
         "qualified_name": "app.project_control.snapshots._excluded_snapshot_output"
       },
       "name": "_excluded_snapshot_output",
@@ -34827,7 +34839,7 @@
       "id": "function:python:app.project_control.snapshots._immediate_objective",
       "language": "python",
       "metadata": {
-        "line": 183,
+        "line": 184,
         "qualified_name": "app.project_control.snapshots._immediate_objective"
       },
       "name": "_immediate_objective",
@@ -34838,7 +34850,7 @@
       "id": "function:python:app.project_control.snapshots._initial_board",
       "language": "python",
       "metadata": {
-        "line": 472,
+        "line": 483,
         "qualified_name": "app.project_control.snapshots._initial_board"
       },
       "name": "_initial_board",
@@ -34849,7 +34861,7 @@
       "id": "function:python:app.project_control.snapshots._inputs_are_dirty",
       "language": "python",
       "metadata": {
-        "line": 419,
+        "line": 425,
         "qualified_name": "app.project_control.snapshots._inputs_are_dirty"
       },
       "name": "_inputs_are_dirty",
@@ -34860,7 +34872,7 @@
       "id": "function:python:app.project_control.snapshots._load_state",
       "language": "python",
       "metadata": {
-        "line": 429,
+        "line": 435,
         "qualified_name": "app.project_control.snapshots._load_state"
       },
       "name": "_load_state",
@@ -34871,7 +34883,7 @@
       "id": "function:python:app.project_control.snapshots._local_link",
       "language": "python",
       "metadata": {
-        "line": 59,
+        "line": 60,
         "qualified_name": "app.project_control.snapshots._local_link"
       },
       "name": "_local_link",
@@ -34882,7 +34894,7 @@
       "id": "function:python:app.project_control.snapshots._markdown",
       "language": "python",
       "metadata": {
-        "line": 73,
+        "line": 74,
         "qualified_name": "app.project_control.snapshots._markdown"
       },
       "name": "_markdown",
@@ -34893,7 +34905,7 @@
       "id": "function:python:app.project_control.snapshots._phase_summaries",
       "language": "python",
       "metadata": {
-        "line": 83,
+        "line": 84,
         "qualified_name": "app.project_control.snapshots._phase_summaries"
       },
       "name": "_phase_summaries",
@@ -34904,7 +34916,7 @@
       "id": "function:python:app.project_control.snapshots._prepare",
       "language": "python",
       "metadata": {
-        "line": 553,
+        "line": 564,
         "qualified_name": "app.project_control.snapshots._prepare"
       },
       "name": "_prepare",
@@ -34915,7 +34927,7 @@
       "id": "function:python:app.project_control.snapshots._record_input_paths",
       "language": "python",
       "metadata": {
-        "line": 393,
+        "line": 399,
         "qualified_name": "app.project_control.snapshots._record_input_paths"
       },
       "name": "_record_input_paths",
@@ -34926,7 +34938,7 @@
       "id": "function:python:app.project_control.snapshots._render_current_with_freshness",
       "language": "python",
       "metadata": {
-        "line": 467,
+        "line": 478,
         "qualified_name": "app.project_control.snapshots._render_current_with_freshness"
       },
       "name": "_render_current_with_freshness",
@@ -34937,7 +34949,7 @@
       "id": "function:python:app.project_control.snapshots._replace_pair",
       "language": "python",
       "metadata": {
-        "line": 561,
+        "line": 572,
         "qualified_name": "app.project_control.snapshots._replace_pair"
       },
       "name": "_replace_pair",
@@ -34948,7 +34960,7 @@
       "id": "function:python:app.project_control.snapshots._roadmap_board_sort_key",
       "language": "python",
       "metadata": {
-        "line": 50,
+        "line": 51,
         "qualified_name": "app.project_control.snapshots._roadmap_board_sort_key"
       },
       "name": "_roadmap_board_sort_key",
@@ -34959,7 +34971,7 @@
       "id": "function:python:app.project_control.snapshots._snapshot_input_paths",
       "language": "python",
       "metadata": {
-        "line": 363,
+        "line": 369,
         "qualified_name": "app.project_control.snapshots._snapshot_input_paths"
       },
       "name": "_snapshot_input_paths",
@@ -34970,7 +34982,7 @@
       "id": "function:python:app.project_control.snapshots._snapshot_source_revision",
       "language": "python",
       "metadata": {
-        "line": 336,
+        "line": 342,
         "qualified_name": "app.project_control.snapshots._snapshot_source_revision"
       },
       "name": "_snapshot_source_revision",
@@ -34981,7 +34993,7 @@
       "id": "function:python:app.project_control.snapshots._timestamp",
       "language": "python",
       "metadata": {
-        "line": 34,
+        "line": 35,
         "qualified_name": "app.project_control.snapshots._timestamp"
       },
       "name": "_timestamp",
@@ -34992,7 +35004,7 @@
       "id": "function:python:app.project_control.snapshots._url_link",
       "language": "python",
       "metadata": {
-        "line": 67,
+        "line": 68,
         "qualified_name": "app.project_control.snapshots._url_link"
       },
       "name": "_url_link",
@@ -35003,7 +35015,7 @@
       "id": "function:python:app.project_control.snapshots.board_sort_key",
       "language": "python",
       "metadata": {
-        "line": 40,
+        "line": 41,
         "qualified_name": "app.project_control.snapshots.board_sort_key"
       },
       "name": "board_sort_key",
@@ -35014,7 +35026,7 @@
       "id": "function:python:app.project_control.snapshots.render_board",
       "language": "python",
       "metadata": {
-        "line": 101,
+        "line": 102,
         "qualified_name": "app.project_control.snapshots.render_board"
       },
       "name": "render_board",
@@ -35025,7 +35037,7 @@
       "id": "function:python:app.project_control.snapshots.render_current",
       "language": "python",
       "metadata": {
-        "line": 206,
+        "line": 207,
         "qualified_name": "app.project_control.snapshots.render_current"
       },
       "name": "render_current",
@@ -35036,7 +35048,7 @@
       "id": "function:python:app.project_control.snapshots.write_initial_snapshots",
       "language": "python",
       "metadata": {
-        "line": 538,
+        "line": 549,
         "qualified_name": "app.project_control.snapshots.write_initial_snapshots"
       },
       "name": "write_initial_snapshots",
@@ -35047,7 +35059,7 @@
       "id": "function:python:app.project_control.snapshots.write_snapshots",
       "language": "python",
       "metadata": {
-        "line": 522,
+        "line": 533,
         "qualified_name": "app.project_control.snapshots.write_snapshots"
       },
       "name": "write_snapshots",
@@ -42329,7 +42341,7 @@
       "id": "function:python:tests.unit.test_project_control_snapshots._git",
       "language": "python",
       "metadata": {
-        "line": 742,
+        "line": 762,
         "qualified_name": "tests.unit.test_project_control_snapshots._git"
       },
       "name": "_git",
@@ -42340,7 +42352,7 @@
       "id": "function:python:tests.unit.test_project_control_snapshots._init_snapshot_git_repository",
       "language": "python",
       "metadata": {
-        "line": 726,
+        "line": 746,
         "qualified_name": "tests.unit.test_project_control_snapshots._init_snapshot_git_repository"
       },
       "name": "_init_snapshot_git_repository",
@@ -42351,7 +42363,7 @@
       "id": "function:python:tests.unit.test_project_control_snapshots.fail_restore",
       "language": "python",
       "metadata": {
-        "line": 504,
+        "line": 524,
         "qualified_name": "tests.unit.test_project_control_snapshots.fail_restore"
       },
       "name": "fail_restore",
@@ -42362,7 +42374,7 @@
       "id": "function:python:tests.unit.test_project_control_snapshots.fail_second",
       "language": "python",
       "metadata": {
-        "line": 436,
+        "line": 456,
         "qualified_name": "tests.unit.test_project_control_snapshots.fail_second"
       },
       "name": "fail_second",
@@ -42373,7 +42385,7 @@
       "id": "function:python:tests.unit.test_project_control_snapshots.fail_second_prepare",
       "language": "python",
       "metadata": {
-        "line": 402,
+        "line": 422,
         "qualified_name": "tests.unit.test_project_control_snapshots.fail_second_prepare"
       },
       "name": "fail_second_prepare",
@@ -42384,7 +42396,7 @@
       "id": "function:python:tests.unit.test_project_control_snapshots.fail_second_replace",
       "language": "python",
       "metadata": {
-        "line": 497,
+        "line": 517,
         "qualified_name": "tests.unit.test_project_control_snapshots.fail_second_replace"
       },
       "name": "fail_second_replace",
@@ -42395,7 +42407,7 @@
       "id": "function:python:tests.unit.test_project_control_snapshots.test_board_export_rejects_unsafe_relative_handoff_links",
       "language": "python",
       "metadata": {
-        "line": 686,
+        "line": 706,
         "qualified_name": "tests.unit.test_project_control_snapshots.test_board_export_rejects_unsafe_relative_handoff_links"
       },
       "name": "test_board_export_rejects_unsafe_relative_handoff_links",
@@ -42406,7 +42418,7 @@
       "id": "function:python:tests.unit.test_project_control_snapshots.test_board_export_rejects_untruthful_source_revisions",
       "language": "python",
       "metadata": {
-        "line": 280,
+        "line": 300,
         "qualified_name": "tests.unit.test_project_control_snapshots.test_board_export_rejects_untruthful_source_revisions"
       },
       "name": "test_board_export_rejects_untruthful_source_revisions",
@@ -42417,7 +42429,7 @@
       "id": "function:python:tests.unit.test_project_control_snapshots.test_board_export_renders_safe_normalized_relative_handoff_link",
       "language": "python",
       "metadata": {
-        "line": 705,
+        "line": 725,
         "qualified_name": "tests.unit.test_project_control_snapshots.test_board_export_renders_safe_normalized_relative_handoff_link"
       },
       "name": "test_board_export_renders_safe_normalized_relative_handoff_link",
@@ -42450,7 +42462,7 @@
       "id": "function:python:tests.unit.test_project_control_snapshots.test_current_and_initial_board_render_repository_record_links",
       "language": "python",
       "metadata": {
-        "line": 209,
+        "line": 229,
         "qualified_name": "tests.unit.test_project_control_snapshots.test_current_and_initial_board_render_repository_record_links"
       },
       "name": "test_current_and_initial_board_render_repository_record_links",
@@ -42483,7 +42495,7 @@
       "id": "function:python:tests.unit.test_project_control_snapshots.test_dirty_generated_outputs_do_not_invalidate_snapshot_provenance",
       "language": "python",
       "metadata": {
-        "line": 592,
+        "line": 612,
         "qualified_name": "tests.unit.test_project_control_snapshots.test_dirty_generated_outputs_do_not_invalidate_snapshot_provenance"
       },
       "name": "test_dirty_generated_outputs_do_not_invalidate_snapshot_provenance",
@@ -42494,7 +42506,7 @@
       "id": "function:python:tests.unit.test_project_control_snapshots.test_dirty_snapshot_input_makes_provenance_unavailable",
       "language": "python",
       "metadata": {
-        "line": 582,
+        "line": 602,
         "qualified_name": "tests.unit.test_project_control_snapshots.test_dirty_snapshot_input_makes_provenance_unavailable"
       },
       "name": "test_dirty_snapshot_input_makes_provenance_unavailable",
@@ -42505,7 +42517,7 @@
       "id": "function:python:tests.unit.test_project_control_snapshots.test_empty_live_export_remains_authoritative_for_current_state",
       "language": "python",
       "metadata": {
-        "line": 292,
+        "line": 312,
         "qualified_name": "tests.unit.test_project_control_snapshots.test_empty_live_export_remains_authoritative_for_current_state"
       },
       "name": "test_empty_live_export_remains_authoritative_for_current_state",
@@ -42516,7 +42528,7 @@
       "id": "function:python:tests.unit.test_project_control_snapshots.test_fixed_clock_snapshot_reproduces_committed_bytes_after_output_only_commit",
       "language": "python",
       "metadata": {
-        "line": 601,
+        "line": 621,
         "qualified_name": "tests.unit.test_project_control_snapshots.test_fixed_clock_snapshot_reproduces_committed_bytes_after_output_only_commit"
       },
       "name": "test_fixed_clock_snapshot_reproduces_committed_bytes_after_output_only_commit",
@@ -42527,7 +42539,7 @@
       "id": "function:python:tests.unit.test_project_control_snapshots.test_fresh_codegraph_stays_fresh_across_two_fixed_clock_snapshot_generations",
       "language": "python",
       "metadata": {
-        "line": 623,
+        "line": 643,
         "qualified_name": "tests.unit.test_project_control_snapshots.test_fresh_codegraph_stays_fresh_across_two_fixed_clock_snapshot_generations"
       },
       "name": "test_fresh_codegraph_stays_fresh_across_two_fixed_clock_snapshot_generations",
@@ -42538,7 +42550,7 @@
       "id": "function:python:tests.unit.test_project_control_snapshots.test_initial_snapshots_are_stable_and_identify_unprovisioned_project",
       "language": "python",
       "metadata": {
-        "line": 132,
+        "line": 152,
         "qualified_name": "tests.unit.test_project_control_snapshots.test_initial_snapshots_are_stable_and_identify_unprovisioned_project"
       },
       "name": "test_initial_snapshots_are_stable_and_identify_unprovisioned_project",
@@ -42549,7 +42561,7 @@
       "id": "function:python:tests.unit.test_project_control_snapshots.test_invalid_export_does_not_replace_last_good_board",
       "language": "python",
       "metadata": {
-        "line": 120,
+        "line": 140,
         "qualified_name": "tests.unit.test_project_control_snapshots.test_invalid_export_does_not_replace_last_good_board"
       },
       "name": "test_invalid_export_does_not_replace_last_good_board",
@@ -42560,7 +42572,7 @@
       "id": "function:python:tests.unit.test_project_control_snapshots.test_live_board_export_controls_current_phase_objective_and_blockers",
       "language": "python",
       "metadata": {
-        "line": 155,
+        "line": 175,
         "qualified_name": "tests.unit.test_project_control_snapshots.test_live_board_export_controls_current_phase_objective_and_blockers"
       },
       "name": "test_live_board_export_controls_current_phase_objective_and_blockers",
@@ -42571,7 +42583,7 @@
       "id": "function:python:tests.unit.test_project_control_snapshots.test_live_export_rejects_markdown_syntax_in_identifiers_and_links",
       "language": "python",
       "metadata": {
-        "line": 335,
+        "line": 355,
         "qualified_name": "tests.unit.test_project_control_snapshots.test_live_export_rejects_markdown_syntax_in_identifiers_and_links"
       },
       "name": "test_live_export_rejects_markdown_syntax_in_identifiers_and_links",
@@ -42582,7 +42594,7 @@
       "id": "function:python:tests.unit.test_project_control_snapshots.test_live_rendering_escapes_display_text_across_all_untrusted_fields",
       "language": "python",
       "metadata": {
-        "line": 360,
+        "line": 380,
         "qualified_name": "tests.unit.test_project_control_snapshots.test_live_rendering_escapes_display_text_across_all_untrusted_fields"
       },
       "name": "test_live_rendering_escapes_display_text_across_all_untrusted_fields",
@@ -42593,7 +42605,7 @@
       "id": "function:python:tests.unit.test_project_control_snapshots.test_live_rendering_is_deterministic_and_escapes_forged_heading",
       "language": "python",
       "metadata": {
-        "line": 305,
+        "line": 325,
         "qualified_name": "tests.unit.test_project_control_snapshots.test_live_rendering_is_deterministic_and_escapes_forged_heading"
       },
       "name": "test_live_rendering_is_deterministic_and_escapes_forged_heading",
@@ -42604,7 +42616,7 @@
       "id": "function:python:tests.unit.test_project_control_snapshots.test_replace_failure_reports_partial_state_when_rollback_fails",
       "language": "python",
       "metadata": {
-        "line": 484,
+        "line": 504,
         "qualified_name": "tests.unit.test_project_control_snapshots.test_replace_failure_reports_partial_state_when_rollback_fails"
       },
       "name": "test_replace_failure_reports_partial_state_when_rollback_fails",
@@ -42615,7 +42627,7 @@
       "id": "function:python:tests.unit.test_project_control_snapshots.test_second_replace_failure_keeps_both_initially_absent",
       "language": "python",
       "metadata": {
-        "line": 457,
+        "line": 477,
         "qualified_name": "tests.unit.test_project_control_snapshots.test_second_replace_failure_keeps_both_initially_absent"
       },
       "name": "test_second_replace_failure_keeps_both_initially_absent",
@@ -42626,7 +42638,7 @@
       "id": "function:python:tests.unit.test_project_control_snapshots.test_second_replace_failure_restores_both_existing_snapshots",
       "language": "python",
       "metadata": {
-        "line": 425,
+        "line": 445,
         "qualified_name": "tests.unit.test_project_control_snapshots.test_second_replace_failure_restores_both_existing_snapshots"
       },
       "name": "test_second_replace_failure_restores_both_existing_snapshots",
@@ -42637,7 +42649,7 @@
       "id": "function:python:tests.unit.test_project_control_snapshots.test_second_temp_prepare_failure_removes_first_temp_without_replacing_destinations",
       "language": "python",
       "metadata": {
-        "line": 390,
+        "line": 410,
         "qualified_name": "tests.unit.test_project_control_snapshots.test_second_temp_prepare_failure_removes_first_temp_without_replacing_destinations"
       },
       "name": "test_second_temp_prepare_failure_removes_first_temp_without_replacing_destinations",
@@ -42648,7 +42660,7 @@
       "id": "function:python:tests.unit.test_project_control_snapshots.test_snapshot_freshness_uses_configured_alternate_codegraph",
       "language": "python",
       "metadata": {
-        "line": 648,
+        "line": 668,
         "qualified_name": "tests.unit.test_project_control_snapshots.test_snapshot_freshness_uses_configured_alternate_codegraph"
       },
       "name": "test_snapshot_freshness_uses_configured_alternate_codegraph",
@@ -42659,7 +42671,7 @@
       "id": "function:python:tests.unit.test_project_control_snapshots.test_snapshot_provenance_separates_baseline_snapshot_and_graph_revisions",
       "language": "python",
       "metadata": {
-        "line": 268,
+        "line": 288,
         "qualified_name": "tests.unit.test_project_control_snapshots.test_snapshot_provenance_separates_baseline_snapshot_and_graph_revisions"
       },
       "name": "test_snapshot_provenance_separates_baseline_snapshot_and_graph_revisions",
@@ -42670,7 +42682,7 @@
       "id": "function:python:tests.unit.test_project_control_snapshots.test_snapshot_record_loading_rejects_unknown_or_malformed_handoffs",
       "language": "python",
       "metadata": {
-        "line": 245,
+        "line": 265,
         "qualified_name": "tests.unit.test_project_control_snapshots.test_snapshot_record_loading_rejects_unknown_or_malformed_handoffs"
       },
       "name": "test_snapshot_record_loading_rejects_unknown_or_malformed_handoffs",
@@ -42681,7 +42693,7 @@
       "id": "function:python:tests.unit.test_project_control_snapshots.test_snapshot_source_revision_ignores_outputs_but_tracks_inputs_and_renderer",
       "language": "python",
       "metadata": {
-        "line": 533,
+        "line": 553,
         "qualified_name": "tests.unit.test_project_control_snapshots.test_snapshot_source_revision_ignores_outputs_but_tracks_inputs_and_renderer"
       },
       "name": "test_snapshot_source_revision_ignores_outputs_but_tracks_inputs_and_renderer",
@@ -42692,7 +42704,7 @@
       "id": "function:python:tests.unit.test_project_control_snapshots.test_snapshot_source_revision_uses_configured_alternate_roadmap",
       "language": "python",
       "metadata": {
-        "line": 550,
+        "line": 570,
         "qualified_name": "tests.unit.test_project_control_snapshots.test_snapshot_source_revision_uses_configured_alternate_roadmap"
       },
       "name": "test_snapshot_source_revision_uses_configured_alternate_roadmap",
@@ -42703,7 +42715,7 @@
       "id": "function:python:tests.unit.test_project_control_snapshots.test_snapshot_writer_preserves_both_files_when_second_destination_is_a_symlink",
       "language": "python",
       "metadata": {
-        "line": 187,
+        "line": 207,
         "qualified_name": "tests.unit.test_project_control_snapshots.test_snapshot_writer_preserves_both_files_when_second_destination_is_a_symlink"
       },
       "name": "test_snapshot_writer_preserves_both_files_when_second_destination_is_a_symlink",
@@ -49462,7 +49474,7 @@
       "id": "method:python:app.project_control.models.ControlRoomState.validate_snapshot_source_revision",
       "language": "python",
       "metadata": {
-        "line": 641,
+        "line": 642,
         "qualified_name": "app.project_control.models.ControlRoomState.validate_snapshot_source_revision"
       },
       "name": "validate_snapshot_source_revision",
@@ -49528,7 +49540,7 @@
       "id": "method:python:app.project_control.models.ProvisionAction.__post_init__",
       "language": "python",
       "metadata": {
-        "line": 886,
+        "line": 887,
         "qualified_name": "app.project_control.models.ProvisionAction.__post_init__"
       },
       "name": "__post_init__",
@@ -49539,7 +49551,7 @@
       "id": "method:python:app.project_control.models.ProvisionAction.as_dict",
       "language": "python",
       "metadata": {
-        "line": 891,
+        "line": 892,
         "qualified_name": "app.project_control.models.ProvisionAction.as_dict"
       },
       "name": "as_dict",
@@ -49550,7 +49562,7 @@
       "id": "method:python:app.project_control.models.ProvisioningPlan.__post_init__",
       "language": "python",
       "metadata": {
-        "line": 910,
+        "line": 911,
         "qualified_name": "app.project_control.models.ProvisioningPlan.__post_init__"
       },
       "name": "__post_init__",
@@ -49561,7 +49573,7 @@
       "id": "method:python:app.project_control.models.ProvisioningPlan.actions",
       "language": "python",
       "metadata": {
-        "line": 922,
+        "line": 923,
         "qualified_name": "app.project_control.models.ProvisioningPlan.actions"
       },
       "name": "actions",
@@ -49572,7 +49584,7 @@
       "id": "method:python:app.project_control.models.ProvisioningPlan.as_dict",
       "language": "python",
       "metadata": {
-        "line": 932,
+        "line": 933,
         "qualified_name": "app.project_control.models.ProvisioningPlan.as_dict"
       },
       "name": "as_dict",
@@ -49583,7 +49595,7 @@
       "id": "method:python:app.project_control.models.ProvisioningPlan.to_json",
       "language": "python",
       "metadata": {
-        "line": 935,
+        "line": 936,
         "qualified_name": "app.project_control.models.ProvisioningPlan.to_json"
       },
       "name": "to_json",
@@ -49594,7 +49606,7 @@
       "id": "method:python:app.project_control.models.ProvisioningPlan.to_markdown",
       "language": "python",
       "metadata": {
-        "line": 940,
+        "line": 941,
         "qualified_name": "app.project_control.models.ProvisioningPlan.to_markdown"
       },
       "name": "to_markdown",
@@ -49605,7 +49617,7 @@
       "id": "method:python:app.project_control.models.ReconciliationAction.freeze_payload",
       "language": "python",
       "metadata": {
-        "line": 966,
+        "line": 967,
         "qualified_name": "app.project_control.models.ReconciliationAction.freeze_payload"
       },
       "name": "freeze_payload",
@@ -49616,7 +49628,7 @@
       "id": "method:python:app.project_control.models.ReconciliationReport.as_dict",
       "language": "python",
       "metadata": {
-        "line": 1003,
+        "line": 1004,
         "qualified_name": "app.project_control.models.ReconciliationReport.as_dict"
       },
       "name": "as_dict",
@@ -49627,7 +49639,7 @@
       "id": "method:python:app.project_control.models.ReconciliationReport.to_json",
       "language": "python",
       "metadata": {
-        "line": 1021,
+        "line": 1022,
         "qualified_name": "app.project_control.models.ReconciliationReport.to_json"
       },
       "name": "to_json",
@@ -49638,7 +49650,7 @@
       "id": "method:python:app.project_control.models.ReconciliationReport.validate_timestamps",
       "language": "python",
       "metadata": {
-        "line": 998,
+        "line": 999,
         "qualified_name": "app.project_control.models.ReconciliationReport.validate_timestamps"
       },
       "name": "validate_timestamps",
@@ -49649,7 +49661,7 @@
       "id": "method:python:app.project_control.models.RemoteField.freeze_options",
       "language": "python",
       "metadata": {
-        "line": 762,
+        "line": 763,
         "qualified_name": "app.project_control.models.RemoteField.freeze_options"
       },
       "name": "freeze_options",
@@ -49660,7 +49672,7 @@
       "id": "method:python:app.project_control.models.RemoteFieldValue.validate_iso_date",
       "language": "python",
       "metadata": {
-        "line": 730,
+        "line": 731,
         "qualified_name": "app.project_control.models.RemoteFieldValue.validate_iso_date"
       },
       "name": "validate_iso_date",
@@ -49671,7 +49683,7 @@
       "id": "method:python:app.project_control.models.RemoteFieldValue.validate_safe_text",
       "language": "python",
       "metadata": {
-        "line": 723,
+        "line": 724,
         "qualified_name": "app.project_control.models.RemoteFieldValue.validate_safe_text"
       },
       "name": "validate_safe_text",
@@ -49682,7 +49694,7 @@
       "id": "method:python:app.project_control.models.RemoteFieldValue.validate_typed_value",
       "language": "python",
       "metadata": {
-        "line": 694,
+        "line": 695,
         "qualified_name": "app.project_control.models.RemoteFieldValue.validate_typed_value"
       },
       "name": "validate_typed_value",
@@ -49693,7 +49705,7 @@
       "id": "method:python:app.project_control.models.RemoteFieldValue.value",
       "language": "python",
       "metadata": {
-        "line": 743,
+        "line": 744,
         "qualified_name": "app.project_control.models.RemoteFieldValue.value"
       },
       "name": "value",
@@ -49704,7 +49716,7 @@
       "id": "method:python:app.project_control.models.RemoteGitHubState.freeze_collections",
       "language": "python",
       "metadata": {
-        "line": 818,
+        "line": 819,
         "qualified_name": "app.project_control.models.RemoteGitHubState.freeze_collections"
       },
       "name": "freeze_collections",
@@ -49715,7 +49727,7 @@
       "id": "method:python:app.project_control.models.RemoteGitHubState.validate_remote_id",
       "language": "python",
       "metadata": {
-        "line": 823,
+        "line": 824,
         "qualified_name": "app.project_control.models.RemoteGitHubState.validate_remote_id"
       },
       "name": "validate_remote_id",
@@ -49726,7 +49738,7 @@
       "id": "method:python:app.project_control.models.RemoteGitHubState.validate_unique_remote_keys",
       "language": "python",
       "metadata": {
-        "line": 829,
+        "line": 830,
         "qualified_name": "app.project_control.models.RemoteGitHubState.validate_unique_remote_keys"
       },
       "name": "validate_unique_remote_keys",
@@ -49737,7 +49749,7 @@
       "id": "method:python:app.project_control.models.RemoteProjectItem.freeze_field_values",
       "language": "python",
       "metadata": {
-        "line": 781,
+        "line": 782,
         "qualified_name": "app.project_control.models.RemoteProjectItem.freeze_field_values"
       },
       "name": "freeze_field_values",
@@ -49748,7 +49760,7 @@
       "id": "method:python:app.project_control.models.RemoteProjectItem.reject_duplicate_fields",
       "language": "python",
       "metadata": {
-        "line": 787,
+        "line": 788,
         "qualified_name": "app.project_control.models.RemoteProjectItem.reject_duplicate_fields"
       },
       "name": "reject_duplicate_fields",
