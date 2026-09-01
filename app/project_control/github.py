@@ -246,18 +246,81 @@ query DiscoverProjects(
     projectsV2(first: 100, after: $after) {
       nodes {
         id number title url
-        fields(first: 100) {
-          nodes { id name dataType options { id name } }
+        fields(first: 1) {
+          nodes {
+            __typename
+            ... on ProjectV2Field { id name dataType }
+            ... on ProjectV2SingleSelectField { id name dataType options { id name } }
+            ... on ProjectV2IterationField { id name dataType }
+            ... on ProjectV2MultiSelectField { id name dataType }
+          }
           pageInfo { hasNextPage endCursor }
         }
-        views(first: 100) { nodes { id name } pageInfo { hasNextPage endCursor } }
-        items(first: 100) {
+        views(first: 1) { nodes { id name } pageInfo { hasNextPage endCursor } }
+        items(first: 1) {
           nodes {
             id content {
               ... on Issue { id number title url body repository { nameWithOwner } }
             }
-            fieldValues(first: 100) {
-              nodes { id field { id name } name text number date }
+            fieldValues(first: 1) {
+              nodes {
+                __typename
+                ... on ProjectV2ItemFieldValueCommon {
+                  id
+                  field {
+                    __typename
+                    ... on ProjectV2Field { id name }
+                    ... on ProjectV2SingleSelectField { id name }
+                    ... on ProjectV2IterationField { id name }
+                    ... on ProjectV2MultiSelectField { id name }
+                  }
+                }
+                ... on ProjectV2ItemFieldTextValue {
+                  id
+                  field {
+                    __typename
+                    ... on ProjectV2Field { id name }
+                    ... on ProjectV2SingleSelectField { id name }
+                    ... on ProjectV2IterationField { id name }
+                    ... on ProjectV2MultiSelectField { id name }
+                  }
+                  text
+                }
+                ... on ProjectV2ItemFieldNumberValue {
+                  id
+                  field {
+                    __typename
+                    ... on ProjectV2Field { id name }
+                    ... on ProjectV2SingleSelectField { id name }
+                    ... on ProjectV2IterationField { id name }
+                    ... on ProjectV2MultiSelectField { id name }
+                  }
+                  number
+                }
+                ... on ProjectV2ItemFieldDateValue {
+                  id
+                  field {
+                    __typename
+                    ... on ProjectV2Field { id name }
+                    ... on ProjectV2SingleSelectField { id name }
+                    ... on ProjectV2IterationField { id name }
+                    ... on ProjectV2MultiSelectField { id name }
+                  }
+                  date
+                }
+                ... on ProjectV2ItemFieldSingleSelectValue {
+                  id
+                  field {
+                    __typename
+                    ... on ProjectV2Field { id name }
+                    ... on ProjectV2SingleSelectField { id name }
+                    ... on ProjectV2IterationField { id name }
+                    ... on ProjectV2MultiSelectField { id name }
+                  }
+                  name
+                  optionId
+                }
+              }
               pageInfo { hasNextPage endCursor }
             }
           }
@@ -281,7 +344,14 @@ query DiscoverProjects(
 # documents explicit prevents pagination from becoming an arbitrary GraphQL surface.
 _NESTED_FIELDS_QUERY = """query ProjectFields($id: ID!, $after: String) {
   node(id: $id) { ... on ProjectV2 { fields(first: 100, after: $after) {
-    nodes { id name dataType options { id name } } pageInfo { hasNextPage endCursor }
+    nodes {
+      __typename
+      ... on ProjectV2Field { id name dataType }
+      ... on ProjectV2SingleSelectField { id name dataType options { id name } }
+      ... on ProjectV2IterationField { id name dataType }
+      ... on ProjectV2MultiSelectField { id name dataType }
+    }
+    pageInfo { hasNextPage endCursor }
   } } }
 }""".strip()
 _NESTED_VIEWS_QUERY = """query ProjectViews($id: ID!, $after: String) {
@@ -292,14 +362,129 @@ _NESTED_VIEWS_QUERY = """query ProjectViews($id: ID!, $after: String) {
 _NESTED_ITEMS_QUERY = """query ProjectItems($id: ID!, $after: String) {
   node(id: $id) { ... on ProjectV2 { items(first: 100, after: $after) {
     nodes { id content { ... on Issue { id number title url body repository { nameWithOwner } } }
-      fieldValues(first: 100) { nodes { id field { id name } name text number date optionId }
+      fieldValues(first: 100) {
+        nodes {
+          __typename
+          ... on ProjectV2ItemFieldValueCommon {
+            id
+            field {
+              __typename
+              ... on ProjectV2Field { id name }
+              ... on ProjectV2SingleSelectField { id name }
+              ... on ProjectV2IterationField { id name }
+              ... on ProjectV2MultiSelectField { id name }
+            }
+          }
+          ... on ProjectV2ItemFieldTextValue {
+            id
+            field {
+              __typename
+              ... on ProjectV2Field { id name }
+              ... on ProjectV2SingleSelectField { id name }
+              ... on ProjectV2IterationField { id name }
+              ... on ProjectV2MultiSelectField { id name }
+            }
+            text
+          }
+          ... on ProjectV2ItemFieldNumberValue {
+            id
+            field {
+              __typename
+              ... on ProjectV2Field { id name }
+              ... on ProjectV2SingleSelectField { id name }
+              ... on ProjectV2IterationField { id name }
+              ... on ProjectV2MultiSelectField { id name }
+            }
+            number
+          }
+          ... on ProjectV2ItemFieldDateValue {
+            id
+            field {
+              __typename
+              ... on ProjectV2Field { id name }
+              ... on ProjectV2SingleSelectField { id name }
+              ... on ProjectV2IterationField { id name }
+              ... on ProjectV2MultiSelectField { id name }
+            }
+            date
+          }
+          ... on ProjectV2ItemFieldSingleSelectValue {
+            id
+            field {
+              __typename
+              ... on ProjectV2Field { id name }
+              ... on ProjectV2SingleSelectField { id name }
+              ... on ProjectV2IterationField { id name }
+              ... on ProjectV2MultiSelectField { id name }
+            }
+            name
+            optionId
+          }
+        }
         pageInfo { hasNextPage endCursor } } }
     pageInfo { hasNextPage endCursor }
   } } }
 }""".strip()
 _NESTED_ITEM_VALUES_QUERY = """query ItemFieldValues($id: ID!, $after: String) {
   node(id: $id) { ... on ProjectV2Item { fieldValues(first: 100, after: $after) {
-    nodes { id field { id name } name text number date optionId }
+    nodes {
+      __typename
+      ... on ProjectV2ItemFieldValueCommon {
+        id
+        field {
+          __typename
+          ... on ProjectV2Field { id name }
+          ... on ProjectV2SingleSelectField { id name }
+          ... on ProjectV2IterationField { id name }
+          ... on ProjectV2MultiSelectField { id name }
+        }
+      }
+      ... on ProjectV2ItemFieldTextValue {
+        id
+        field {
+          __typename
+          ... on ProjectV2Field { id name }
+          ... on ProjectV2SingleSelectField { id name }
+          ... on ProjectV2IterationField { id name }
+          ... on ProjectV2MultiSelectField { id name }
+        }
+        text
+      }
+      ... on ProjectV2ItemFieldNumberValue {
+        id
+        field {
+          __typename
+          ... on ProjectV2Field { id name }
+          ... on ProjectV2SingleSelectField { id name }
+          ... on ProjectV2IterationField { id name }
+          ... on ProjectV2MultiSelectField { id name }
+        }
+        number
+      }
+      ... on ProjectV2ItemFieldDateValue {
+        id
+        field {
+          __typename
+          ... on ProjectV2Field { id name }
+          ... on ProjectV2SingleSelectField { id name }
+          ... on ProjectV2IterationField { id name }
+          ... on ProjectV2MultiSelectField { id name }
+        }
+        date
+      }
+      ... on ProjectV2ItemFieldSingleSelectValue {
+        id
+        field {
+          __typename
+          ... on ProjectV2Field { id name }
+          ... on ProjectV2SingleSelectField { id name }
+          ... on ProjectV2IterationField { id name }
+          ... on ProjectV2MultiSelectField { id name }
+        }
+        name
+        optionId
+      }
+    }
     pageInfo { hasNextPage endCursor }
   } } }
 }""".strip()

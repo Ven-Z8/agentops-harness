@@ -13,6 +13,25 @@ from app.project_control.github import (
 )
 
 
+def test_discovery_boundary_emits_schema_valid_union_fragments() -> None:
+    transport = FakeTransport([])
+    with pytest.raises(InvalidControlRoom):
+        GitHubClient(transport).discover_state(
+            "Ven-Z8", "Ven-Z8/agentops-harness", "AgentOps Research Control Plane — 14-Day v0.1"
+        )
+    query = transport.calls[0][0]
+    assert "__typename" in query
+    assert "... on ProjectV2SingleSelectField" in query
+    assert "... on ProjectV2ItemFieldValueCommon" in query
+    assert "field { id name }" not in query
+    assert "... on ProjectV2IterationField" in query
+    assert "... on ProjectV2MultiSelectField" in query
+    assert "fields(first: 1)" in query
+    assert "views(first: 1)" in query
+    assert "items(first: 1)" in query
+    assert "fieldValues(first: 1)" in query
+
+
 class FakeTransport:
     def __init__(self, responses: list[dict[str, object]]) -> None:
         self.responses = iter(responses)
