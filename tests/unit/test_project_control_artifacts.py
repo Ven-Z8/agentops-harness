@@ -121,6 +121,53 @@ def test_render_artifact_summary_sorts_and_marks_local_and_unavailable_evidence(
     assert "Evidence: inconclusive" in summary
 
 
+def test_verification_evidence_is_strictly_validated_and_hash_addressed(tmp_path: Path) -> None:
+    seed_control_room(tmp_path)
+    evidence_path = tmp_path / "coordination/artifacts/task-9-verification.yaml"
+    evidence_path.parent.mkdir(parents=True, exist_ok=True)
+    evidence_path.write_text(
+        "schema_version: 1\ntask_id: AO-D01-01\nresults:\n"
+        "  - command: npm test\n    exit_code: 0\n    passed: true\n"
+        "    stdout: '1 test passed'\n    stderr: ''\n",
+        encoding="utf-8",
+    )
+    import hashlib
+
+    digest = hashlib.sha256(evidence_path.read_bytes()).hexdigest()
+    (tmp_path / "coordination/artifacts/index.yaml").write_text(
+        yaml.safe_dump(
+            {
+                "schema_version": 1,
+                "artifacts": [
+                    {
+                        "id": "artifact-AO-D02-04-task-9-verification",
+                        "task_id": "AO-D01-01",
+                        "kind": "verification-evidence",
+                        "availability": "repository",
+                        "locator": "coordination/artifacts/task-9-verification.yaml",
+                        "sha256": digest,
+                        "immutable": True,
+                        "required": True,
+                        "evidence_state": "verified",
+                        "created_at": "2026-08-30T16:00:00Z",
+                        "producer": "codex",
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    index = load_artifact_index(tmp_path)
+    assert index.artifacts[0].sha256 == digest
+
+    evidence_path.write_text(
+        evidence_path.read_text(encoding="utf-8") + "# drift\n", encoding="utf-8"
+    )
+    with pytest.raises(ValueError, match="sha256"):
+        load_artifact_index(tmp_path)
+
+
 @pytest.mark.parametrize(
     ("template_name", "headings"),
     [

@@ -10,7 +10,7 @@ from pydantic import ValidationError
 import app.project_control.snapshots as snapshots
 from app.project_control.codegraph import build_codegraph
 from app.project_control.errors import InvalidControlRoom
-from app.project_control.models import BoardExport
+from app.project_control.models import ArtifactIndex, BoardExport
 from app.project_control.snapshots import (
     _snapshot_source_revision,
     render_board,
@@ -84,6 +84,37 @@ def test_current_snapshot_exposes_required_onboarding_context() -> None:
     assert "Snapshot input revision:" in rendered
     assert "Generated snapshot outputs are excluded" in rendered
     assert "uv run python scripts/project_control.py validate" in rendered
+
+
+def test_current_snapshot_includes_validated_verification_evidence() -> None:
+    state = make_control_room_state().model_copy(
+        update={
+            "artifacts": ArtifactIndex.model_validate({
+                "schema_version": 1,
+                "artifacts": [
+                    {
+                        "id": "artifact-AO-D02-04-task-9-verification",
+                        "task_id": "AO-D01-01",
+                        "kind": "verification-evidence",
+                        "availability": "repository",
+                        "locator": "coordination/artifacts/task-9-verification.yaml",
+                        "sha256": "a" * 64,
+                        "immutable": True,
+                        "required": True,
+                        "evidence_state": "verified",
+                        "created_at": "2026-08-30T16:00:00Z",
+                        "producer": "codex",
+                    }
+                ],
+            })
+        }
+    )
+
+    rendered = render_current(state, FIXED_TIME)
+
+    assert "## Verification evidence" in rendered
+    assert "artifact-AO-D02-04-task-9-verification" in rendered
+    assert "SHA-256" in rendered
 
 
 def test_invalid_export_does_not_replace_last_good_board(tmp_path: Path) -> None:

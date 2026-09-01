@@ -29,6 +29,24 @@ UNSAFE_ROADMAP_IDS = [
 ]
 
 
+def test_ci_runs_python_javascript_and_control_room_validation() -> None:
+    workflow = (REPO_ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+    assert 'node-version: "22"' in workflow
+    assert "uv sync --extra dev" in workflow
+    assert "uv run --extra dev ruff check ." in workflow
+    assert "uv run --extra dev pytest -q" in workflow
+    assert "npm test" in workflow
+    assert "scripts/project_control.py validate" in workflow
+
+
+def test_public_hygiene_allows_control_room_but_rejects_private_process_paths() -> None:
+    workflow = (REPO_ROOT / ".github/workflows/public-hygiene.yml").read_text(encoding="utf-8")
+    assert "docs/superpowers/" in workflow
+    assert "Private tool-process docs must stay local" in workflow
+    command = workflow.split("grep -E", maxsplit=1)[1].split("|| true", maxsplit=1)[0]
+    assert "coordination/" not in command
+
+
 def run_cli(*args: str, cwd: Path = REPO_ROOT) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         [sys.executable, str(SCRIPT), *args],

@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+import hashlib
 from datetime import UTC
 from pathlib import Path
 
 from app.project_control.io import load_yaml
-from app.project_control.models import ArtifactIndex
+from app.project_control.models import ArtifactIndex, VerificationEvidence
 from app.project_control.roadmap import load_roadmap
 
 
@@ -15,6 +16,17 @@ def load_artifact_index(root: Path) -> ArtifactIndex:
     for artifact in index.artifacts:
         if artifact.task_id not in roadmap_ids:
             raise ValueError(f"Roadmap does not include item: {artifact.task_id}")
+        if artifact.kind == "verification-evidence":
+            if artifact.availability != "repository" or not artifact.locator:
+                raise ValueError("verification evidence must be a repository artifact")
+            evidence_path = root / artifact.locator
+            evidence = load_yaml(evidence_path, VerificationEvidence, root=root)
+            if evidence.task_id != artifact.task_id:
+                raise ValueError("verification evidence task_id does not match artifact")
+            if artifact.immutable and artifact.sha256:
+                actual = hashlib.sha256(evidence_path.read_bytes()).hexdigest()
+                if actual != artifact.sha256:
+                    raise ValueError("verification evidence sha256 does not match artifact")
     return index
 
 
@@ -42,6 +54,7 @@ def render_artifact_summary(index: ArtifactIndex) -> str:
                 f"- Kind: {artifact.kind}",
                 f"- Availability: {availability}",
                 f"- Locator: {artifact.locator or 'None'}",
+                f"- SHA-256: {artifact.sha256 or 'None'}",
                 f"- Evidence: {evidence}",
                 f"- Created at: {_timestamp(artifact.created_at)}",
                 f"- Producer: {artifact.producer}",

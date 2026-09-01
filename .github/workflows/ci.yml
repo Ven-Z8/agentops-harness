@@ -13,6 +13,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
       - run: uv sync --extra dev
       - run: uv run --extra dev ruff check .
       - run: uv run --extra dev pytest -q
+      - run: npm test
+        working-directory: web
+      - run: uv run python scripts/project_control.py validate

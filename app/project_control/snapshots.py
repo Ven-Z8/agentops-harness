@@ -272,6 +272,24 @@ def render_current(state: ControlRoomState, now: datetime) -> str:
     )
     if not blockers:
         lines.append("- None recorded.")
+    lines.extend(["", "## Verification evidence", ""])
+    verification = (
+        [
+            artifact
+            for artifact in state.artifacts.artifacts
+            if artifact.kind == "verification-evidence"
+        ]
+        if state.artifacts is not None
+        else []
+    )
+    if verification:
+        lines.extend(
+            f"- {_markdown(artifact.id)}: {_markdown(artifact.evidence_state.value)} "
+            f"(SHA-256: `{artifact.sha256 or 'unavailable'}`)"
+            for artifact in sorted(verification, key=lambda item: item.id)
+        )
+    else:
+        lines.append("- Inconclusive: no validated verification evidence recorded.")
     lines.extend(["", "## Latest decisions and handoffs", ""])
     if state.decisions:
         decisions = sorted(

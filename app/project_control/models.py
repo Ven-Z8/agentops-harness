@@ -492,6 +492,42 @@ class ArtifactIndex(StrictModel):
         return self
 
 
+class VerificationResult(StrictModel):
+    """One deterministic command result persisted as repository evidence."""
+
+    command: str
+    exit_code: int
+    passed: bool
+    stdout: str = ""
+    stderr: str = ""
+
+    _validate_command = field_validator("command")(_nonempty)
+
+    @model_validator(mode="after")
+    def validate_terminal_result(self) -> VerificationResult:
+        if self.exit_code < 0:
+            raise ValueError("verification exit_code must be non-negative")
+        if self.passed != (self.exit_code == 0):
+            raise ValueError("verification passed must match exit_code")
+        return self
+
+
+class VerificationEvidence(StrictModel):
+    """Strict, hash-addressable verification evidence consumed by snapshots."""
+
+    schema_version: Literal[1]
+    task_id: str
+    results: list[VerificationResult]
+
+    _validate_task_id = field_validator("task_id")(_nonempty)
+
+    @model_validator(mode="after")
+    def require_results(self) -> VerificationEvidence:
+        if not self.results:
+            raise ValueError("verification evidence requires at least one result")
+        return self
+
+
 class GraphManifest(StrictModel):
     schema_version: Literal[1]
     generator_version: str
