@@ -1086,7 +1086,17 @@ def _managed_issue_content(body: str) -> str | None:
 
 def _safe_remote_error(error: Exception) -> str:
     text = str(error).replace("\x1b", "")
-    text = re.sub(r"(?i)(token|secret|password|authorization)\s*[:=]\s*\S+", r"\1=<redacted>", text)
+    text = re.sub(
+        r"(?i)\b(authorization)[ \t]*[:=][ \t]*"
+        r"(?:(?:bearer|basic|token)[ \t]+)?[^\s,;]+",
+        r"\1=<redacted>",
+        text,
+    )
+    text = re.sub(
+        r"(?i)\b(token|secret|password)[ \t]*[:=][ \t]*[^\s,;]+",
+        r"\1=<redacted>",
+        text,
+    )
     return text[:500] or error.__class__.__name__
 
 

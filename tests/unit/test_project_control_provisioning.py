@@ -126,6 +126,29 @@ def test_desired_schema_and_views_are_exact() -> None:
     assert DESIRED_VIEWS == ("Inbox", "Kanban", "Phase", "Harness", "Trust Blockers", "Roadmap")
 
 
+def test_harness_definition_is_optionless_but_item_values_remain_unassigned_text() -> None:
+    state = make_control_room_state()
+    plan = GitHubProvisioner().plan(
+        state,
+        RemoteGitHubState(owner="Ven-Z8", repository="Ven-Z8/agentops-harness"),
+    )
+
+    definition = next(action for action in plan.field_actions if action.stable_key == "Harness")
+    values = [
+        action
+        for action in plan.field_value_actions
+        if action.payload.get("field") == "Harness"
+    ]
+
+    assert definition.payload["options"] == ()
+    assert len(values) == len(state.roadmap.items)
+    assert all(
+        action.payload["field_type"] == "text"
+        and action.payload["logical_value"] == "Unassigned"
+        for action in values
+    )
+
+
 def test_round2_field_value_inputs_are_typed_and_day_is_single_select() -> None:
     cases = (
         (
@@ -425,7 +448,7 @@ def test_field_mutation_options_reject_unknown_or_impossible_variant_shape(
 
 
 @pytest.mark.parametrize(
-    ("stdout", "stderr"),
+    ("stdout", "stderr", "required_context", "credential_values"),
     (
         (
             json.dumps(
@@ -441,18 +464,63 @@ def test_field_mutation_options_reject_unknown_or_impossible_variant_shape(
                 }
             ),
             "",
+            ("Selections can't be made directly on unions",),
+            ("TOP_SECRET",),
         ),
         (
             "",
             "gh: GraphQL: Selections can't be made directly on unions "
             "(token=TOP_SECRET)",
+            ("Selections can't be made directly on unions",),
+            ("TOP_SECRET",),
+        ),
+        (
+            "",
+            "gh: GraphQL: Cannot query field options\n"
+            "AuThOrIzAtIoN: bEaReR ghp_AUTH_VALUE",
+            ("Cannot query field options",),
+            ("ghp_AUTH_VALUE",),
+        ),
+        (
+            "",
+            "gh: GraphQL: Unknown field options TOKEN=TOKEN_VALUE "
+            "Secret: SECRET_VALUE PASSWORD = PASSWORD_VALUE",
+            ("Unknown field options",),
+            ("TOKEN_VALUE", "SECRET_VALUE", "PASSWORD_VALUE"),
+        ),
+        (
+            "",
+            "gh: GraphQL: authorization policy rejected requested field\n"
+            "Authorization: Bearer ghp_MULTILINE_AUTH\n"
+            "X-GitHub-Token: gho_MULTILINE_TOKEN\n"
+            "secret=SECRET_MULTILINE\n"
+            "password: PASSWORD_MULTILINE\n"
+            "Cannot query field options",
+            (
+                "authorization policy rejected requested field",
+                "Cannot query field options",
+            ),
+            (
+                "ghp_MULTILINE_AUTH",
+                "gho_MULTILINE_TOKEN",
+                "SECRET_MULTILINE",
+                "PASSWORD_MULTILINE",
+            ),
         ),
     ),
-    ids=("structured-stdout", "graphql-stderr"),
+    ids=(
+        "structured-stdout",
+        "graphql-stderr",
+        "authorization-bearer-case-insensitive",
+        "token-secret-password-forms",
+        "multiline-header-shaped-content",
+    ),
 )
 def test_apply_transport_preserves_sanitized_graphql_validation_evidence(
     stdout: str,
     stderr: str,
+    required_context: tuple[str, ...],
+    credential_values: tuple[str, ...],
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     class Result:
@@ -475,8 +543,45 @@ def test_apply_transport_preserves_sanitized_graphql_validation_evidence(
         )
 
     assert not isinstance(raised.value, DependencyUnavailable)
-    assert "Selections can't be made directly on unions" in str(raised.value)
-    assert "TOP_SECRET" not in str(raised.value)
+    message = str(raised.value)
+    prefix = "GitHub mutation GraphQL request failed: "
+    assert message.startswith(prefix)
+    assert all(context in message for context in required_context)
+    assert all(value not in message for value in credential_values)
+    assert len(message) <= len(prefix) + 500
+
+
+def test_apply_transport_bounds_sanitized_graphql_stderr(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class Result:
+        returncode = 1
+        stdout = ""
+        stderr = (
+            "gh: GraphQL: Cannot query field options "
+            + ("ordinary-context " * 80)
+            + "\nAuthorization: Bearer ghp_AFTER_LONG_CONTEXT"
+        )
+
+    monkeypatch.setattr("app.project_control.github.subprocess.run", lambda *_a, **_k: Result())
+
+    with pytest.raises(InvalidControlRoom) as raised:
+        ApplyGhTransport().mutate(
+            "create_field",
+            {
+                "project_id": "PVT_1",
+                "name": "Day",
+                "data_type": "SINGLE_SELECT",
+                "options": ["Day 1"],
+            },
+        )
+
+    message = str(raised.value)
+    prefix = "GitHub mutation GraphQL request failed: "
+    assert message.startswith(prefix)
+    assert "Cannot query field options" in message
+    assert "ghp_AFTER_LONG_CONTEXT" not in message
+    assert len(message) <= len(prefix) + 500
 
 
 def test_allowlist_rejects_unregistered_mutation() -> None:
