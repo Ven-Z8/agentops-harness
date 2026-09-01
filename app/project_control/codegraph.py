@@ -51,6 +51,7 @@ def _exclusions(generated: GeneratedPaths) -> list[str]:
             generated.board,
             generated.current,
             f"{generated.codegraph.rstrip('/')}/",
+            "coordination/artifacts/",
             *[f"{part}/" for part in _EXCLUDED_PARTS | {".git"}],
         ]
     )
@@ -75,6 +76,7 @@ def _is_excluded(relative: Path, generated: GeneratedPaths) -> bool:
     codegraph = Path(generated.codegraph)
     return (
         relative.as_posix() in {generated.board, generated.current}
+        or parts[:2] == ("coordination", "artifacts")
         or parts[: len(codegraph.parts)] == codegraph.parts
         or bool(set(parts).intersection(_EXCLUDED_PARTS))
     )

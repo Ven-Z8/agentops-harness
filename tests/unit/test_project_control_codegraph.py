@@ -125,6 +125,32 @@ def test_source_digest_ignores_generated_graph_files(tmp_path: Path) -> None:
     assert source_tree_digest(root, tracked_graph_inputs(root)) == first
 
 
+def test_source_digest_ignores_coordination_evidence_but_tracks_source_changes(
+    tmp_path: Path,
+) -> None:
+    root = _tracked_repo(
+        tmp_path,
+        {
+            "app/kept.py": "VALUE = 1\n",
+            "coordination/artifacts/index.yaml": "schema_version: 1\nartifacts: []\n",
+            "coordination/artifacts/report.yaml": "result: initial\n",
+        },
+    )
+    paths = tracked_graph_inputs(root)
+    first = source_tree_digest(root, paths)
+    assert not any(path.as_posix().startswith("coordination/artifacts/") for path in paths)
+    (root / "coordination/artifacts/report.yaml").write_text("result: changed\n", encoding="utf-8")
+    assert source_tree_digest(root, tracked_graph_inputs(root)) == first
+    (root / "app/kept.py").write_text("VALUE = 2\n", encoding="utf-8")
+    assert source_tree_digest(root, tracked_graph_inputs(root)) != first
+
+
+def test_graph_manifest_discloses_evidence_exclusion(tmp_path: Path) -> None:
+    root = _tracked_repo(tmp_path, {"app/kept.py": "VALUE = 1\n"})
+    manifest = build_codegraph(root, FIXED_TIME)
+    assert "coordination/artifacts/" in manifest.exclusions
+
+
 def test_configured_generated_outputs_are_excluded_before_file_validation(
     tmp_path: Path,
 ) -> None:
