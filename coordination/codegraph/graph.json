@@ -19377,7 +19377,19 @@
     {
       "metadata": {},
       "source": "file:tests/unit/test_project_control_codegraph.py",
+      "target": "function:python:tests.unit.test_project_control_codegraph.test_graph_manifest_discloses_evidence_exclusion",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_codegraph.py",
       "target": "function:python:tests.unit.test_project_control_codegraph.test_source_digest_changes_when_a_tracked_file_changes",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_codegraph.py",
+      "target": "function:python:tests.unit.test_project_control_codegraph.test_source_digest_ignores_coordination_evidence_but_tracks_source_changes",
       "type": "defines"
     },
     {
@@ -21963,12 +21975,6 @@
     {
       "metadata": {},
       "source": "folder:coordination",
-      "target": "folder:coordination/artifacts",
-      "type": "contains"
-    },
-    {
-      "metadata": {},
-      "source": "folder:coordination",
       "target": "folder:coordination/decisions",
       "type": "contains"
     },
@@ -22000,24 +22006,6 @@
       "metadata": {},
       "source": "folder:coordination",
       "target": "folder:coordination/templates",
-      "type": "contains"
-    },
-    {
-      "metadata": {},
-      "source": "folder:coordination/artifacts",
-      "target": "file:coordination/artifacts/README.md",
-      "type": "contains"
-    },
-    {
-      "metadata": {},
-      "source": "folder:coordination/artifacts",
-      "target": "file:coordination/artifacts/index.yaml",
-      "type": "contains"
-    },
-    {
-      "metadata": {},
-      "source": "folder:coordination/artifacts",
-      "target": "file:coordination/artifacts/task-9-verification.yaml",
       "type": "contains"
     },
     {
@@ -26771,30 +26759,6 @@
       "type": "file"
     },
     {
-      "id": "file:coordination/artifacts/README.md",
-      "language": null,
-      "metadata": {},
-      "name": "README.md",
-      "path": "coordination/artifacts/README.md",
-      "type": "file"
-    },
-    {
-      "id": "file:coordination/artifacts/index.yaml",
-      "language": null,
-      "metadata": {},
-      "name": "index.yaml",
-      "path": "coordination/artifacts/index.yaml",
-      "type": "file"
-    },
-    {
-      "id": "file:coordination/artifacts/task-9-verification.yaml",
-      "language": null,
-      "metadata": {},
-      "name": "task-9-verification.yaml",
-      "path": "coordination/artifacts/task-9-verification.yaml",
-      "type": "file"
-    },
-    {
       "id": "file:coordination/decisions/README.md",
       "language": null,
       "metadata": {},
@@ -28368,14 +28332,6 @@
       "metadata": {},
       "name": "coordination",
       "path": "coordination",
-      "type": "folder"
-    },
-    {
-      "id": "folder:coordination/artifacts",
-      "language": null,
-      "metadata": {},
-      "name": "artifacts",
-      "path": "coordination/artifacts",
       "type": "folder"
     },
     {
@@ -33475,7 +33431,7 @@
       "id": "function:python:app.project_control.codegraph._annotate_file_only_languages",
       "language": "python",
       "metadata": {
-        "line": 136,
+        "line": 138,
         "qualified_name": "app.project_control.codegraph._annotate_file_only_languages"
       },
       "name": "_annotate_file_only_languages",
@@ -33486,7 +33442,7 @@
       "id": "function:python:app.project_control.codegraph._copy_tracked_inputs",
       "language": "python",
       "metadata": {
-        "line": 117,
+        "line": 119,
         "qualified_name": "app.project_control.codegraph._copy_tracked_inputs"
       },
       "name": "_copy_tracked_inputs",
@@ -33519,7 +33475,7 @@
       "id": "function:python:app.project_control.codegraph._graph_counts",
       "language": "python",
       "metadata": {
-        "line": 199,
+        "line": 201,
         "qualified_name": "app.project_control.codegraph._graph_counts"
       },
       "name": "_graph_counts",
@@ -33530,7 +33486,7 @@
       "id": "function:python:app.project_control.codegraph._is_excluded",
       "language": "python",
       "metadata": {
-        "line": 73,
+        "line": 74,
         "qualified_name": "app.project_control.codegraph._is_excluded"
       },
       "name": "_is_excluded",
@@ -33541,7 +33497,7 @@
       "id": "function:python:app.project_control.codegraph._is_file_only_test",
       "language": "python",
       "metadata": {
-        "line": 125,
+        "line": 127,
         "qualified_name": "app.project_control.codegraph._is_file_only_test"
       },
       "name": "_is_file_only_test",
@@ -33552,7 +33508,7 @@
       "id": "function:python:app.project_control.codegraph._language_coverage",
       "language": "python",
       "metadata": {
-        "line": 182,
+        "line": 184,
         "qualified_name": "app.project_control.codegraph._language_coverage"
       },
       "name": "_language_coverage",
@@ -33563,7 +33519,7 @@
       "id": "function:python:app.project_control.codegraph._source_commit",
       "language": "python",
       "metadata": {
-        "line": 169,
+        "line": 171,
         "qualified_name": "app.project_control.codegraph._source_commit"
       },
       "name": "_source_commit",
@@ -33574,7 +33530,7 @@
       "id": "function:python:app.project_control.codegraph._summary",
       "language": "python",
       "metadata": {
-        "line": 209,
+        "line": 211,
         "qualified_name": "app.project_control.codegraph._summary"
       },
       "name": "_summary",
@@ -33585,7 +33541,7 @@
       "id": "function:python:app.project_control.codegraph._timestamp",
       "language": "python",
       "metadata": {
-        "line": 176,
+        "line": 178,
         "qualified_name": "app.project_control.codegraph._timestamp"
       },
       "name": "_timestamp",
@@ -33596,7 +33552,7 @@
       "id": "function:python:app.project_control.codegraph._validated_relative_file",
       "language": "python",
       "metadata": {
-        "line": 64,
+        "line": 65,
         "qualified_name": "app.project_control.codegraph._validated_relative_file"
       },
       "name": "_validated_relative_file",
@@ -33607,7 +33563,7 @@
       "id": "function:python:app.project_control.codegraph.build_codegraph",
       "language": "python",
       "metadata": {
-        "line": 241,
+        "line": 243,
         "qualified_name": "app.project_control.codegraph.build_codegraph"
       },
       "name": "build_codegraph",
@@ -33618,7 +33574,7 @@
       "id": "function:python:app.project_control.codegraph.build_export_graph",
       "language": "python",
       "metadata": {
-        "line": 156,
+        "line": 158,
         "qualified_name": "app.project_control.codegraph.build_export_graph"
       },
       "name": "build_export_graph",
@@ -33629,7 +33585,7 @@
       "id": "function:python:app.project_control.codegraph.file_only_language",
       "language": "python",
       "metadata": {
-        "line": 59,
+        "line": 60,
         "qualified_name": "app.project_control.codegraph.file_only_language"
       },
       "name": "file_only_language",
@@ -33640,7 +33596,7 @@
       "id": "function:python:app.project_control.codegraph.source_tree_digest",
       "language": "python",
       "metadata": {
-        "line": 104,
+        "line": 106,
         "qualified_name": "app.project_control.codegraph.source_tree_digest"
       },
       "name": "source_tree_digest",
@@ -33651,7 +33607,7 @@
       "id": "function:python:app.project_control.codegraph.tracked_graph_inputs",
       "language": "python",
       "metadata": {
-        "line": 83,
+        "line": 85,
         "qualified_name": "app.project_control.codegraph.tracked_graph_inputs"
       },
       "name": "tracked_graph_inputs",
@@ -33662,7 +33618,7 @@
       "id": "function:python:app.project_control.codegraph.validate_codegraph_freshness",
       "language": "python",
       "metadata": {
-        "line": 271,
+        "line": 273,
         "qualified_name": "app.project_control.codegraph.validate_codegraph_freshness"
       },
       "name": "validate_codegraph_freshness",
@@ -40999,7 +40955,7 @@
       "id": "function:python:tests.unit.test_project_control_codegraph.test_codegraph_build_and_freshness_use_configured_directory",
       "language": "python",
       "metadata": {
-        "line": 156,
+        "line": 182,
         "qualified_name": "tests.unit.test_project_control_codegraph.test_codegraph_build_and_freshness_use_configured_directory"
       },
       "name": "test_codegraph_build_and_freshness_use_configured_directory",
@@ -41010,7 +40966,7 @@
       "id": "function:python:tests.unit.test_project_control_codegraph.test_codegraph_generator_is_stable_for_fixed_time_and_fresh_until_sources_change",
       "language": "python",
       "metadata": {
-        "line": 202,
+        "line": 228,
         "qualified_name": "tests.unit.test_project_control_codegraph.test_codegraph_generator_is_stable_for_fixed_time_and_fresh_until_sources_change"
       },
       "name": "test_codegraph_generator_is_stable_for_fixed_time_and_fresh_until_sources_change",
@@ -41021,7 +40977,7 @@
       "id": "function:python:tests.unit.test_project_control_codegraph.test_configured_generated_outputs_are_excluded_before_file_validation",
       "language": "python",
       "metadata": {
-        "line": 128,
+        "line": 154,
         "qualified_name": "tests.unit.test_project_control_codegraph.test_configured_generated_outputs_are_excluded_before_file_validation"
       },
       "name": "test_configured_generated_outputs_are_excluded_before_file_validation",
@@ -41054,7 +41010,7 @@
       "id": "function:python:tests.unit.test_project_control_codegraph.test_control_room_graph_rejects_directory_input",
       "language": "python",
       "metadata": {
-        "line": 194,
+        "line": 220,
         "qualified_name": "tests.unit.test_project_control_codegraph.test_control_room_graph_rejects_directory_input"
       },
       "name": "test_control_room_graph_rejects_directory_input",
@@ -41065,7 +41021,7 @@
       "id": "function:python:tests.unit.test_project_control_codegraph.test_control_room_graph_rejects_symlink_input",
       "language": "python",
       "metadata": {
-        "line": 172,
+        "line": 198,
         "qualified_name": "tests.unit.test_project_control_codegraph.test_control_room_graph_rejects_symlink_input"
       },
       "name": "test_control_room_graph_rejects_symlink_input",
@@ -41076,10 +41032,21 @@
       "id": "function:python:tests.unit.test_project_control_codegraph.test_control_room_graph_rejects_traversal_input",
       "language": "python",
       "metadata": {
-        "line": 186,
+        "line": 212,
         "qualified_name": "tests.unit.test_project_control_codegraph.test_control_room_graph_rejects_traversal_input"
       },
       "name": "test_control_room_graph_rejects_traversal_input",
+      "path": "tests/unit/test_project_control_codegraph.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.unit.test_project_control_codegraph.test_graph_manifest_discloses_evidence_exclusion",
+      "language": "python",
+      "metadata": {
+        "line": 148,
+        "qualified_name": "tests.unit.test_project_control_codegraph.test_graph_manifest_discloses_evidence_exclusion"
+      },
+      "name": "test_graph_manifest_discloses_evidence_exclusion",
       "path": "tests/unit/test_project_control_codegraph.py",
       "type": "function"
     },
@@ -41091,6 +41058,17 @@
         "qualified_name": "tests.unit.test_project_control_codegraph.test_source_digest_changes_when_a_tracked_file_changes"
       },
       "name": "test_source_digest_changes_when_a_tracked_file_changes",
+      "path": "tests/unit/test_project_control_codegraph.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.unit.test_project_control_codegraph.test_source_digest_ignores_coordination_evidence_but_tracks_source_changes",
+      "language": "python",
+      "metadata": {
+        "line": 128,
+        "qualified_name": "tests.unit.test_project_control_codegraph.test_source_digest_ignores_coordination_evidence_but_tracks_source_changes"
+      },
+      "name": "test_source_digest_ignores_coordination_evidence_but_tracks_source_changes",
       "path": "tests/unit/test_project_control_codegraph.py",
       "type": "function"
     },

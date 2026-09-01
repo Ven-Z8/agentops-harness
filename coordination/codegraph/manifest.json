@@ -1,8 +1,8 @@
 {
   "counts": {
-    "edges": 3881,
-    "included_files": 313,
-    "nodes": 2615,
+    "edges": 3879,
+    "included_files": 310,
+    "nodes": 2613,
     "source_files": 228,
     "test_files": 96
   },
@@ -19,6 +19,7 @@
     "build/",
     "coordination/BOARD.md",
     "coordination/CURRENT.md",
+    "coordination/artifacts/",
     "coordination/codegraph/",
     "coverage/",
     "dist/",
@@ -26,7 +27,7 @@
     "target/",
     "vendor/"
   ],
-  "generated_at": "2026-09-01T14:03:19Z",
+  "generated_at": "2026-09-01T14:08:02Z",
   "generator_version": "1",
   "included_paths": [
     ".claude/launch.json",
@@ -159,9 +160,6 @@
     "app/vault_mcp.py",
     "coordination/PROJECT.md",
     "coordination/README.md",
-    "coordination/artifacts/README.md",
-    "coordination/artifacts/index.yaml",
-    "coordination/artifacts/task-9-verification.yaml",
     "coordination/decisions/README.md",
     "coordination/designs/2026-08-30-project-control-room-design.md",
     "coordination/handoffs/README.md",
@@ -367,6 +365,6 @@
     ]
   },
   "schema_version": 1,
-  "source_commit": "ea8195757c02c563af46883c468769f906178133",
-  "source_tree_digest": "e110c79076e2ec92bb3db287c1f045e986fd882882080daa70dbf6d099aa0da6"
+  "source_commit": "95978f5e2e3448adae2f52256a4750e4086f067d",
+  "source_tree_digest": "6e8ff714704e5f33c5cd72d523047817ea9bfeb83d00153101e90dd26956b3bb"
 }
