@@ -625,6 +625,7 @@ class ControlRoomState(StrictModel):
     project: ProjectConfig
     roadmap: Roadmap
     artifacts: ArtifactIndex | None = None
+    verification_evidence: list[VerificationEvidence] = Field(default_factory=list)
     graph_manifest: GraphManifest | None = None
     board_export: BoardExport | None = None
     handoffs: dict[str, HandoffHeader] = Field(default_factory=dict)

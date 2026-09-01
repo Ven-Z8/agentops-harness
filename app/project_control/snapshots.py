@@ -22,6 +22,7 @@ from app.project_control.models import (
     GraphManifest,
     ProjectConfig,
     RoadmapItem,
+    VerificationEvidence,
     _https_url,
     _safe_relative_link_target,
 )
@@ -290,6 +291,11 @@ def render_current(state: ControlRoomState, now: datetime) -> str:
         )
     else:
         lines.append("- Inconclusive: no validated verification evidence recorded.")
+    for evidence in state.verification_evidence:
+        for result in evidence.results:
+            status = "passed" if result.passed else f"failed (exit {result.exit_code})"
+            summary = result.stdout or result.stderr or "no output recorded"
+            lines.append(f"- {_markdown(result.command)}: {status} — {_markdown(summary)}")
     lines.extend(["", "## Latest decisions and handoffs", ""])
     if state.decisions:
         decisions = sorted(
@@ -442,6 +448,11 @@ def _load_state(root: Path, board_export: BoardExport | None) -> ControlRoomStat
         project=project,
         roadmap=roadmap,
         artifacts=artifacts,
+        verification_evidence=[
+            load_yaml(root / artifact.locator, VerificationEvidence, root=root)
+            for artifact in artifacts.artifacts
+            if artifact.kind == "verification-evidence" and artifact.locator
+        ],
         graph_manifest=manifest,
         board_export=board_export,
         handoffs={task_id: record.header for task_id, record in handoffs.items()},

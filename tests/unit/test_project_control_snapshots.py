@@ -10,7 +10,7 @@ from pydantic import ValidationError
 import app.project_control.snapshots as snapshots
 from app.project_control.codegraph import build_codegraph
 from app.project_control.errors import InvalidControlRoom
-from app.project_control.models import ArtifactIndex, BoardExport
+from app.project_control.models import ArtifactIndex, BoardExport, VerificationEvidence
 from app.project_control.snapshots import (
     _snapshot_source_revision,
     render_board,
@@ -110,11 +110,31 @@ def test_current_snapshot_includes_validated_verification_evidence() -> None:
         }
     )
 
+    state = state.model_copy(
+        update={
+            "verification_evidence": [
+                VerificationEvidence.model_validate({
+                    "schema_version": 1,
+                    "task_id": "AO-D01-01",
+                    "results": [
+                        {
+                            "command": "uv run pytest -q",
+                            "exit_code": 1,
+                            "passed": False,
+                            "stdout": "670 passed, 6 skipped, 3 failed",
+                            "stderr": "environmental failures",
+                        }
+                    ],
+                })
+            ]
+        }
+    )
     rendered = render_current(state, FIXED_TIME)
 
     assert "## Verification evidence" in rendered
     assert "artifact-AO-D02-04-task-9-verification" in rendered
     assert "SHA-256" in rendered
+    assert "670 passed, 6 skipped, 3 failed" in rendered
 
 
 def test_invalid_export_does_not_replace_last_good_board(tmp_path: Path) -> None:
