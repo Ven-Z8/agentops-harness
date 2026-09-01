@@ -1,2 +1,13 @@
 schema_version: 1
-artifacts: []
+artifacts:
+  - id: artifact-AO-D01-01-task-9-verification
+    task_id: AO-D01-01
+    kind: verification-evidence
+    availability: repository
+    locator: coordination/artifacts/task-9-verification.yaml
+    sha256: d610b509e943db0857b80e0f55469ea19f68ee6c9f1e5f22d03cc50a78135679
+    required: true
+    evidence_state: verified
+    created_at: 2026-09-01T14:00:00Z
+    producer: codex
+    immutable: true
