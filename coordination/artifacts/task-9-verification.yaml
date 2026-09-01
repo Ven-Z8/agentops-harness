@@ -46,6 +46,11 @@ results:
     passed: true
     stdout: Control room valid.
     stderr: ''
+  - command: uv run pytest -q
+    exit_code: 1
+    passed: false
+    stdout: 670 passed, 6 skipped, 3 failed in 80.23s
+    stderr: 'Failures: test_llm_provider.py::test_build_llm_client_creates_openrouter_compatible_client; test_showcase_workload.py::test_fixture_lock_keeps_canonical_uv_test_run_clean; tests/unit/test_project_control_schema.py::test_required_unavailable_artifact_cannot_claim_verified_evidence (stale graph failure was corrected before this result).'
   - command: npm --prefix web test
     exit_code: 0
     passed: true
