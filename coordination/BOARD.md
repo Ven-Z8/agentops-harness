@@ -3,9 +3,9 @@
 > Generated snapshot; do not edit manually.
 > GitHub Issues and Projects are authoritative for live execution state when provisioned.
 
-- Generated at: 2026-08-30T18:00:00Z
+- Generated at: 2026-09-01T13:35:49Z
 - GitHub project: not provisioned
-- Snapshot input revision: `c0cea0439a75e0ee509ccd78e4f04a2c50780820`
+- Snapshot input revision: `36e8b4f4c34c470c5ffe5a184cdc7b7bd9f5ab0a`
 - Generated snapshot outputs are excluded from this revision.
 
 ## Repository roadmap work

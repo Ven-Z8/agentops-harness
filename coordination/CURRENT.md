@@ -2,7 +2,7 @@
 
 > Generated from validated repository state; do not edit manually.
 
-- Generated at: 2026-08-30T18:00:00Z
+- Generated at: 2026-09-01T13:35:49Z
 
 ## Current phase
 
@@ -15,7 +15,7 @@
 ## Confirmed baseline
 
 - Baseline commit: `39c041f699d7909d1f6853a89bf2a86835a4acd4`
-- Snapshot input revision: `c0cea0439a75e0ee509ccd78e4f04a2c50780820`
+- Snapshot input revision: `36e8b4f4c34c470c5ffe5a184cdc7b7bd9f5ab0a`
 - Generated snapshot outputs are excluded; unavailable means validated inputs are dirty or provenance could not be resolved.
 
 ## Active blockers
@@ -57,7 +57,7 @@
 
 ## Code graph freshness
 
-- Graph input provenance: `ba264c3daa3775727318cf6e21beddb9319addf4`; freshness is inconclusive until validated against the current source tree before relying on it.
+- Graph input provenance: `98727efffea622c8736950e7284c6b2cc0cd99f7`; freshness is inconclusive until validated against the current source tree before relying on it.
 - Fresh: the manifest source-tree digest matches tracked inputs.
 
 ## Onboarding commands
