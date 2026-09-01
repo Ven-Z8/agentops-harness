@@ -1073,12 +1073,10 @@ def _safe_remote_error(error: Exception) -> str:
 class GitHubProvisioner:
     def __init__(
         self,
-        transport: MutationTransport | GhTransport,
+        transport: MutationTransport | None = None,
         root: Path | None = None,
         rediscover: Callable[[], RemoteGitHubState] | None = None,
     ) -> None:
-        if not callable(getattr(transport, "mutate", None)):
-            raise InvalidControlRoom("GitHub provisioning requires a mutate-only transport")
         self._transport = transport
         self._root = root.resolve(strict=True) if root is not None else None
         self._rediscover = rediscover
@@ -1269,6 +1267,9 @@ class GitHubProvisioner:
         )
 
     def apply(self, plan: ProvisioningPlan) -> ReconciliationReport:
+        transport = self._transport
+        if not callable(getattr(transport, "mutate", None)):
+            raise InvalidControlRoom("GitHub provisioning apply requires a mutate-only transport")
         completed: dict[str, str] = {}
         resolved_issues: dict[str, str] = {}
         resolved_items: dict[str, str] = {}
@@ -1328,7 +1329,7 @@ class GitHubProvisioner:
                 # The allowlisted transport validates again at its boundary.
                 _typed_input(operation, variables)
                 attempted_actions.append(action)
-                response = self._transport.mutate(operation, variables)
+                response = transport.mutate(operation, variables)
                 remote_id = _mutation_id(operation, response)
                 if remote_id is None:
                     raise InvalidControlRoom("GitHub mutation returned no object ID")

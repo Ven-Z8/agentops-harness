@@ -259,7 +259,7 @@ def _github_provision_command(args: argparse.Namespace) -> int:
     # The mutation-capable transport is intentionally constructed only after the mode and
     # explicit confirmation have been validated. Dry-run therefore cannot even instantiate it.
     if args.dry_run:
-        plan = GitHubProvisioner(SubprocessGhTransport()).plan(state, remote)
+        plan = GitHubProvisioner().plan(state, remote)
         print(plan.to_json(), end="")
         return 0
     mutation_transport = ApplyGhTransport()

@@ -181,6 +181,22 @@ def test_plan_is_dependency_ordered_and_printable() -> None:
     assert "GitHub Provisioning Plan" in plan.to_markdown()
 
 
+def test_apply_requires_mutation_transport_after_pure_planning() -> None:
+    state = make_control_room_state()
+    remote = RemoteGitHubState(
+        owner="Ven-Z8",
+        repository="Ven-Z8/agentops-harness",
+        owner_id="USER_1",
+        repository_id="REPO_1",
+    )
+    provisioner = GitHubProvisioner()
+
+    plan = provisioner.plan(state, remote)
+
+    with pytest.raises(InvalidControlRoom, match="apply requires a mutate-only transport"):
+        provisioner.apply(plan)
+
+
 def test_issue_update_preserves_unmanaged_preamble() -> None:
     state = make_control_room_state()
     item = state.roadmap.items[0]

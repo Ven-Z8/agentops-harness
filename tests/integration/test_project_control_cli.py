@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import subprocess
 import sys
 from datetime import UTC, datetime
@@ -126,6 +127,49 @@ def test_github_apply_requires_explicit_confirmation(
     monkeypatch.setattr(cli, "_repository_root", lambda: tmp_path)
 
     assert cli.main(["github-provision", "--apply"]) == 2
+
+
+def test_github_dry_run_plans_without_constructing_mutation_transport(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    from app.project_control import cli
+    from app.project_control.models import RemoteGitHubState
+
+    _seed_cli_repository(tmp_path)
+    mutation_transport_constructions: list[None] = []
+
+    class ReadOnlyTransport:
+        def graphql(self, query: str, variables: dict[str, object]) -> dict[str, object]:
+            raise AssertionError("dry-run fixture should not issue a GraphQL request directly")
+
+    class ReadOnlyClient:
+        def __init__(self, transport: ReadOnlyTransport) -> None:
+            assert isinstance(transport, ReadOnlyTransport)
+
+        def discover_state(
+            self, owner: str, repository: str, project_name: str
+        ) -> RemoteGitHubState:
+            assert (owner, repository) == ("Ven-Z8", "Ven-Z8/agentops-harness")
+            assert project_name == "AgentOps Research Control Plane — 14-Day v0.1"
+            return RemoteGitHubState(
+                owner=owner,
+                repository=repository,
+                owner_id="USER_1",
+                repository_id="REPO_1",
+            )
+
+    def mutation_transport() -> object:
+        mutation_transport_constructions.append(None)
+        raise AssertionError("dry-run must not construct a mutation transport")
+
+    monkeypatch.setattr(cli, "_repository_root", lambda: tmp_path)
+    monkeypatch.setattr(cli, "SubprocessGhTransport", ReadOnlyTransport)
+    monkeypatch.setattr(cli, "GitHubClient", ReadOnlyClient)
+    monkeypatch.setattr(cli, "ApplyGhTransport", mutation_transport)
+
+    assert cli.main(["github-provision", "--dry-run"]) == 0
+    assert json.loads(capsys.readouterr().out)["actions"]
+    assert mutation_transport_constructions == []
 
 
 def test_board_export_writes_both_snapshots_only_after_fake_remote_validation(
