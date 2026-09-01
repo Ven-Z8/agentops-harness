@@ -15,7 +15,7 @@
 ## Confirmed baseline
 
 - Baseline commit: `39c041f699d7909d1f6853a89bf2a86835a4acd4`
-- Snapshot input revision: `0cd7ac05d47d37a611367cd29b8d218c4d0b088f`
+- Snapshot input revision: `da7c5b8bef5e2ba0774c94c66615e73f915699ac`
 - Generated snapshot outputs are excluded; unavailable means validated inputs are dirty or provenance could not be resolved.
 
 ## Active blockers
@@ -53,7 +53,7 @@
 
 ## Verification evidence
 
-- artifact-AO-D01-01-task-9-verification: verified (SHA-256: `de3953a0772babcba4ab905c4c798cd611506e1855bb43b4d016ccb5b658636d`)
+- artifact-AO-D01-01-task-9-verification: verified (SHA-256: `2ff7601c69386527c51cd568ebe27625d2193573e3632a48e704ebb540036042`)
 - uv run pytest tests/unit/test\_project\_control\_schema.py -q: passed — 122 passed in 0.11s
 - uv run pytest tests/unit/test\_project\_control\_rendering.py -q: passed — 14 passed in 0.48s
 - uv run pytest tests/unit/test\_project\_control\_handoffs.py tests/unit/test\_project\_control\_artifacts.py -q: passed — 20 passed in 0.13s
@@ -63,7 +63,7 @@
 - uv run pytest tests/integration/test\_project\_control\_cli.py -q: passed — 23 passed in 5.84s
 - uv run ruff check .: passed — All checks passed!
 - uv run python scripts/project\_control.py validate: passed — Control room valid.
-- uv run pytest -q: failed (exit 1) — 670 passed, 6 skipped, 3 failed in 80.23s
+- uv run pytest -q: failed (exit 1) — 674 passed, 6 skipped, 2 failed in 81.50s
 - npm --prefix web test: passed — 74 tests passed
 - git diff --check: passed — no output recorded
 
@@ -73,7 +73,7 @@
 
 ## Code graph freshness
 
-- Graph input provenance: `ea8195757c02c563af46883c468769f906178133`; freshness is inconclusive until validated against the current source tree before relying on it.
+- Graph input provenance: `95978f5e2e3448adae2f52256a4750e4086f067d`; freshness is inconclusive until validated against the current source tree before relying on it.
 - Fresh: the manifest source-tree digest matches tracked inputs.
 
 ## Onboarding commands
