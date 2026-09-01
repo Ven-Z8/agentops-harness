@@ -21998,6 +21998,12 @@
     },
     {
       "metadata": {},
+      "source": "folder:coordination/artifacts",
+      "target": "file:coordination/artifacts/task-9-verification.yaml",
+      "type": "contains"
+    },
+    {
+      "metadata": {},
       "source": "folder:coordination/decisions",
       "target": "file:coordination/decisions/README.md",
       "type": "contains"
@@ -26760,6 +26766,14 @@
       "metadata": {},
       "name": "index.yaml",
       "path": "coordination/artifacts/index.yaml",
+      "type": "file"
+    },
+    {
+      "id": "file:coordination/artifacts/task-9-verification.yaml",
+      "language": null,
+      "metadata": {},
+      "name": "task-9-verification.yaml",
+      "path": "coordination/artifacts/task-9-verification.yaml",
       "type": "file"
     },
     {

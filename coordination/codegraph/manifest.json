@@ -1,8 +1,8 @@
 {
   "counts": {
-    "edges": 3877,
-    "included_files": 312,
-    "nodes": 2613,
+    "edges": 3878,
+    "included_files": 313,
+    "nodes": 2614,
     "source_files": 228,
     "test_files": 96
   },
@@ -26,7 +26,7 @@
     "target/",
     "vendor/"
   ],
-  "generated_at": "2026-09-01T13:51:54Z",
+  "generated_at": "2026-09-01T13:53:00Z",
   "generator_version": "1",
   "included_paths": [
     ".claude/launch.json",
@@ -161,6 +161,7 @@
     "coordination/README.md",
     "coordination/artifacts/README.md",
     "coordination/artifacts/index.yaml",
+    "coordination/artifacts/task-9-verification.yaml",
     "coordination/decisions/README.md",
     "coordination/designs/2026-08-30-project-control-room-design.md",
     "coordination/handoffs/README.md",
@@ -366,6 +367,6 @@
     ]
   },
   "schema_version": 1,
-  "source_commit": "e7ffa7ed8861a3ce610715ffb7910b55d63a1fd8",
-  "source_tree_digest": "5e9306761e2f40360037ae4c6ff354ca0bd6c1ee083a233625610c2d351d82d5"
+  "source_commit": "dcd99376661cd56adc0d659fa277db53e511784a",
+  "source_tree_digest": "abddf81ecb37fcf5d88d7c2415c60c4881c238a229cbb1a650e36035065d4d14"
 }
