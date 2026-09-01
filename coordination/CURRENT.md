@@ -15,7 +15,7 @@
 ## Confirmed baseline
 
 - Baseline commit: `39c041f699d7909d1f6853a89bf2a86835a4acd4`
-- Snapshot input revision: `8d3f9d1d5e3c626c9c01ced727430a425bbde5e1`
+- Snapshot input revision: `0cd7ac05d47d37a611367cd29b8d218c4d0b088f`
 - Generated snapshot outputs are excluded; unavailable means validated inputs are dirty or provenance could not be resolved.
 
 ## Active blockers
@@ -54,6 +54,18 @@
 ## Verification evidence
 
 - artifact-AO-D01-01-task-9-verification: verified (SHA-256: `de3953a0772babcba4ab905c4c798cd611506e1855bb43b4d016ccb5b658636d`)
+- uv run pytest tests/unit/test\_project\_control\_schema.py -q: passed — 122 passed in 0.11s
+- uv run pytest tests/unit/test\_project\_control\_rendering.py -q: passed — 14 passed in 0.48s
+- uv run pytest tests/unit/test\_project\_control\_handoffs.py tests/unit/test\_project\_control\_artifacts.py -q: passed — 20 passed in 0.13s
+- uv run pytest tests/unit/test\_project\_control\_codegraph.py -q: passed — 14 passed in 1.32s
+- uv run pytest tests/unit/test\_project\_control\_snapshots.py -q: passed — 52 passed
+- uv run pytest tests/unit/test\_project\_control\_github.py tests/unit/test\_project\_control\_provisioning.py -q: passed — 70 passed in 0.09s
+- uv run pytest tests/integration/test\_project\_control\_cli.py -q: passed — 23 passed in 5.84s
+- uv run ruff check .: passed — All checks passed!
+- uv run python scripts/project\_control.py validate: passed — Control room valid.
+- uv run pytest -q: failed (exit 1) — 670 passed, 6 skipped, 3 failed in 80.23s
+- npm --prefix web test: passed — 74 tests passed
+- git diff --check: passed — no output recorded
 
 ## Latest decisions and handoffs
 
@@ -61,7 +73,7 @@
 
 ## Code graph freshness
 
-- Graph input provenance: `3233e279af5144fe1b182d35ada41f6fb726bca5`; freshness is inconclusive until validated against the current source tree before relying on it.
+- Graph input provenance: `ea8195757c02c563af46883c468769f906178133`; freshness is inconclusive until validated against the current source tree before relying on it.
 - Fresh: the manifest source-tree digest matches tracked inputs.
 
 ## Onboarding commands
