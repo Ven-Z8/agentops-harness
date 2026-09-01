@@ -15,7 +15,7 @@
 ## Confirmed baseline
 
 - Baseline commit: `39c041f699d7909d1f6853a89bf2a86835a4acd4`
-- Snapshot input revision: `27406189d596a69f3dff952763f0e50130abf0e6`
+- Snapshot input revision: `8d3f9d1d5e3c626c9c01ced727430a425bbde5e1`
 - Generated snapshot outputs are excluded; unavailable means validated inputs are dirty or provenance could not be resolved.
 
 ## Active blockers
@@ -53,7 +53,7 @@
 
 ## Verification evidence
 
-- artifact-AO-D01-01-task-9-verification: verified (SHA-256: `d610b509e943db0857b80e0f55469ea19f68ee6c9f1e5f22d03cc50a78135679`)
+- artifact-AO-D01-01-task-9-verification: verified (SHA-256: `de3953a0772babcba4ab905c4c798cd611506e1855bb43b4d016ccb5b658636d`)
 
 ## Latest decisions and handoffs
 
@@ -61,7 +61,7 @@
 
 ## Code graph freshness
 
-- Graph input provenance: `dcd99376661cd56adc0d659fa277db53e511784a`; freshness is inconclusive until validated against the current source tree before relying on it.
+- Graph input provenance: `3233e279af5144fe1b182d35ada41f6fb726bca5`; freshness is inconclusive until validated against the current source tree before relying on it.
 - Fresh: the manifest source-tree digest matches tracked inputs.
 
 ## Onboarding commands
