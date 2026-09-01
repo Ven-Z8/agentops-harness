@@ -30,7 +30,12 @@ from tests.helpers_project_control import make_control_room_state
 def test_dry_run_performs_no_mutations() -> None:
     state = make_control_room_state()
     transport = _FakeMutationTransport()
-    remote = RemoteGitHubState(owner="Ven-Z8", repository="Ven-Z8/agentops-harness")
+    remote = RemoteGitHubState(
+        owner="Ven-Z8",
+        repository="Ven-Z8/agentops-harness",
+        owner_id="USER_1",
+        repository_id="REPO_1",
+    )
 
     plan = GitHubProvisioner(transport).plan(state, remote)
 
@@ -70,7 +75,12 @@ def test_existing_stable_ids_are_reused_without_duplicates() -> None:
 def test_partial_apply_returns_reconciliation_report() -> None:
     state = make_control_room_state()
     transport = _FakeMutationTransport(fail_after=3)
-    remote = RemoteGitHubState(owner="Ven-Z8", repository="Ven-Z8/agentops-harness")
+    remote = RemoteGitHubState(
+        owner="Ven-Z8",
+        repository="Ven-Z8/agentops-harness",
+        owner_id="USER_1",
+        repository_id="REPO_1",
+    )
     plan = GitHubProvisioner(transport).plan(state, remote)
 
     report = GitHubProvisioner(transport).apply(plan)
@@ -246,7 +256,12 @@ def test_allowlist_rejects_unregistered_mutation() -> None:
 
 def test_unsupported_views_are_partial_with_six_manual_instructions() -> None:
     state = make_control_room_state()
-    remote = RemoteGitHubState(owner="Ven-Z8", repository="Ven-Z8/agentops-harness")
+    remote = RemoteGitHubState(
+        owner="Ven-Z8",
+        repository="Ven-Z8/agentops-harness",
+        owner_id="USER_1",
+        repository_id="REPO_1",
+    )
 
     class ViewUnsupported(_FakeMutationTransport):
         def mutate(self, operation: str, variables: dict[str, object]) -> dict[str, object]:

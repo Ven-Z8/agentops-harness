@@ -7,7 +7,8 @@ import json
 import math
 import re
 import subprocess
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
+from datetime import date
 from pathlib import Path
 from typing import Protocol
 
@@ -36,6 +37,7 @@ from app.project_control.models import (
     RemoteProject,
     RemoteProjectItem,
     RemoteView,
+    _thaw_plan_value,
 )
 from app.project_control.roadmap import load_roadmap, render_issue_body
 
@@ -280,11 +282,6 @@ query DiscoverProjects(
 _NESTED_FIELDS_QUERY = """query ProjectFields($id: ID!, $after: String) {
   node(id: $id) { ... on ProjectV2 { fields(first: 100, after: $after) {
     nodes { id name dataType options { id name } } pageInfo { hasNextPage endCursor }
-  } } }
-}""".strip()
-_NESTED_OPTIONS_QUERY = """query FieldOptions($id: ID!, $after: String) {
-  node(id: $id) { ... on ProjectV2SingleSelectField { options(first: 100, after: $after) {
-    nodes { id name } pageInfo { hasNextPage endCursor }
   } } }
 }""".strip()
 _NESTED_VIEWS_QUERY = """query ProjectViews($id: ID!, $after: String) {
@@ -803,7 +800,7 @@ def _typed_input(operation: str, variables: dict[str, object]) -> dict[str, obje
             **field_id,
         }
         options = variables.get("options", [])
-        if not isinstance(options, list) or not all(
+        if not isinstance(options, (list, tuple)) or not all(
             isinstance(option, str) and option for option in options
         ):
             raise MutationInputError("GitHub mutation field options are malformed")
@@ -857,6 +854,10 @@ def _typed_input(operation: str, variables: dict[str, object]) -> dict[str, obje
         else:
             if not isinstance(logical, str) or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", logical):
                 raise MutationInputError("GitHub mutation date value is malformed")
+            try:
+                date.fromisoformat(logical)
+            except ValueError as error:
+                raise MutationInputError("GitHub mutation date value is malformed") from error
             result["date"] = logical
         return result
     if operation in {"create_view", "update_view"}:
@@ -919,6 +920,7 @@ def _mutation_option_ids(operation: str, response: object) -> dict[str, str]:
     if not isinstance(current, dict) or not isinstance(current.get("options"), list):
         raise InvalidControlRoom("GitHub field mutation response options are malformed")
     result: dict[str, str] = {}
+    ids: set[str] = set()
     for option in current["options"]:
         if (
             not isinstance(option, dict)
@@ -927,8 +929,10 @@ def _mutation_option_ids(operation: str, response: object) -> dict[str, str]:
             or not re.fullmatch(r"^[A-Za-z0-9_:-]+$", option["id"])
             or not isinstance(option["name"], str)
             or option["name"] in result
+            or option["id"] in ids
         ):
             raise InvalidControlRoom("GitHub field mutation returned malformed options")
+        ids.add(option["id"])
         result[option["name"]] = option["id"]
     return result
 
@@ -984,6 +988,8 @@ class GitHubProvisioner:
         root: Path | None = None,
         rediscover: Callable[[], RemoteGitHubState] | None = None,
     ) -> None:
+        if not callable(getattr(transport, "mutate", None)):
+            raise InvalidControlRoom("GitHub provisioning requires a mutate-only transport")
         self._transport = transport
         self._root = root.resolve(strict=True) if root is not None else None
         self._rediscover = rediscover
@@ -1015,7 +1021,10 @@ class GitHubProvisioner:
         for name, options in DESIRED_FIELDS.items():
             current = remote_fields.get(name)
             action = "create" if current is None else "reuse"
-            if current is not None and tuple(option.name for option in current.options) != options:
+            if current is not None and (
+                tuple(option.name for option in current.options) != options
+                or current.data_type != _field_data_type(name)
+            ):
                 action = "update"
             field_actions.append(
                 ProvisionAction(
@@ -1172,7 +1181,16 @@ class GitHubProvisioner:
 
     def apply(self, plan: ProvisioningPlan) -> ReconciliationReport:
         completed: dict[str, str] = {}
+        resolved_issues: dict[str, str] = {}
+        resolved_items: dict[str, str] = {}
         completed_options: dict[str, dict[str, str]] = {}
+        for field_action in plan.field_actions:
+            # Reused fields may safely use IDs from the validated discovery
+            # snapshot.  Created/updated fields must use the mutation response;
+            # their planned map is stale by definition.
+            option_ids = field_action.payload.get("option_ids", {})
+            if field_action.action == "reuse" and isinstance(option_ids, Mapping):
+                completed_options[field_action.stable_key] = dict(option_ids)
         attempted_actions: list[ProvisionAction] = []
         completed_actions: list[ProvisionAction] = []
         remaining = list(plan.actions)
@@ -1183,11 +1201,17 @@ class GitHubProvisioner:
             if action.action == "reuse":
                 if action.remote_id:
                     completed[action.stable_key] = action.remote_id
+                    if action.resource == "issue":
+                        resolved_issues[action.stable_key] = action.remote_id
+                    elif action.resource == "item":
+                        resolved_items[action.stable_key] = action.remote_id
                 completed_actions.append(action)
                 remaining.pop(0)
                 continue
             operation = _operation_for_action(action)
             variables = dict(action.payload)
+            if action.resource == "project":
+                variables["title"] = variables.get("name")
             variables["stable_key"] = action.stable_key
             variables["remote_id"] = action.remote_id
             variables["project_id"] = completed.get(plan.project.stable_key, plan.project.remote_id)
@@ -1199,30 +1223,45 @@ class GitHubProvisioner:
                 variables["view_id"] = action.remote_id
             if action.resource in {"item", "field-value"}:
                 task_id = str(action.payload.get("task_id", ""))
-                variables["issue_id"] = completed.get(task_id)
-                variables["content_id"] = completed.get(task_id)
+                variables["issue_id"] = resolved_issues.get(task_id)
+                variables["content_id"] = resolved_issues.get(task_id)
             if action.resource == "field-value":
                 field_name = str(action.payload.get("field", ""))
                 variables["field_id"] = completed.get(field_name)
-                variables["item_id"] = completed.get(str(action.payload.get("task_id", "")))
-                if action.payload.get("field_type") == "single-select" and not variables.get(
-                    "option_id"
-                ):
+                variables["item_id"] = resolved_items.get(str(action.payload.get("task_id", "")))
+                if action.payload.get("field_type") == "single-select":
                     logical = action.payload.get("logical_value")
+                    variables.pop("option_id", None)
                     variables["option_id"] = completed_options.get(field_name, {}).get(str(logical))
             try:
+                # Validate all local dependencies before recording an attempted remote call.
+                # The allowlisted transport validates again at its boundary.
+                _typed_input(operation, variables)
                 attempted_actions.append(action)
-                if hasattr(self._transport, "mutate"):
-                    response = self._transport.mutate(operation, variables)  # type: ignore[attr-defined]
-                else:
-                    response = self._transport.graphql(_MUTATION_QUERIES[operation], variables)  # type: ignore[attr-defined]
+                response = self._transport.mutate(operation, variables)
                 remote_id = _mutation_id(operation, response)
                 if remote_id is None:
                     raise InvalidControlRoom("GitHub mutation returned no object ID")
                 _validate_mutation_identity(operation, response, action)
                 completed[action.stable_key] = remote_id
+                if action.resource == "issue":
+                    resolved_issues[action.stable_key] = remote_id
+                elif action.resource == "item":
+                    resolved_items[action.stable_key] = remote_id
                 if action.resource == "field":
                     completed_options[action.stable_key] = _mutation_option_ids(operation, response)
+                    expected_names = tuple(action.payload.get("options", ()))
+                    if set(completed_options[action.stable_key]) != set(expected_names):
+                        raise InvalidControlRoom(
+                            "GitHub field mutation returned an incomplete option list: "
+                            f"{action.stable_key}"
+                        )
+                    completed.update(
+                        {
+                            f"{action.stable_key}:option:{name}": option_id
+                            for name, option_id in completed_options[action.stable_key].items()
+                        }
+                    )
                 completed_actions.append(action)
                 mutation_confirmed = True
                 remaining.pop(0)
@@ -1234,8 +1273,11 @@ class GitHubProvisioner:
                     continue
                 error = "GitHub mutation capability is unsupported"
                 break
-            except MutationInputError:
-                raise
+            except MutationInputError as exc:
+                if not attempted_actions:
+                    raise
+                error = _safe_remote_error(exc)
+                break
             except DependencyUnavailable as exc:
                 if not mutation_confirmed:
                     raise
@@ -1264,22 +1306,24 @@ class GitHubProvisioner:
             manual_instructions=tuple(dict.fromkeys(manual)),
             error=error,
         )
-        if report.state == "success":
+        # Any confirmed mutation requires a fresh, read-only identity check,
+        # including runs that already became partial due to a later failure.
+        # This preserves completed mutations while surfacing reconciliation
+        # failures instead of claiming an unverified partial result.
+        if mutation_confirmed:
             if self._rediscover is None:
-                report = report.model_copy(
-                    update={
-                        "state": "partial",
-                        "error": "post-apply read-only rediscovery is required",
-                    }
-                )
+                mismatch = "post-apply read-only rediscovery is required"
             else:
                 try:
                     discovered = self._rediscover()
-                    mismatch = _reconcile_plan(plan, discovered)
+                    mismatch = _reconcile_plan(
+                        plan, discovered, completed, resolved_issues, resolved_items
+                    )
                 except Exception as exc:  # noqa: BLE001 - reconciliation boundary
                     mismatch = _safe_remote_error(exc)
-                if mismatch is not None:
-                    report = report.model_copy(update={"state": "partial", "error": mismatch})
+            if mismatch is not None:
+                combined = f"{report.error}; {mismatch}" if report.error else mismatch
+                report = report.model_copy(update={"state": "partial", "error": combined})
         return self._write_report(report)
 
     def _write_report(self, report: ReconciliationReport) -> ReconciliationReport:
@@ -1353,11 +1397,20 @@ def _action_record(action: ProvisionAction) -> ReconciliationAction:
         stable_key=action.stable_key,
         action=action.action,
         remote_id=action.remote_id,
-        payload=action.payload,
+        payload=_thaw_plan_value(action.payload),
     )
 
 
-def _reconcile_plan(plan: ProvisioningPlan, remote: RemoteGitHubState) -> str | None:
+def _reconcile_plan(
+    plan: ProvisioningPlan,
+    remote: RemoteGitHubState,
+    completed: dict[str, str] | None = None,
+    resolved_issues: dict[str, str] | None = None,
+    resolved_items: dict[str, str] | None = None,
+) -> str | None:
+    completed = completed or {}
+    resolved_issues = resolved_issues or {}
+    resolved_items = resolved_items or {}
     if remote.owner != plan.project.payload.get(
         "owner"
     ) or remote.repository != plan.project.payload.get("repository"):
@@ -1369,14 +1422,45 @@ def _reconcile_plan(plan: ProvisioningPlan, remote: RemoteGitHubState) -> str | 
     expected_project_id = plan.project.remote_id
     if remote.project is None or remote.project.name != plan.project.payload["name"]:
         return "post-apply project identity mismatch"
+    expected_project_url = (
+        f"https://github.com/users/{remote.owner}/projects/{remote.project.number}"
+    )
+    if remote.project.url != expected_project_url:
+        return "post-apply project URL mismatch"
     if expected_project_id is not None and remote.project.id != expected_project_id:
         return "post-apply project node ID mismatch"
+    if (
+        completed.get(plan.project.stable_key)
+        and remote.project.id != completed[plan.project.stable_key]
+    ):
+        return "post-apply project ID does not match reconciliation"
     issues = {issue.task_id for issue in remote.issues}
     missing_issues = [
         action.stable_key for action in plan.issue_actions if action.stable_key not in issues
     ]
     if missing_issues:
         return f"post-apply issues missing stable IDs: {', '.join(sorted(missing_issues))}"
+    issues_by_task = {issue.task_id: issue for issue in remote.issues}
+    for action in plan.issue_actions:
+        issue = issues_by_task[action.stable_key]
+        expected_id = resolved_issues.get(action.stable_key, action.remote_id)
+        if expected_id is not None and issue.node_id != expected_id:
+            return f"post-apply issue ID mismatch: {action.stable_key}"
+        if issue.title != action.payload.get("title"):
+            return f"post-apply issue title mismatch: {action.stable_key}"
+        if issue.url != f"https://github.com/{remote.repository}/issues/{issue.number}":
+            return f"post-apply issue URL mismatch: {action.stable_key}"
+        try:
+            current_managed = _managed_issue_content(issue.body)
+            expected_managed = _managed_issue_content(str(action.payload.get("body", "")))
+        except InvalidControlRoom as error:
+            return _safe_remote_error(error)
+        if (
+            current_managed is None
+            or expected_managed is None
+            or current_managed != expected_managed
+        ):
+            return f"post-apply managed issue body mismatch: {action.stable_key}"
     fields = {field.name: field for field in remote.fields}
     for action in plan.field_actions:
         field = fields.get(action.stable_key)
@@ -1391,6 +1475,16 @@ def _reconcile_plan(plan: ProvisioningPlan, remote: RemoteGitHubState) -> str | 
             isinstance(expected_options, dict)
             and expected_options
             and {option.name: option.id for option in field.options} != expected_options
+        ):
+            return f"post-apply field option IDs mismatch: {action.stable_key}"
+        created_options = {
+            key.split(":option:", 1)[1]: value
+            for key, value in completed.items()
+            if key.startswith(f"{action.stable_key}:option:")
+        }
+        if (
+            created_options
+            and {option.name: option.id for option in field.options} != created_options
         ):
             return f"post-apply field option IDs mismatch: {action.stable_key}"
     items = {item.task_id for item in remote.items}
@@ -1408,6 +1502,16 @@ def _reconcile_plan(plan: ProvisioningPlan, remote: RemoteGitHubState) -> str | 
         field = field_by_name.get(field_name)
         if item is None or field is None:
             return f"post-apply field value dependency missing: {action.stable_key}"
+        expected_item_id = resolved_items.get(task_id)
+        if expected_item_id is not None and item.id != expected_item_id:
+            return f"post-apply item ID mismatch: {task_id}"
+        expected_issue_id = resolved_issues.get(task_id)
+        if expected_issue_id is not None and item.content_id != expected_issue_id:
+            return f"post-apply item issue relationship mismatch: {task_id}"
+        if item.issue_number is not None and item.issue_url is not None:
+            issue = issues_by_task.get(task_id)
+            if issue is None or item.issue_number != issue.number or item.issue_url != issue.url:
+                return f"post-apply item issue metadata mismatch: {task_id}"
         value = next((entry for entry in item.field_values if entry.field_id == field.id), None)
         if value is None or value.value != action.payload.get("logical_value"):
             return f"post-apply field value mismatch: {action.stable_key}"
@@ -1421,6 +1525,9 @@ def _reconcile_plan(plan: ProvisioningPlan, remote: RemoteGitHubState) -> str | 
         view = views.get(action.stable_key)
         if view is None:
             return f"post-apply views missing: {action.stable_key}"
+        expected_id = completed.get(action.stable_key, action.remote_id)
+        if expected_id is not None and view.id != expected_id:
+            return f"post-apply view ID mismatch: {action.stable_key}"
         for key, remote_key in (
             ("layout", "layout"),
             ("group_by", "group_by"),
@@ -1593,9 +1700,7 @@ def _parse_discovered_project(
             raise InvalidControlRoom("GitHub discovery contains a malformed field")
         if field["name"] not in _KNOWN_FIELDS | _IGNORED_BUILT_INS:
             raise InvalidControlRoom(f"GitHub discovery contains unknown field: {field['name']}")
-        options = field.get("options", [])
-        if isinstance(options, dict):
-            options = options.get("nodes")
+        options = field.get("options")
         if not isinstance(options, list):
             raise InvalidControlRoom("GitHub discovery field options are malformed")
         option_names: list[str] = []
@@ -1723,8 +1828,22 @@ def _parse_discovered_project(
                 "number": {"field_type": "number", "number": raw_value},
                 "date": {"field_type": "date", "date": raw_value},
             }[kind]
+            if kind == "name" and typed["option_id"] is None:
+                raise InvalidControlRoom(
+                    f"GitHub field value references unknown option: {field_ref['name']}"
+                )
             field_values.append(RemoteFieldValue(id=value["id"], field_id=field_ref["id"], **typed))
-        items.append(RemoteProjectItem(id=item["id"], task_id=task_id, field_values=field_values))
+        items.append(
+            RemoteProjectItem(
+                id=item["id"],
+                task_id=task_id,
+                content_id=issue_id,
+                issue_number=issue_number,
+                issue_url=issue_url,
+                issue_title=issue_title,
+                field_values=field_values,
+            )
+        )
     views_nodes = views_raw.get("nodes")
     views_page_info = views_raw.get("pageInfo")
     if not isinstance(views_nodes, list) or not isinstance(views_page_info, dict):
@@ -1897,29 +2016,6 @@ class GitHubClient:
             expanded[key]["nodes"] = self._connection_pages(
                 query, project_id, key, connection["nodes"], connection["pageInfo"]
             )
-        # Field options have their own connection and must be paginated independently.
-        field_nodes = []
-        for field in expanded["fields"]["nodes"]:
-            if not isinstance(field, dict):
-                raise InvalidControlRoom("GitHub discovery field is malformed")
-            options = field.get("options", [])
-            if isinstance(options, dict):
-                if not isinstance(options.get("nodes"), list) or not isinstance(
-                    options.get("pageInfo"), dict
-                ):
-                    raise InvalidControlRoom(
-                        "GitHub discovery field options connection is malformed"
-                    )
-                field = dict(field)
-                field["options"] = self._connection_pages(
-                    _NESTED_OPTIONS_QUERY,
-                    str(field["id"]),
-                    "options",
-                    options["nodes"],
-                    options["pageInfo"],
-                )
-            field_nodes.append(field)
-        expanded["fields"]["nodes"] = field_nodes
         # Each item has an independently paginated field-value connection.
         expanded_items = []
         for item in expanded["items"]["nodes"]:

@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import math
 import re
 from dataclasses import dataclass
 from dataclasses import field as dataclass_field
 from datetime import UTC, datetime
 from enum import StrEnum
 from pathlib import PurePosixPath
+from types import MappingProxyType
 from typing import Literal
 from urllib.parse import urlsplit
 
@@ -605,15 +607,18 @@ class ControlRoomState(StrictModel):
 # is the validated read-only snapshot consumed by local renderers; these records are the
 # minimum remote identity needed by the deterministic provisioning planner.
 class RemoteProject(StrictModel):
+    model_config = ConfigDict(extra="forbid", strict=True, frozen=True)
     id: str = Field(min_length=1, pattern=r"^[A-Za-z0-9_:-]+$")
     number: int = Field(gt=0)
     name: str = Field(min_length=1)
     url: str
 
     _validate_url = field_validator("url")(_https_url)
+    _validate_name = field_validator("name")(_single_line_text)
 
 
 class RemoteIssue(StrictModel):
+    model_config = ConfigDict(extra="forbid", strict=True, frozen=True)
     task_id: str = Field(min_length=1, pattern=r"^AO-(?:14D|P[1-6]|D\d{2}(?:-\d{2})?)$")
     node_id: str = Field(min_length=1, pattern=r"^[A-Za-z0-9_:-]+$")
     number: int = Field(gt=0)
@@ -622,11 +627,15 @@ class RemoteIssue(StrictModel):
     body: str = ""
 
     _validate_url = field_validator("url")(_https_url)
+    _validate_title = field_validator("title")(_single_line_text)
 
 
 class RemoteOption(StrictModel):
+    model_config = ConfigDict(extra="forbid", strict=True, frozen=True)
     id: str = Field(min_length=1, pattern=r"^[A-Za-z0-9_:-]+$")
     name: str = Field(min_length=1)
+
+    _validate_name = field_validator("name")(_single_line_text)
 
 
 class RemoteFieldValue(StrictModel):
@@ -644,6 +653,12 @@ class RemoteFieldValue(StrictModel):
     def validate_typed_value(self) -> RemoteFieldValue:
         if isinstance(self.number, bool):
             raise ValueError("remote number field value must not be boolean")
+        if self.number is not None and not math.isfinite(self.number):
+            raise ValueError("remote number field value must be finite")
+        if self.field_type == "single-select" and (
+            self.option_id is None or self.option_name is None
+        ):
+            raise ValueError("remote single-select value requires option ID and name")
         populated = {
             "single-select": (self.option_id, self.option_name),
             "text": (self.text,),
@@ -661,6 +676,27 @@ class RemoteFieldValue(StrictModel):
         ):
             raise ValueError("remote field value has exactly one typed value")
         return self
+
+    @field_validator("text", "option_name")
+    @classmethod
+    def validate_safe_text(cls, value: str | None) -> str | None:
+        if value is not None:
+            _single_line_text(value)
+        return value
+
+    @field_validator("date")
+    @classmethod
+    def validate_iso_date(cls, value: str | None) -> str | None:
+        if value is not None:
+            if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", value):
+                raise ValueError("remote date must use ISO YYYY-MM-DD")
+            from datetime import date
+
+            try:
+                date.fromisoformat(value)
+            except ValueError as error:
+                raise ValueError("remote date is not calendar-valid") from error
+        return value
 
     @property
     def value(self) -> str | int | float | None:
@@ -690,7 +726,14 @@ class RemoteProjectItem(StrictModel):
     model_config = ConfigDict(extra="forbid", strict=True, frozen=True)
     id: str = Field(min_length=1, pattern=r"^[A-Za-z0-9_:-]+$")
     task_id: str = Field(min_length=1, pattern=r"^AO-(?:14D|P[1-6]|D\d{2}(?:-\d{2})?)$")
+    content_id: str | None = Field(default=None, pattern=r"^[A-Za-z0-9_:-]+$")
+    issue_number: int | None = Field(default=None, gt=0)
+    issue_url: str | None = None
+    issue_title: str | None = None
     field_values: tuple[RemoteFieldValue, ...] = ()
+
+    _validate_issue_url = field_validator("issue_url")(_https_url)
+    _validate_issue_title = field_validator("issue_title")(_single_line_text)
 
     @field_validator("field_values", mode="before")
     @classmethod
@@ -698,6 +741,13 @@ class RemoteProjectItem(StrictModel):
         if isinstance(value, dict):
             return tuple(value.values())
         return tuple(value) if isinstance(value, (list, tuple)) else value
+
+    @model_validator(mode="after")
+    def reject_duplicate_fields(self) -> RemoteProjectItem:
+        field_ids = [value.field_id for value in self.field_values]
+        if len(field_ids) != len(set(field_ids)):
+            raise ValueError("duplicate field value for remote field ID")
+        return self
 
 
 class RemoteView(StrictModel):
@@ -749,6 +799,8 @@ class RemoteGitHubState(StrictModel):
         for field in self.fields:
             if len(field.options) != len({option.id for option in field.options}):
                 raise ValueError(f"duplicate options for remote field: {field.name}")
+            if len(field.options) != len({option.name for option in field.options}):
+                raise ValueError(f"duplicate option names for remote field: {field.name}")
         item_ids = [item.id for item in self.items]
         if len(item_ids) != len(set(item_ids)):
             raise ValueError("duplicate remote project item ID")
@@ -790,13 +842,18 @@ class ProvisionAction:
     remote_id: str | None
     payload: dict[str, object] = dataclass_field(default_factory=dict)
 
+    def __post_init__(self) -> None:
+        # Dataclass freezing only protects attribute rebinding.  Freeze nested
+        # payloads too, since action payloads are the durable mutation plan.
+        object.__setattr__(self, "payload", _freeze_plan_value(self.payload))
+
     def as_dict(self) -> dict[str, object]:
         return {
             "resource": self.resource,
             "stable_key": self.stable_key,
             "action": self.action,
             "remote_id": self.remote_id,
-            "payload": self.payload,
+            "payload": _thaw_plan_value(self.payload),
         }
 
 
@@ -810,6 +867,7 @@ class ProvisioningPlan:
     view_actions: tuple[ProvisionAction, ...] = ()
 
     def __post_init__(self) -> None:
+        object.__setattr__(self, "project", self.project)
         for name in (
             "field_actions",
             "issue_actions",
@@ -940,6 +998,22 @@ def _freeze_report_value(value: object) -> object:
         return tuple((str(key), _freeze_report_value(item)) for key, item in sorted(value.items()))
     if isinstance(value, (list, tuple)):
         return tuple(_freeze_report_value(item) for item in value)
+    return value
+
+
+def _freeze_plan_value(value: object) -> object:
+    if isinstance(value, dict):
+        return MappingProxyType({str(key): _freeze_plan_value(item) for key, item in value.items()})
+    if isinstance(value, (list, tuple)):
+        return tuple(_freeze_plan_value(item) for item in value)
+    return value
+
+
+def _thaw_plan_value(value: object) -> object:
+    if isinstance(value, MappingProxyType):
+        return {key: _thaw_plan_value(item) for key, item in value.items()}
+    if isinstance(value, tuple):
+        return [_thaw_plan_value(item) for item in value]
     return value
 
 
