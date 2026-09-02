@@ -509,6 +509,18 @@ def issue_solve(
     worker_timeout_seconds: Annotated[
         int, typer.Option(help="Maximum seconds to wait for the worker.")
     ] = 900,
+    test_commands: Annotated[
+        list[str] | None,
+        typer.Option(
+            "--test-commands",
+            help=(
+                "Validation command(s) the harness runs after the worker edits. "
+                "Repeatable. Scopes validation to what can honestly run on this "
+                "host (e.g. a repo unit-suite subset) instead of failing on "
+                "environmental tests (redis, docker, snapshot gates)."
+            ),
+        ),
+    ] = None,
     goal: Annotated[
         str | None, typer.Option("--goal", help="Intent-graph goal id this run targets.")
     ] = None,
@@ -568,6 +580,7 @@ def issue_solve(
         worker_command=worker_command,
         worker_type=worker_type,
         worker_timeout_seconds=worker_timeout_seconds,
+        test_commands=list(test_commands) if test_commands else None,
         max_attempts=max_attempts,
         target_goal_id=goal,
         allow_dirty=True,  # the issue branch IS the workspace; attribution is per-branch

@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import subprocess
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 
 import pytest
@@ -303,3 +304,66 @@ def test_governed_issue_run_fails_closed_on_bad_worker(tmp_path: Path) -> None:
     assert record.edit_result.status == "completed"  # the process ran fine…
     assert record.test_results.passed is False      # …but the evaluation failed
     assert record.status == "failed"                 # …so the run is failed, not completed
+
+
+def test_solve_cli_passes_test_commands_through(tmp_path: Path) -> None:
+    """--test-commands on `issue solve` scopes the governed validation.
+
+    Real repos have environmental tests (redis, docker, snapshot gates) that
+    cannot pass on every host. The CLI must let the operator declare the
+    honest validation scope instead of silently failing everything.
+    """
+
+    from typer.testing import CliRunner
+
+    from app.cli import app
+    from app.core import issues as issues_module
+
+    issue = _fixture_issue()
+    remote = _make_remote_fixture(tmp_path)
+
+    captured: dict[str, object] = {}
+
+    def fake_run_harness(**kwargs):
+        captured.update(kwargs)
+        return SimpleNamespace(
+            run_id="r1",
+            status="completed",
+            attempts=1,
+            converged=True,
+            changed_files=["widget.py"],
+            final_report=SimpleNamespace(markdown="ok"),
+        )
+
+    with (
+        patch.object(issues_module, "fetch_issue", return_value=issue),
+        patch.object(
+            issues_module,
+            "prepare_issue_workspace",
+            return_value=(tmp_path / "work" / "widgetlib", "agentops/issue-42"),
+        ),
+        patch("app.cli.run_harness", fake_run_harness),
+        patch.object(
+            issues_module, "export_patch", return_value=tmp_path / "issue-42.patch"
+        ),
+        patch.object(issues_module, "commit_workspace_changes", return_value=True),
+    ):
+        result = CliRunner().invoke(
+            app,
+            [
+                "issue", "solve",
+                "--owner", "example",
+                "--repo", "widgetlib",
+                "--number", "42",
+                "--worker", "codex",
+                "--test-commands",
+                "python -m pytest tests/test_unit -q",
+            ],
+        )
+        assert result.exit_code == 0, result.output
+    assert "test_commands" in captured  # run_harness was actually called
+
+    cmds = captured.get("test_commands")
+    assert cmds == ["python -m pytest tests/test_unit -q"], cmds
+    # And the composed worker command embeds the task (not the test commands).
+    assert "Resolve GitHub issue" in str(captured.get("worker_command", ""))
