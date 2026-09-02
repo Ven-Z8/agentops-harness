@@ -3,9 +3,9 @@
 > Generated snapshot; do not edit manually.
 > GitHub Issues and Projects are authoritative for live execution state when provisioned.
 
-- Generated at: 2026-08-30T18:00:00Z
+- Generated at: 2026-09-02T23:13:17Z
 - GitHub project: not provisioned
-- Snapshot input revision: `da7c5b8bef5e2ba0774c94c66615e73f915699ac`
+- Snapshot input revision: `unavailable`
 - Generated snapshot outputs are excluded from this revision.
 
 ## Repository roadmap work
@@ -30,7 +30,7 @@
 | AO-D14: Reproduce v0.1 end to end and publish honest limitations | AO-P6 | planned | P0 | 14 | not provisioned | None |
 | AO-P2: Experiment Kernel and DeepEval | — | planned | P1 | — | not provisioned | None |
 | AO-P3: Governed Training | — | planned | P1 | — | not provisioned | None |
-| AO-D03: Define experiment identity and immutable run records | AO-P2 | planned | P1 | 3 | not provisioned | None |
+| AO-D03: Define experiment identity and immutable run records | AO-P2 | planned | P1 | 3 | not provisioned | [handoff](<coordination/handoffs/2026-09-02-AO-D03-deepseek-harness.md>) |
 | AO-D04: Add a DeepEval provider adapter without leaking provider schema | AO-P2 | planned | P1 | 4 | not provisioned | None |
 | AO-D05: Run split-safe coding benchmark comparison and promotion | AO-P2 | planned | P1 | 5 | not provisioned | None |
 | AO-D06: Define governed training provider and budget contracts | AO-P3 | planned | P1 | 6 | not provisioned | None |

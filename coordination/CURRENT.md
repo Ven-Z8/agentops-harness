@@ -2,7 +2,7 @@
 
 > Generated from validated repository state; do not edit manually.
 
-- Generated at: 2026-08-30T18:00:00Z
+- Generated at: 2026-09-02T23:13:17Z
 
 ## Current phase
 
@@ -15,7 +15,7 @@
 ## Confirmed baseline
 
 - Baseline commit: `39c041f699d7909d1f6853a89bf2a86835a4acd4`
-- Snapshot input revision: `da7c5b8bef5e2ba0774c94c66615e73f915699ac`
+- Snapshot input revision: `unavailable`
 - Generated snapshot outputs are excluded; unavailable means validated inputs are dirty or provenance could not be resolved.
 
 ## Active blockers
@@ -69,12 +69,12 @@
 
 ## Latest decisions and handoffs
 
-- None recorded.
+- [Handoff AO-D03](<coordination/handoffs/2026-09-02-AO-D03-deepseek-harness.md>): partial
 
 ## Code graph freshness
 
-- Graph input provenance: `95978f5e2e3448adae2f52256a4750e4086f067d`; freshness is inconclusive until validated against the current source tree before relying on it.
-- Fresh: the manifest source-tree digest matches tracked inputs.
+- Graph input provenance: `82219d9542927479b5ae7beec606d61f1d32ecd5`; freshness is inconclusive until validated against the current source tree before relying on it.
+- Stale: the source-tree digest differs from the manifest.
 
 ## Onboarding commands
 

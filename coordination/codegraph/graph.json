@@ -1365,6 +1365,12 @@
     {
       "metadata": {},
       "source": "file:app/cli.py",
+      "target": "function:python:app.cli._spec_issue_stub",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/cli.py",
       "target": "function:python:app.cli.draft_handoff_packet",
       "type": "defines"
     },
@@ -1545,6 +1551,12 @@
     {
       "metadata": {},
       "source": "file:app/cli.py",
+      "target": "import:python:app.core.issues.GitHubIssue",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/cli.py",
       "target": "import:python:app.core.issues.commit_workspace_changes",
       "type": "imports"
     },
@@ -1629,6 +1641,12 @@
     {
       "metadata": {},
       "source": "file:app/cli.py",
+      "target": "import:python:app.core.task_spec_gate.evaluate_negative_contract",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/cli.py",
       "target": "import:python:app.core.workload.evaluate_workload_gates",
       "type": "imports"
     },
@@ -1636,6 +1654,12 @@
       "metadata": {},
       "source": "file:app/cli.py",
       "target": "import:python:app.core.workload.load_workload_manifest",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/cli.py",
+      "target": "import:python:app.schemas.task_spec.SweTaskSpec",
       "type": "imports"
     },
     {
@@ -6286,6 +6310,72 @@
       "metadata": {},
       "source": "file:app/core/storage.py",
       "target": "import:python:sqlite3",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/core/task_spec_gate.py",
+      "target": "class:python:app.core.task_spec_gate.NegativeContractCommandResult",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/core/task_spec_gate.py",
+      "target": "class:python:app.core.task_spec_gate.NegativeContractGateResult",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/core/task_spec_gate.py",
+      "target": "function:python:app.core.task_spec_gate._pytest_command_for",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/core/task_spec_gate.py",
+      "target": "function:python:app.core.task_spec_gate.evaluate_negative_contract",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/core/task_spec_gate.py",
+      "target": "import:python:__future__.annotations",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/core/task_spec_gate.py",
+      "target": "import:python:app.core.test_runner.TestRunner",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/core/task_spec_gate.py",
+      "target": "import:python:app.schemas.task_spec.SweTaskSpec",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/core/task_spec_gate.py",
+      "target": "import:python:dataclasses.dataclass",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/core/task_spec_gate.py",
+      "target": "import:python:dataclasses.field",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/core/task_spec_gate.py",
+      "target": "import:python:pathlib.Path",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/core/task_spec_gate.py",
+      "target": "import:python:shlex",
       "type": "imports"
     },
     {
@@ -12064,6 +12154,96 @@
       "metadata": {},
       "source": "file:app/schemas/showcase.py",
       "target": "import:python:pydantic.Field",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/schemas/task_spec.py",
+      "target": "class:python:app.schemas.task_spec.EnvironmentIdentity",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/schemas/task_spec.py",
+      "target": "class:python:app.schemas.task_spec.SweTaskSpec",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/schemas/task_spec.py",
+      "target": "function:python:app.schemas.task_spec._parse_tests",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/schemas/task_spec.py",
+      "target": "function:python:app.schemas.task_spec._reject_head_ref",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/schemas/task_spec.py",
+      "target": "function:python:app.schemas.task_spec._require_negative_contract",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/schemas/task_spec.py",
+      "target": "function:python:app.schemas.task_spec.from_swebench_instance",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/schemas/task_spec.py",
+      "target": "method:python:app.schemas.task_spec.SweTaskSpec._reject_head_ref",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/schemas/task_spec.py",
+      "target": "method:python:app.schemas.task_spec.SweTaskSpec._require_negative_contract",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/schemas/task_spec.py",
+      "target": "method:python:app.schemas.task_spec.SweTaskSpec.from_swebench_instance",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/schemas/task_spec.py",
+      "target": "import:python:__future__.annotations",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/schemas/task_spec.py",
+      "target": "import:python:json",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/schemas/task_spec.py",
+      "target": "import:python:pydantic.BaseModel",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/schemas/task_spec.py",
+      "target": "import:python:pydantic.Field",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/schemas/task_spec.py",
+      "target": "import:python:pydantic.field_validator",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/schemas/task_spec.py",
+      "target": "import:python:typing.Literal",
       "type": "imports"
     },
     {
@@ -19286,6 +19466,306 @@
     },
     {
       "metadata": {},
+      "source": "file:tests/test_task_spec.py",
+      "target": "class:python:tests.test_task_spec.FixtureRepo",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec.py",
+      "target": "class:python:tests.test_task_spec.TestNegativeContractGate",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec.py",
+      "target": "class:python:tests.test_task_spec.TestSweTaskSpecSchema",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec.py",
+      "target": "function:python:tests.test_task_spec._fixture_repo",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec.py",
+      "target": "function:python:tests.test_task_spec._fixture_spec",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec.py",
+      "target": "function:python:tests.test_task_spec._spec_for",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec.py",
+      "target": "function:python:tests.test_task_spec.test_gate_blocks_when_fail_to_pass_passes_at_base",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec.py",
+      "target": "function:python:tests.test_task_spec.test_gate_blocks_when_test_runner_errors",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec.py",
+      "target": "function:python:tests.test_task_spec.test_gate_passes_when_bug_reproduces",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec.py",
+      "target": "function:python:tests.test_task_spec.test_gate_records_commands_and_exit_codes",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec.py",
+      "target": "function:python:tests.test_task_spec.test_spec_from_swebench_json_tuple",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec.py",
+      "target": "function:python:tests.test_task_spec.test_spec_requires_at_least_one_fail_to_pass",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec.py",
+      "target": "function:python:tests.test_task_spec.test_spec_requires_core_fields",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec.py",
+      "target": "function:python:tests.test_task_spec.test_spec_roundtrip_and_identity",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec.py",
+      "target": "method:python:tests.test_task_spec.TestNegativeContractGate.test_gate_blocks_when_fail_to_pass_passes_at_base",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec.py",
+      "target": "method:python:tests.test_task_spec.TestNegativeContractGate.test_gate_blocks_when_test_runner_errors",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec.py",
+      "target": "method:python:tests.test_task_spec.TestNegativeContractGate.test_gate_passes_when_bug_reproduces",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec.py",
+      "target": "method:python:tests.test_task_spec.TestNegativeContractGate.test_gate_records_commands_and_exit_codes",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec.py",
+      "target": "method:python:tests.test_task_spec.TestSweTaskSpecSchema.test_spec_from_swebench_json_tuple",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec.py",
+      "target": "method:python:tests.test_task_spec.TestSweTaskSpecSchema.test_spec_requires_at_least_one_fail_to_pass",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec.py",
+      "target": "method:python:tests.test_task_spec.TestSweTaskSpecSchema.test_spec_requires_core_fields",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec.py",
+      "target": "method:python:tests.test_task_spec.TestSweTaskSpecSchema.test_spec_roundtrip_and_identity",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec.py",
+      "target": "import:python:__future__.annotations",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec.py",
+      "target": "import:python:app.core.task_spec_gate.evaluate_negative_contract",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec.py",
+      "target": "import:python:app.schemas.task_spec.SweTaskSpec",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec.py",
+      "target": "import:python:dataclasses.dataclass",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec.py",
+      "target": "import:python:pathlib.Path",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec.py",
+      "target": "import:python:pydantic.ValidationError",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec.py",
+      "target": "import:python:pytest",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec.py",
+      "target": "import:python:subprocess",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec.py",
+      "target": "file:app/schemas/task_spec.py",
+      "type": "likely_tests"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_solve.py",
+      "target": "class:python:tests.test_task_spec_solve.TestTaskSpecCLIWiring",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_solve.py",
+      "target": "function:python:tests.test_task_spec_solve._load_spec",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_solve.py",
+      "target": "function:python:tests.test_task_spec_solve._make_remote_with_bug",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_solve.py",
+      "target": "function:python:tests.test_task_spec_solve._spec_json",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_solve.py",
+      "target": "function:python:tests.test_task_spec_solve.fail_run_harness",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_solve.py",
+      "target": "function:python:tests.test_task_spec_solve.fake_run_harness",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_solve.py",
+      "target": "function:python:tests.test_task_spec_solve.test_solve_blocks_when_negative_contract_fails",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_solve.py",
+      "target": "function:python:tests.test_task_spec_solve.test_solve_with_task_spec_pins_commit_and_composes_task",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_solve.py",
+      "target": "method:python:tests.test_task_spec_solve.TestTaskSpecCLIWiring.test_solve_blocks_when_negative_contract_fails",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_solve.py",
+      "target": "method:python:tests.test_task_spec_solve.TestTaskSpecCLIWiring.test_solve_with_task_spec_pins_commit_and_composes_task",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_solve.py",
+      "target": "import:python:__future__.annotations",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_solve.py",
+      "target": "import:python:app.cli.app",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_solve.py",
+      "target": "import:python:app.core.issues",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_solve.py",
+      "target": "import:python:app.schemas.task_spec.SweTaskSpec",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_solve.py",
+      "target": "import:python:json",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_solve.py",
+      "target": "import:python:pathlib.Path",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_solve.py",
+      "target": "import:python:subprocess",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_solve.py",
+      "target": "import:python:typer.testing.CliRunner",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_solve.py",
+      "target": "import:python:unittest.mock.patch",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
       "source": "file:tests/test_test_runner.py",
       "target": "function:python:tests.test_test_runner.test_test_runner_captures_pytest_success",
       "type": "defines"
@@ -20067,6 +20547,18 @@
     {
       "metadata": {},
       "source": "file:tests/unit/test_project_control_github.py",
+      "target": "function:python:tests.unit.test_project_control_github.test_discovery_rejects_duplicate_repository_values",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_github.py",
+      "target": "function:python:tests.unit.test_project_control_github.test_discovery_rejects_extra_keys_on_ignored_non_common_value",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_github.py",
       "target": "function:python:tests.unit.test_project_control_github.test_discovery_rejects_missing_or_inconsistent_field_value_typename",
       "type": "defines"
     },
@@ -20086,6 +20578,12 @@
       "metadata": {},
       "source": "file:tests/unit/test_project_control_github.py",
       "target": "function:python:tests.unit.test_project_control_github.test_discovery_requires_options_for_single_select_definition",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_github.py",
+      "target": "function:python:tests.unit.test_project_control_github.test_discovery_validates_repository_value_identity_and_keeps_title",
       "type": "defines"
     },
     {
@@ -20619,6 +21117,18 @@
     {
       "metadata": {},
       "source": "file:tests/unit/test_project_control_provisioning.py",
+      "target": "function:python:tests.unit.test_project_control_provisioning.test_field_value_input_rejects_boolean_number",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_provisioning.py",
+      "target": "function:python:tests.unit.test_project_control_provisioning.test_field_value_inputs_nest_literal_values",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_provisioning.py",
       "target": "function:python:tests.unit.test_project_control_provisioning.test_harness_definition_is_optionless_but_item_values_remain_unassigned_text",
       "type": "defines"
     },
@@ -20662,12 +21172,6 @@
       "metadata": {},
       "source": "file:tests/unit/test_project_control_provisioning.py",
       "target": "function:python:tests.unit.test_project_control_provisioning.test_roadmap_kind_options_resolve_actual_root_item_kind",
-      "type": "defines"
-    },
-    {
-      "metadata": {},
-      "source": "file:tests/unit/test_project_control_provisioning.py",
-      "target": "function:python:tests.unit.test_project_control_provisioning.test_round2_field_value_inputs_are_typed_and_day_is_single_select",
       "type": "defines"
     },
     {
@@ -22131,6 +22635,12 @@
     {
       "metadata": {},
       "source": "folder:app/core",
+      "target": "file:app/core/task_spec_gate.py",
+      "type": "contains"
+    },
+    {
+      "metadata": {},
+      "source": "folder:app/core",
       "target": "file:app/core/test_runner.py",
       "type": "contains"
     },
@@ -22594,6 +23104,12 @@
       "metadata": {},
       "source": "folder:app/schemas",
       "target": "file:app/schemas/showcase.py",
+      "type": "contains"
+    },
+    {
+      "metadata": {},
+      "source": "folder:app/schemas",
+      "target": "file:app/schemas/task_spec.py",
       "type": "contains"
     },
     {
@@ -23620,6 +24136,18 @@
       "metadata": {},
       "source": "folder:tests",
       "target": "file:tests/test_sqlite_storage.py",
+      "type": "contains"
+    },
+    {
+      "metadata": {},
+      "source": "folder:tests",
+      "target": "file:tests/test_task_spec.py",
+      "type": "contains"
+    },
+    {
+      "metadata": {},
+      "source": "folder:tests",
+      "target": "file:tests/test_task_spec_solve.py",
       "type": "contains"
     },
     {
@@ -24670,6 +25198,28 @@
       "type": "class"
     },
     {
+      "id": "class:python:app.core.task_spec_gate.NegativeContractCommandResult",
+      "language": "python",
+      "metadata": {
+        "line": 32,
+        "qualified_name": "app.core.task_spec_gate.NegativeContractCommandResult"
+      },
+      "name": "NegativeContractCommandResult",
+      "path": "app/core/task_spec_gate.py",
+      "type": "class"
+    },
+    {
+      "id": "class:python:app.core.task_spec_gate.NegativeContractGateResult",
+      "language": "python",
+      "metadata": {
+        "line": 41,
+        "qualified_name": "app.core.task_spec_gate.NegativeContractGateResult"
+      },
+      "name": "NegativeContractGateResult",
+      "path": "app/core/task_spec_gate.py",
+      "type": "class"
+    },
+    {
       "id": "class:python:app.core.test_runner.TestRunner",
       "language": "python",
       "metadata": {
@@ -24838,7 +25388,7 @@
       "id": "class:python:app.project_control.github.ApplyGhTransport",
       "language": "python",
       "metadata": {
-        "line": 814,
+        "line": 825,
         "qualified_name": "app.project_control.github.ApplyGhTransport"
       },
       "name": "ApplyGhTransport",
@@ -24860,7 +25410,7 @@
       "id": "class:python:app.project_control.github.GitHubClient",
       "language": "python",
       "metadata": {
-        "line": 2172,
+        "line": 2194,
         "qualified_name": "app.project_control.github.GitHubClient"
       },
       "name": "GitHubClient",
@@ -24871,7 +25421,7 @@
       "id": "class:python:app.project_control.github.GitHubProvisioner",
       "language": "python",
       "metadata": {
-        "line": 1169,
+        "line": 1182,
         "qualified_name": "app.project_control.github.GitHubProvisioner"
       },
       "name": "GitHubProvisioner",
@@ -24904,7 +25454,7 @@
       "id": "class:python:app.project_control.github.SubprocessGhTransport",
       "language": "python",
       "metadata": {
-        "line": 784,
+        "line": 795,
         "qualified_name": "app.project_control.github.SubprocessGhTransport"
       },
       "name": "SubprocessGhTransport",
@@ -25913,6 +26463,28 @@
       "type": "class"
     },
     {
+      "id": "class:python:app.schemas.task_spec.EnvironmentIdentity",
+      "language": "python",
+      "metadata": {
+        "line": 39,
+        "qualified_name": "app.schemas.task_spec.EnvironmentIdentity"
+      },
+      "name": "EnvironmentIdentity",
+      "path": "app/schemas/task_spec.py",
+      "type": "class"
+    },
+    {
+      "id": "class:python:app.schemas.task_spec.SweTaskSpec",
+      "language": "python",
+      "metadata": {
+        "line": 53,
+        "qualified_name": "app.schemas.task_spec.SweTaskSpec"
+      },
+      "name": "SweTaskSpec",
+      "path": "app/schemas/task_spec.py",
+      "type": "class"
+    },
+    {
       "id": "class:python:app.schemas.test.CommandResult",
       "language": "python",
       "metadata": {
@@ -26188,6 +26760,50 @@
       "type": "class"
     },
     {
+      "id": "class:python:tests.test_task_spec.FixtureRepo",
+      "language": "python",
+      "metadata": {
+        "line": 27,
+        "qualified_name": "tests.test_task_spec.FixtureRepo"
+      },
+      "name": "FixtureRepo",
+      "path": "tests/test_task_spec.py",
+      "type": "class"
+    },
+    {
+      "id": "class:python:tests.test_task_spec.TestNegativeContractGate",
+      "language": "python",
+      "metadata": {
+        "line": 80,
+        "qualified_name": "tests.test_task_spec.TestNegativeContractGate"
+      },
+      "name": "TestNegativeContractGate",
+      "path": "tests/test_task_spec.py",
+      "type": "class"
+    },
+    {
+      "id": "class:python:tests.test_task_spec.TestSweTaskSpecSchema",
+      "language": "python",
+      "metadata": {
+        "line": 34,
+        "qualified_name": "tests.test_task_spec.TestSweTaskSpecSchema"
+      },
+      "name": "TestSweTaskSpecSchema",
+      "path": "tests/test_task_spec.py",
+      "type": "class"
+    },
+    {
+      "id": "class:python:tests.test_task_spec_solve.TestTaskSpecCLIWiring",
+      "language": "python",
+      "metadata": {
+        "line": 71,
+        "qualified_name": "tests.test_task_spec_solve.TestTaskSpecCLIWiring"
+      },
+      "name": "TestTaskSpecCLIWiring",
+      "path": "tests/test_task_spec_solve.py",
+      "type": "class"
+    },
+    {
       "id": "class:python:tests.unit.test_project_control_github.FakeTransport",
       "language": "python",
       "metadata": {
@@ -26202,7 +26818,7 @@
       "id": "class:python:tests.unit.test_project_control_provisioning.BrokenView",
       "language": "python",
       "metadata": {
-        "line": 884,
+        "line": 903,
         "qualified_name": "tests.unit.test_project_control_provisioning.BrokenView"
       },
       "name": "BrokenView",
@@ -26213,7 +26829,7 @@
       "id": "class:python:tests.unit.test_project_control_provisioning.Result",
       "language": "python",
       "metadata": {
-        "line": 480,
+        "line": 499,
         "qualified_name": "tests.unit.test_project_control_provisioning.Result"
       },
       "name": "Result",
@@ -26224,7 +26840,7 @@
       "id": "class:python:tests.unit.test_project_control_provisioning.SomeViewsUnsupported",
       "language": "python",
       "metadata": {
-        "line": 865,
+        "line": 884,
         "qualified_name": "tests.unit.test_project_control_provisioning.SomeViewsUnsupported"
       },
       "name": "SomeViewsUnsupported",
@@ -26235,7 +26851,7 @@
       "id": "class:python:tests.unit.test_project_control_provisioning.ViewUnsupported",
       "language": "python",
       "metadata": {
-        "line": 795,
+        "line": 814,
         "qualified_name": "tests.unit.test_project_control_provisioning.ViewUnsupported"
       },
       "name": "ViewUnsupported",
@@ -26246,7 +26862,7 @@
       "id": "class:python:tests.unit.test_project_control_provisioning.ViewsUnsupported",
       "language": "python",
       "metadata": {
-        "line": 848,
+        "line": 867,
         "qualified_name": "tests.unit.test_project_control_provisioning.ViewsUnsupported"
       },
       "name": "ViewsUnsupported",
@@ -26257,7 +26873,7 @@
       "id": "class:python:tests.unit.test_project_control_provisioning.WrongOptions",
       "language": "python",
       "metadata": {
-        "line": 824,
+        "line": 843,
         "qualified_name": "tests.unit.test_project_control_provisioning.WrongOptions"
       },
       "name": "WrongOptions",
@@ -26268,7 +26884,7 @@
       "id": "class:python:tests.unit.test_project_control_provisioning._DiscoveryTransport",
       "language": "python",
       "metadata": {
-        "line": 1002,
+        "line": 1021,
         "qualified_name": "tests.unit.test_project_control_provisioning._DiscoveryTransport"
       },
       "name": "_DiscoveryTransport",
@@ -26279,7 +26895,7 @@
       "id": "class:python:tests.unit.test_project_control_provisioning._FakeMutationTransport",
       "language": "python",
       "metadata": {
-        "line": 1011,
+        "line": 1030,
         "qualified_name": "tests.unit.test_project_control_provisioning._FakeMutationTransport"
       },
       "name": "_FakeMutationTransport",
@@ -26969,6 +27585,14 @@
       "type": "file"
     },
     {
+      "id": "file:app/core/task_spec_gate.py",
+      "language": "python",
+      "metadata": {},
+      "name": "task_spec_gate.py",
+      "path": "app/core/task_spec_gate.py",
+      "type": "file"
+    },
+    {
       "id": "file:app/core/test_runner.py",
       "language": "python",
       "metadata": {},
@@ -27430,6 +28054,14 @@
       "metadata": {},
       "name": "showcase.py",
       "path": "app/schemas/showcase.py",
+      "type": "file"
+    },
+    {
+      "id": "file:app/schemas/task_spec.py",
+      "language": "python",
+      "metadata": {},
+      "name": "task_spec.py",
+      "path": "app/schemas/task_spec.py",
       "type": "file"
     },
     {
@@ -28654,6 +29286,22 @@
       "metadata": {},
       "name": "test_sqlite_storage.py",
       "path": "tests/test_sqlite_storage.py",
+      "type": "test"
+    },
+    {
+      "id": "file:tests/test_task_spec.py",
+      "language": "python",
+      "metadata": {},
+      "name": "test_task_spec.py",
+      "path": "tests/test_task_spec.py",
+      "type": "test"
+    },
+    {
+      "id": "file:tests/test_task_spec_solve.py",
+      "language": "python",
+      "metadata": {},
+      "name": "test_task_spec_solve.py",
+      "path": "tests/test_task_spec_solve.py",
       "type": "test"
     },
     {
@@ -30148,6 +30796,17 @@
       "type": "function"
     },
     {
+      "id": "function:python:app.cli._spec_issue_stub",
+      "language": "python",
+      "metadata": {
+        "line": 457,
+        "qualified_name": "app.cli._spec_issue_stub"
+      },
+      "name": "_spec_issue_stub",
+      "path": "app/cli.py",
+      "type": "function"
+    },
+    {
       "id": "function:python:app.cli.draft_handoff_packet",
       "language": "python",
       "metadata": {
@@ -30228,7 +30887,7 @@
       "id": "function:python:app.cli.issue_solve",
       "language": "python",
       "metadata": {
-        "line": 478,
+        "line": 506,
         "qualified_name": "app.cli.issue_solve"
       },
       "name": "issue_solve",
@@ -30239,7 +30898,7 @@
       "id": "function:python:app.cli.issue_view",
       "language": "python",
       "metadata": {
-        "line": 459,
+        "line": 487,
         "qualified_name": "app.cli.issue_view"
       },
       "name": "issue_view",
@@ -33140,6 +33799,28 @@
       "type": "function"
     },
     {
+      "id": "function:python:app.core.task_spec_gate._pytest_command_for",
+      "language": "python",
+      "metadata": {
+        "line": 47,
+        "qualified_name": "app.core.task_spec_gate._pytest_command_for"
+      },
+      "name": "_pytest_command_for",
+      "path": "app/core/task_spec_gate.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.core.task_spec_gate.evaluate_negative_contract",
+      "language": "python",
+      "metadata": {
+        "line": 55,
+        "qualified_name": "app.core.task_spec_gate.evaluate_negative_contract"
+      },
+      "name": "evaluate_negative_contract",
+      "path": "app/core/task_spec_gate.py",
+      "type": "function"
+    },
+    {
       "id": "function:python:app.core.test_runner._decode",
       "language": "python",
       "metadata": {
@@ -34518,7 +35199,7 @@
       "id": "function:python:app.project_control.github.__init__",
       "language": "python",
       "metadata": {
-        "line": 1170,
+        "line": 1183,
         "qualified_name": "app.project_control.github.__init__"
       },
       "name": "__init__",
@@ -34529,7 +35210,7 @@
       "id": "function:python:app.project_control.github._action_record",
       "language": "python",
       "metadata": {
-        "line": 1587,
+        "line": 1600,
         "qualified_name": "app.project_control.github._action_record"
       },
       "name": "_action_record",
@@ -34540,7 +35221,7 @@
       "id": "function:python:app.project_control.github._board_item",
       "language": "python",
       "metadata": {
-        "line": 700,
+        "line": 711,
         "qualified_name": "app.project_control.github._board_item"
       },
       "name": "_board_item",
@@ -34551,7 +35232,7 @@
       "id": "function:python:app.project_control.github._connection_pages",
       "language": "python",
       "metadata": {
-        "line": 2176,
+        "line": 2198,
         "qualified_name": "app.project_control.github._connection_pages"
       },
       "name": "_connection_pages",
@@ -34562,7 +35243,7 @@
       "id": "function:python:app.project_control.github._discovery_page",
       "language": "python",
       "metadata": {
-        "line": 1815,
+        "line": 1828,
         "qualified_name": "app.project_control.github._discovery_page"
       },
       "name": "_discovery_page",
@@ -34573,7 +35254,7 @@
       "id": "function:python:app.project_control.github._expand_discovered_project",
       "language": "python",
       "metadata": {
-        "line": 2227,
+        "line": 2249,
         "qualified_name": "app.project_control.github._expand_discovered_project"
       },
       "name": "_expand_discovered_project",
@@ -34584,7 +35265,7 @@
       "id": "function:python:app.project_control.github._field_data_type",
       "language": "python",
       "metadata": {
-        "line": 1770,
+        "line": 1783,
         "qualified_name": "app.project_control.github._field_data_type"
       },
       "name": "_field_data_type",
@@ -34595,7 +35276,7 @@
       "id": "function:python:app.project_control.github._field_option_inputs",
       "language": "python",
       "metadata": {
-        "line": 889,
+        "line": 900,
         "qualified_name": "app.project_control.github._field_option_inputs"
       },
       "name": "_field_option_inputs",
@@ -34606,7 +35287,7 @@
       "id": "function:python:app.project_control.github._field_value",
       "language": "python",
       "metadata": {
-        "line": 610,
+        "line": 621,
         "qualified_name": "app.project_control.github._field_value"
       },
       "name": "_field_value",
@@ -34617,7 +35298,7 @@
       "id": "function:python:app.project_control.github._graphql_failure_evidence",
       "language": "python",
       "metadata": {
-        "line": 1146,
+        "line": 1159,
         "qualified_name": "app.project_control.github._graphql_failure_evidence"
       },
       "name": "_graphql_failure_evidence",
@@ -34628,7 +35309,7 @@
       "id": "function:python:app.project_control.github._managed_issue_body",
       "language": "python",
       "metadata": {
-        "line": 1092,
+        "line": 1105,
         "qualified_name": "app.project_control.github._managed_issue_body"
       },
       "name": "_managed_issue_body",
@@ -34639,7 +35320,7 @@
       "id": "function:python:app.project_control.github._managed_issue_content",
       "language": "python",
       "metadata": {
-        "line": 1116,
+        "line": 1129,
         "qualified_name": "app.project_control.github._managed_issue_content"
       },
       "name": "_managed_issue_content",
@@ -34650,7 +35331,7 @@
       "id": "function:python:app.project_control.github._mutation_id",
       "language": "python",
       "metadata": {
-        "line": 1035,
+        "line": 1048,
         "qualified_name": "app.project_control.github._mutation_id"
       },
       "name": "_mutation_id",
@@ -34661,7 +35342,7 @@
       "id": "function:python:app.project_control.github._mutation_option_ids",
       "language": "python",
       "metadata": {
-        "line": 1052,
+        "line": 1065,
         "qualified_name": "app.project_control.github._mutation_option_ids"
       },
       "name": "_mutation_option_ids",
@@ -34672,7 +35353,7 @@
       "id": "function:python:app.project_control.github._operation_for_action",
       "language": "python",
       "metadata": {
-        "line": 1794,
+        "line": 1807,
         "qualified_name": "app.project_control.github._operation_for_action"
       },
       "name": "_operation_for_action",
@@ -34683,7 +35364,7 @@
       "id": "function:python:app.project_control.github._parse_discovered_project",
       "language": "python",
       "metadata": {
-        "line": 1854,
+        "line": 1867,
         "qualified_name": "app.project_control.github._parse_discovered_project"
       },
       "name": "_parse_discovered_project",
@@ -34694,7 +35375,7 @@
       "id": "function:python:app.project_control.github._phase_id",
       "language": "python",
       "metadata": {
-        "line": 683,
+        "line": 694,
         "qualified_name": "app.project_control.github._phase_id"
       },
       "name": "_phase_id",
@@ -34705,7 +35386,7 @@
       "id": "function:python:app.project_control.github._phase_label",
       "language": "python",
       "metadata": {
-        "line": 1787,
+        "line": 1800,
         "qualified_name": "app.project_control.github._phase_label"
       },
       "name": "_phase_label",
@@ -34716,7 +35397,7 @@
       "id": "function:python:app.project_control.github._reconcile_plan",
       "language": "python",
       "metadata": {
-        "line": 1597,
+        "line": 1610,
         "qualified_name": "app.project_control.github._reconcile_plan"
       },
       "name": "_reconcile_plan",
@@ -34727,7 +35408,7 @@
       "id": "function:python:app.project_control.github._required_id",
       "language": "python",
       "metadata": {
-        "line": 871,
+        "line": 882,
         "qualified_name": "app.project_control.github._required_id"
       },
       "name": "_required_id",
@@ -34738,7 +35419,7 @@
       "id": "function:python:app.project_control.github._required_text",
       "language": "python",
       "metadata": {
-        "line": 882,
+        "line": 893,
         "qualified_name": "app.project_control.github._required_text"
       },
       "name": "_required_text",
@@ -34749,7 +35430,7 @@
       "id": "function:python:app.project_control.github._response",
       "language": "python",
       "metadata": {
-        "line": 597,
+        "line": 608,
         "qualified_name": "app.project_control.github._response"
       },
       "name": "_response",
@@ -34760,7 +35441,7 @@
       "id": "function:python:app.project_control.github._safe_remote_error",
       "language": "python",
       "metadata": {
-        "line": 1130,
+        "line": 1143,
         "qualified_name": "app.project_control.github._safe_remote_error"
       },
       "name": "_safe_remote_error",
@@ -34771,7 +35452,7 @@
       "id": "function:python:app.project_control.github._status_label",
       "language": "python",
       "metadata": {
-        "line": 1760,
+        "line": 1773,
         "qualified_name": "app.project_control.github._status_label"
       },
       "name": "_status_label",
@@ -34782,7 +35463,7 @@
       "id": "function:python:app.project_control.github._typed_input",
       "language": "python",
       "metadata": {
-        "line": 923,
+        "line": 934,
         "qualified_name": "app.project_control.github._typed_input"
       },
       "name": "_typed_input",
@@ -34793,7 +35474,7 @@
       "id": "function:python:app.project_control.github._validate_canonical_issue",
       "language": "python",
       "metadata": {
-        "line": 692,
+        "line": 703,
         "qualified_name": "app.project_control.github._validate_canonical_issue"
       },
       "name": "_validate_canonical_issue",
@@ -34804,7 +35485,7 @@
       "id": "function:python:app.project_control.github._validate_mutation_identity",
       "language": "python",
       "metadata": {
-        "line": 1739,
+        "line": 1752,
         "qualified_name": "app.project_control.github._validate_mutation_identity"
       },
       "name": "_validate_mutation_identity",
@@ -34815,7 +35496,7 @@
       "id": "function:python:app.project_control.github._write_report",
       "language": "python",
       "metadata": {
-        "line": 1522,
+        "line": 1535,
         "qualified_name": "app.project_control.github._write_report"
       },
       "name": "_write_report",
@@ -34826,7 +35507,7 @@
       "id": "function:python:app.project_control.github.apply",
       "language": "python",
       "metadata": {
-        "line": 1365,
+        "line": 1378,
         "qualified_name": "app.project_control.github.apply"
       },
       "name": "apply",
@@ -34837,7 +35518,7 @@
       "id": "function:python:app.project_control.github.discover_state",
       "language": "python",
       "metadata": {
-        "line": 2275,
+        "line": 2297,
         "qualified_name": "app.project_control.github.discover_state"
       },
       "name": "discover_state",
@@ -34848,7 +35529,7 @@
       "id": "function:python:app.project_control.github.export_project",
       "language": "python",
       "metadata": {
-        "line": 2421,
+        "line": 2443,
         "qualified_name": "app.project_control.github.export_project"
       },
       "name": "export_project",
@@ -34859,7 +35540,7 @@
       "id": "function:python:app.project_control.github.extract_task_id",
       "language": "python",
       "metadata": {
-        "line": 590,
+        "line": 601,
         "qualified_name": "app.project_control.github.extract_task_id"
       },
       "name": "extract_task_id",
@@ -34881,7 +35562,7 @@
       "id": "function:python:app.project_control.github.merge_managed_issue_body",
       "language": "python",
       "metadata": {
-        "line": 1096,
+        "line": 1109,
         "qualified_name": "app.project_control.github.merge_managed_issue_body"
       },
       "name": "merge_managed_issue_body",
@@ -34903,7 +35584,7 @@
       "id": "function:python:app.project_control.github.plan",
       "language": "python",
       "metadata": {
-        "line": 1180,
+        "line": 1193,
         "qualified_name": "app.project_control.github.plan"
       },
       "name": "plan",
@@ -36272,6 +36953,50 @@
       },
       "name": "of_tier",
       "path": "app/schemas/permission.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.schemas.task_spec._parse_tests",
+      "language": "python",
+      "metadata": {
+        "line": 93,
+        "qualified_name": "app.schemas.task_spec._parse_tests"
+      },
+      "name": "_parse_tests",
+      "path": "app/schemas/task_spec.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.schemas.task_spec._reject_head_ref",
+      "language": "python",
+      "metadata": {
+        "line": 66,
+        "qualified_name": "app.schemas.task_spec._reject_head_ref"
+      },
+      "name": "_reject_head_ref",
+      "path": "app/schemas/task_spec.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.schemas.task_spec._require_negative_contract",
+      "language": "python",
+      "metadata": {
+        "line": 76,
+        "qualified_name": "app.schemas.task_spec._require_negative_contract"
+      },
+      "name": "_require_negative_contract",
+      "path": "app/schemas/task_spec.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.schemas.task_spec.from_swebench_instance",
+      "language": "python",
+      "metadata": {
+        "line": 86,
+        "qualified_name": "app.schemas.task_spec.from_swebench_instance"
+      },
+      "name": "from_swebench_instance",
+      "path": "app/schemas/task_spec.py",
       "type": "function"
     },
     {
@@ -41731,6 +42456,204 @@
       "type": "function"
     },
     {
+      "id": "function:python:tests.test_task_spec._fixture_repo",
+      "language": "python",
+      "metadata": {
+        "line": 137,
+        "qualified_name": "tests.test_task_spec._fixture_repo"
+      },
+      "name": "_fixture_repo",
+      "path": "tests/test_task_spec.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_task_spec._fixture_spec",
+      "language": "python",
+      "metadata": {
+        "line": 190,
+        "qualified_name": "tests.test_task_spec._fixture_spec"
+      },
+      "name": "_fixture_spec",
+      "path": "tests/test_task_spec.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_task_spec._spec_for",
+      "language": "python",
+      "metadata": {
+        "line": 180,
+        "qualified_name": "tests.test_task_spec._spec_for"
+      },
+      "name": "_spec_for",
+      "path": "tests/test_task_spec.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_task_spec.test_gate_blocks_when_fail_to_pass_passes_at_base",
+      "language": "python",
+      "metadata": {
+        "line": 81,
+        "qualified_name": "tests.test_task_spec.test_gate_blocks_when_fail_to_pass_passes_at_base"
+      },
+      "name": "test_gate_blocks_when_fail_to_pass_passes_at_base",
+      "path": "tests/test_task_spec.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_task_spec.test_gate_blocks_when_test_runner_errors",
+      "language": "python",
+      "metadata": {
+        "line": 105,
+        "qualified_name": "tests.test_task_spec.test_gate_blocks_when_test_runner_errors"
+      },
+      "name": "test_gate_blocks_when_test_runner_errors",
+      "path": "tests/test_task_spec.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_task_spec.test_gate_passes_when_bug_reproduces",
+      "language": "python",
+      "metadata": {
+        "line": 95,
+        "qualified_name": "tests.test_task_spec.test_gate_passes_when_bug_reproduces"
+      },
+      "name": "test_gate_passes_when_bug_reproduces",
+      "path": "tests/test_task_spec.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_task_spec.test_gate_records_commands_and_exit_codes",
+      "language": "python",
+      "metadata": {
+        "line": 117,
+        "qualified_name": "tests.test_task_spec.test_gate_records_commands_and_exit_codes"
+      },
+      "name": "test_gate_records_commands_and_exit_codes",
+      "path": "tests/test_task_spec.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_task_spec.test_spec_from_swebench_json_tuple",
+      "language": "python",
+      "metadata": {
+        "line": 65,
+        "qualified_name": "tests.test_task_spec.test_spec_from_swebench_json_tuple"
+      },
+      "name": "test_spec_from_swebench_json_tuple",
+      "path": "tests/test_task_spec.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_task_spec.test_spec_requires_at_least_one_fail_to_pass",
+      "language": "python",
+      "metadata": {
+        "line": 55,
+        "qualified_name": "tests.test_task_spec.test_spec_requires_at_least_one_fail_to_pass"
+      },
+      "name": "test_spec_requires_at_least_one_fail_to_pass",
+      "path": "tests/test_task_spec.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_task_spec.test_spec_requires_core_fields",
+      "language": "python",
+      "metadata": {
+        "line": 35,
+        "qualified_name": "tests.test_task_spec.test_spec_requires_core_fields"
+      },
+      "name": "test_spec_requires_core_fields",
+      "path": "tests/test_task_spec.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_task_spec.test_spec_roundtrip_and_identity",
+      "language": "python",
+      "metadata": {
+        "line": 39,
+        "qualified_name": "tests.test_task_spec.test_spec_roundtrip_and_identity"
+      },
+      "name": "test_spec_roundtrip_and_identity",
+      "path": "tests/test_task_spec.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_task_spec_solve._load_spec",
+      "language": "python",
+      "metadata": {
+        "line": 190,
+        "qualified_name": "tests.test_task_spec_solve._load_spec"
+      },
+      "name": "_load_spec",
+      "path": "tests/test_task_spec_solve.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_task_spec_solve._make_remote_with_bug",
+      "language": "python",
+      "metadata": {
+        "line": 31,
+        "qualified_name": "tests.test_task_spec_solve._make_remote_with_bug"
+      },
+      "name": "_make_remote_with_bug",
+      "path": "tests/test_task_spec_solve.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_task_spec_solve._spec_json",
+      "language": "python",
+      "metadata": {
+        "line": 21,
+        "qualified_name": "tests.test_task_spec_solve._spec_json"
+      },
+      "name": "_spec_json",
+      "path": "tests/test_task_spec_solve.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_task_spec_solve.fail_run_harness",
+      "language": "python",
+      "metadata": {
+        "line": 93,
+        "qualified_name": "tests.test_task_spec_solve.fail_run_harness"
+      },
+      "name": "fail_run_harness",
+      "path": "tests/test_task_spec_solve.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_task_spec_solve.fake_run_harness",
+      "language": "python",
+      "metadata": {
+        "line": 142,
+        "qualified_name": "tests.test_task_spec_solve.fake_run_harness"
+      },
+      "name": "fake_run_harness",
+      "path": "tests/test_task_spec_solve.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_task_spec_solve.test_solve_blocks_when_negative_contract_fails",
+      "language": "python",
+      "metadata": {
+        "line": 72,
+        "qualified_name": "tests.test_task_spec_solve.test_solve_blocks_when_negative_contract_fails"
+      },
+      "name": "test_solve_blocks_when_negative_contract_fails",
+      "path": "tests/test_task_spec_solve.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_task_spec_solve.test_solve_with_task_spec_pins_commit_and_composes_task",
+      "language": "python",
+      "metadata": {
+        "line": 121,
+        "qualified_name": "tests.test_task_spec_solve.test_solve_with_task_spec_pins_commit_and_composes_task"
+      },
+      "name": "test_solve_with_task_spec_pins_commit_and_composes_task",
+      "path": "tests/test_task_spec_solve.py",
+      "type": "function"
+    },
+    {
       "id": "function:python:tests.test_test_runner.test_test_runner_captures_pytest_success",
       "language": "python",
       "metadata": {
@@ -42306,7 +43229,7 @@
       "id": "function:python:tests.unit.test_project_control_github.complete_control_definitions",
       "language": "python",
       "metadata": {
-        "line": 421,
+        "line": 531,
         "qualified_name": "tests.unit.test_project_control_github.complete_control_definitions"
       },
       "name": "complete_control_definitions",
@@ -42328,7 +43251,7 @@
       "id": "function:python:tests.unit.test_project_control_github.fail",
       "language": "python",
       "metadata": {
-        "line": 885,
+        "line": 995,
         "qualified_name": "tests.unit.test_project_control_github.fail"
       },
       "name": "fail",
@@ -42339,7 +43262,7 @@
       "id": "function:python:tests.unit.test_project_control_github.fake_run",
       "language": "python",
       "metadata": {
-        "line": 631,
+        "line": 741,
         "qualified_name": "tests.unit.test_project_control_github.fake_run"
       },
       "name": "fake_run",
@@ -42350,7 +43273,7 @@
       "id": "function:python:tests.unit.test_project_control_github.field_value_node",
       "language": "python",
       "metadata": {
-        "line": 466,
+        "line": 576,
         "qualified_name": "tests.unit.test_project_control_github.field_value_node"
       },
       "name": "field_value_node",
@@ -42372,7 +43295,7 @@
       "id": "function:python:tests.unit.test_project_control_github.issue_item",
       "language": "python",
       "metadata": {
-        "line": 459,
+        "line": 569,
         "qualified_name": "tests.unit.test_project_control_github.issue_item"
       },
       "name": "issue_item",
@@ -42383,7 +43306,7 @@
       "id": "function:python:tests.unit.test_project_control_github.project_response",
       "language": "python",
       "metadata": {
-        "line": 351,
+        "line": 461,
         "qualified_name": "tests.unit.test_project_control_github.project_response"
       },
       "name": "project_response",
@@ -42405,7 +43328,7 @@
       "id": "function:python:tests.unit.test_project_control_github.test_discovery_parses_schema_shaped_fields_values_and_nested_pages",
       "language": "python",
       "metadata": {
-        "line": 223,
+        "line": 333,
         "qualified_name": "tests.unit.test_project_control_github.test_discovery_parses_schema_shaped_fields_values_and_nested_pages"
       },
       "name": "test_discovery_parses_schema_shaped_fields_values_and_nested_pages",
@@ -42413,10 +43336,32 @@
       "type": "function"
     },
     {
+      "id": "function:python:tests.unit.test_project_control_github.test_discovery_rejects_duplicate_repository_values",
+      "language": "python",
+      "metadata": {
+        "line": 302,
+        "qualified_name": "tests.unit.test_project_control_github.test_discovery_rejects_duplicate_repository_values"
+      },
+      "name": "test_discovery_rejects_duplicate_repository_values",
+      "path": "tests/unit/test_project_control_github.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.unit.test_project_control_github.test_discovery_rejects_extra_keys_on_ignored_non_common_value",
+      "language": "python",
+      "metadata": {
+        "line": 287,
+        "qualified_name": "tests.unit.test_project_control_github.test_discovery_rejects_extra_keys_on_ignored_non_common_value"
+      },
+      "name": "test_discovery_rejects_extra_keys_on_ignored_non_common_value",
+      "path": "tests/unit/test_project_control_github.py",
+      "type": "function"
+    },
+    {
       "id": "function:python:tests.unit.test_project_control_github.test_discovery_rejects_missing_or_inconsistent_field_value_typename",
       "language": "python",
       "metadata": {
-        "line": 305,
+        "line": 415,
         "qualified_name": "tests.unit.test_project_control_github.test_discovery_rejects_missing_or_inconsistent_field_value_typename"
       },
       "name": "test_discovery_rejects_missing_or_inconsistent_field_value_typename",
@@ -42427,7 +43372,7 @@
       "id": "function:python:tests.unit.test_project_control_github.test_discovery_rejects_missing_or_unsupported_field_definition_typename",
       "language": "python",
       "metadata": {
-        "line": 285,
+        "line": 395,
         "qualified_name": "tests.unit.test_project_control_github.test_discovery_rejects_missing_or_unsupported_field_definition_typename"
       },
       "name": "test_discovery_rejects_missing_or_unsupported_field_definition_typename",
@@ -42438,7 +43383,7 @@
       "id": "function:python:tests.unit.test_project_control_github.test_discovery_requires_nested_field_reference_to_match_definition",
       "language": "python",
       "metadata": {
-        "line": 333,
+        "line": 443,
         "qualified_name": "tests.unit.test_project_control_github.test_discovery_requires_nested_field_reference_to_match_definition"
       },
       "name": "test_discovery_requires_nested_field_reference_to_match_definition",
@@ -42449,7 +43394,7 @@
       "id": "function:python:tests.unit.test_project_control_github.test_discovery_requires_options_for_single_select_definition",
       "language": "python",
       "metadata": {
-        "line": 271,
+        "line": 381,
         "qualified_name": "tests.unit.test_project_control_github.test_discovery_requires_options_for_single_select_definition"
       },
       "name": "test_discovery_requires_options_for_single_select_definition",
@@ -42457,10 +43402,21 @@
       "type": "function"
     },
     {
+      "id": "function:python:tests.unit.test_project_control_github.test_discovery_validates_repository_value_identity_and_keeps_title",
+      "language": "python",
+      "metadata": {
+        "line": 223,
+        "qualified_name": "tests.unit.test_project_control_github.test_discovery_validates_repository_value_identity_and_keeps_title"
+      },
+      "name": "test_discovery_validates_repository_value_identity_and_keeps_title",
+      "path": "tests/unit/test_project_control_github.py",
+      "type": "function"
+    },
+    {
       "id": "function:python:tests.unit.test_project_control_github.test_export_accepts_canonical_issue_url",
       "language": "python",
       "metadata": {
-        "line": 773,
+        "line": 883,
         "qualified_name": "tests.unit.test_project_control_github.test_export_accepts_canonical_issue_url"
       },
       "name": "test_export_accepts_canonical_issue_url",
@@ -42471,7 +43427,7 @@
       "id": "function:python:tests.unit.test_project_control_github.test_export_accepts_integral_day_number",
       "language": "python",
       "metadata": {
-        "line": 866,
+        "line": 976,
         "qualified_name": "tests.unit.test_project_control_github.test_export_accepts_integral_day_number"
       },
       "name": "test_export_accepts_integral_day_number",
@@ -42482,7 +43438,7 @@
       "id": "function:python:tests.unit.test_project_control_github.test_export_accepts_only_graphql_typename_alias",
       "language": "python",
       "metadata": {
-        "line": 847,
+        "line": 957,
         "qualified_name": "tests.unit.test_project_control_github.test_export_accepts_only_graphql_typename_alias"
       },
       "name": "test_export_accepts_only_graphql_typename_alias",
@@ -42493,7 +43449,7 @@
       "id": "function:python:tests.unit.test_project_control_github.test_export_fetches_all_pages_and_advances_cursor",
       "language": "python",
       "metadata": {
-        "line": 564,
+        "line": 674,
         "qualified_name": "tests.unit.test_project_control_github.test_export_fetches_all_pages_and_advances_cursor"
       },
       "name": "test_export_fetches_all_pages_and_advances_cursor",
@@ -42504,7 +43460,7 @@
       "id": "function:python:tests.unit.test_project_control_github.test_export_is_read_only_and_maps_task_ids",
       "language": "python",
       "metadata": {
-        "line": 515,
+        "line": 625,
         "qualified_name": "tests.unit.test_project_control_github.test_export_is_read_only_and_maps_task_ids"
       },
       "name": "test_export_is_read_only_and_maps_task_ids",
@@ -42515,7 +43471,7 @@
       "id": "function:python:tests.unit.test_project_control_github.test_export_maps_supported_project_fields",
       "language": "python",
       "metadata": {
-        "line": 537,
+        "line": 647,
         "qualified_name": "tests.unit.test_project_control_github.test_export_maps_supported_project_fields"
       },
       "name": "test_export_maps_supported_project_fields",
@@ -42526,7 +43482,7 @@
       "id": "function:python:tests.unit.test_project_control_github.test_export_rejects_bad_urls_and_unsupported_field_values",
       "language": "python",
       "metadata": {
-        "line": 616,
+        "line": 726,
         "qualified_name": "tests.unit.test_project_control_github.test_export_rejects_bad_urls_and_unsupported_field_values"
       },
       "name": "test_export_rejects_bad_urls_and_unsupported_field_values",
@@ -42537,7 +43493,7 @@
       "id": "function:python:tests.unit.test_project_control_github.test_export_rejects_cursor_cycle_and_has_next_without_cursor",
       "language": "python",
       "metadata": {
-        "line": 602,
+        "line": 712,
         "qualified_name": "tests.unit.test_project_control_github.test_export_rejects_cursor_cycle_and_has_next_without_cursor"
       },
       "name": "test_export_rejects_cursor_cycle_and_has_next_without_cursor",
@@ -42548,7 +43504,7 @@
       "id": "function:python:tests.unit.test_project_control_github.test_export_rejects_duplicate_definition_and_field_value_ids",
       "language": "python",
       "metadata": {
-        "line": 817,
+        "line": 927,
         "qualified_name": "tests.unit.test_project_control_github.test_export_rejects_duplicate_definition_and_field_value_ids"
       },
       "name": "test_export_rejects_duplicate_definition_and_field_value_ids",
@@ -42559,7 +43515,7 @@
       "id": "function:python:tests.unit.test_project_control_github.test_export_rejects_field_value_id_name_mismatch",
       "language": "python",
       "metadata": {
-        "line": 838,
+        "line": 948,
         "qualified_name": "tests.unit.test_project_control_github.test_export_rejects_field_value_id_name_mismatch"
       },
       "name": "test_export_rejects_field_value_id_name_mismatch",
@@ -42570,7 +43526,7 @@
       "id": "function:python:tests.unit.test_project_control_github.test_export_rejects_graphql_scalar_type_substitution",
       "language": "python",
       "metadata": {
-        "line": 674,
+        "line": 784,
         "qualified_name": "tests.unit.test_project_control_github.test_export_rejects_graphql_scalar_type_substitution"
       },
       "name": "test_export_rejects_graphql_scalar_type_substitution",
@@ -42581,7 +43537,7 @@
       "id": "function:python:tests.unit.test_project_control_github.test_export_rejects_invalid_or_incomplete_graphql_state",
       "language": "python",
       "metadata": {
-        "line": 590,
+        "line": 700,
         "qualified_name": "tests.unit.test_project_control_github.test_export_rejects_invalid_or_incomplete_graphql_state"
       },
       "name": "test_export_rejects_invalid_or_incomplete_graphql_state",
@@ -42592,7 +43548,7 @@
       "id": "function:python:tests.unit.test_project_control_github.test_export_rejects_missing_duplicate_option_ids_and_empty_option_value",
       "language": "python",
       "metadata": {
-        "line": 716,
+        "line": 826,
         "qualified_name": "tests.unit.test_project_control_github.test_export_rejects_missing_duplicate_option_ids_and_empty_option_value"
       },
       "name": "test_export_rejects_missing_duplicate_option_ids_and_empty_option_value",
@@ -42603,7 +43559,7 @@
       "id": "function:python:tests.unit.test_project_control_github.test_export_rejects_noncanonical_issue_url",
       "language": "python",
       "metadata": {
-        "line": 766,
+        "line": 876,
         "qualified_name": "tests.unit.test_project_control_github.test_export_rejects_noncanonical_issue_url"
       },
       "name": "test_export_rejects_noncanonical_issue_url",
@@ -42614,7 +43570,7 @@
       "id": "function:python:tests.unit.test_project_control_github.test_export_rejects_unknown_custom_definition_and_allows_known_builtin",
       "language": "python",
       "metadata": {
-        "line": 687,
+        "line": 797,
         "qualified_name": "tests.unit.test_project_control_github.test_export_rejects_unknown_custom_definition_and_allows_known_builtin"
       },
       "name": "test_export_rejects_unknown_custom_definition_and_allows_known_builtin",
@@ -42625,7 +43581,7 @@
       "id": "function:python:tests.unit.test_project_control_github.test_export_rejects_unsafe_day_numbers",
       "language": "python",
       "metadata": {
-        "line": 857,
+        "line": 967,
         "qualified_name": "tests.unit.test_project_control_github.test_export_rejects_unsafe_day_numbers"
       },
       "name": "test_export_rejects_unsafe_day_numbers",
@@ -42636,7 +43592,7 @@
       "id": "function:python:tests.unit.test_project_control_github.test_export_rejects_wrong_definition_type",
       "language": "python",
       "metadata": {
-        "line": 739,
+        "line": 849,
         "qualified_name": "tests.unit.test_project_control_github.test_export_rejects_wrong_definition_type"
       },
       "name": "test_export_rejects_wrong_definition_type",
@@ -42647,7 +43603,7 @@
       "id": "function:python:tests.unit.test_project_control_github.test_export_requires_data_type_for_project_field",
       "language": "python",
       "metadata": {
-        "line": 875,
+        "line": 985,
         "qualified_name": "tests.unit.test_project_control_github.test_export_requires_data_type_for_project_field"
       },
       "name": "test_export_requires_data_type_for_project_field",
@@ -42658,7 +43614,7 @@
       "id": "function:python:tests.unit.test_project_control_github.test_extract_task_id_requires_exact_stable_line",
       "language": "python",
       "metadata": {
-        "line": 525,
+        "line": 635,
         "qualified_name": "tests.unit.test_project_control_github.test_extract_task_id_requires_exact_stable_line"
       },
       "name": "test_extract_task_id_requires_exact_stable_line",
@@ -42669,7 +43625,7 @@
       "id": "function:python:tests.unit.test_project_control_github.test_iteration_builtin_definition_and_value_are_ignored",
       "language": "python",
       "metadata": {
-        "line": 778,
+        "line": 888,
         "qualified_name": "tests.unit.test_project_control_github.test_iteration_builtin_definition_and_value_are_ignored"
       },
       "name": "test_iteration_builtin_definition_and_value_are_ignored",
@@ -42680,7 +43636,7 @@
       "id": "function:python:tests.unit.test_project_control_github.test_iteration_value_must_have_correlated_identity",
       "language": "python",
       "metadata": {
-        "line": 805,
+        "line": 915,
         "qualified_name": "tests.unit.test_project_control_github.test_iteration_value_must_have_correlated_identity"
       },
       "name": "test_iteration_value_must_have_correlated_identity",
@@ -42691,7 +43647,7 @@
       "id": "function:python:tests.unit.test_project_control_github.test_subprocess_transport_maps_auth_failure_and_json_failure",
       "language": "python",
       "metadata": {
-        "line": 893,
+        "line": 1003,
         "qualified_name": "tests.unit.test_project_control_github.test_subprocess_transport_maps_auth_failure_and_json_failure"
       },
       "name": "test_subprocess_transport_maps_auth_failure_and_json_failure",
@@ -42702,7 +43658,7 @@
       "id": "function:python:tests.unit.test_project_control_github.test_subprocess_transport_maps_missing_or_unauthenticated_gh",
       "language": "python",
       "metadata": {
-        "line": 884,
+        "line": 994,
         "qualified_name": "tests.unit.test_project_control_github.test_subprocess_transport_maps_missing_or_unauthenticated_gh"
       },
       "name": "test_subprocess_transport_maps_missing_or_unauthenticated_gh",
@@ -42713,7 +43669,7 @@
       "id": "function:python:tests.unit.test_project_control_github.test_subprocess_transport_refuses_mutation_text_without_invoking_gh",
       "language": "python",
       "metadata": {
-        "line": 651,
+        "line": 761,
         "qualified_name": "tests.unit.test_project_control_github.test_subprocess_transport_refuses_mutation_text_without_invoking_gh"
       },
       "name": "test_subprocess_transport_refuses_mutation_text_without_invoking_gh",
@@ -42724,7 +43680,7 @@
       "id": "function:python:tests.unit.test_project_control_github.test_subprocess_transport_uses_read_only_argument_array_and_json_stdin",
       "language": "python",
       "metadata": {
-        "line": 628,
+        "line": 738,
         "qualified_name": "tests.unit.test_project_control_github.test_subprocess_transport_uses_read_only_argument_array_and_json_stdin"
       },
       "name": "test_subprocess_transport_uses_read_only_argument_array_and_json_stdin",
@@ -42845,7 +43801,7 @@
       "id": "function:python:tests.unit.test_project_control_provisioning.__init__",
       "language": "python",
       "metadata": {
-        "line": 1003,
+        "line": 1022,
         "qualified_name": "tests.unit.test_project_control_provisioning.__init__"
       },
       "name": "__init__",
@@ -42856,7 +43812,7 @@
       "id": "function:python:tests.unit.test_project_control_provisioning._field_and_views_plan",
       "language": "python",
       "metadata": {
-        "line": 898,
+        "line": 917,
         "qualified_name": "tests.unit.test_project_control_provisioning._field_and_views_plan"
       },
       "name": "_field_and_views_plan",
@@ -42867,7 +43823,7 @@
       "id": "function:python:tests.unit.test_project_control_provisioning._rediscovered_field_and_views_state",
       "language": "python",
       "metadata": {
-        "line": 943,
+        "line": 962,
         "qualified_name": "tests.unit.test_project_control_provisioning._rediscovered_field_and_views_state"
       },
       "name": "_rediscovered_field_and_views_state",
@@ -42878,7 +43834,7 @@
       "id": "function:python:tests.unit.test_project_control_provisioning.graphql",
       "language": "python",
       "metadata": {
-        "line": 1006,
+        "line": 1025,
         "qualified_name": "tests.unit.test_project_control_provisioning.graphql"
       },
       "name": "graphql",
@@ -42889,7 +43845,7 @@
       "id": "function:python:tests.unit.test_project_control_provisioning.mutate",
       "language": "python",
       "metadata": {
-        "line": 1016,
+        "line": 1035,
         "qualified_name": "tests.unit.test_project_control_provisioning.mutate"
       },
       "name": "mutate",
@@ -42900,7 +43856,7 @@
       "id": "function:python:tests.unit.test_project_control_provisioning.test_allowlist_rejects_unregistered_mutation",
       "language": "python",
       "metadata": {
-        "line": 781,
+        "line": 800,
         "qualified_name": "tests.unit.test_project_control_provisioning.test_allowlist_rejects_unregistered_mutation"
       },
       "name": "test_allowlist_rejects_unregistered_mutation",
@@ -42911,7 +43867,7 @@
       "id": "function:python:tests.unit.test_project_control_provisioning.test_apply_requires_mutation_transport_after_pure_planning",
       "language": "python",
       "metadata": {
-        "line": 406,
+        "line": 425,
         "qualified_name": "tests.unit.test_project_control_provisioning.test_apply_requires_mutation_transport_after_pure_planning"
       },
       "name": "test_apply_requires_mutation_transport_after_pure_planning",
@@ -42922,7 +43878,7 @@
       "id": "function:python:tests.unit.test_project_control_provisioning.test_apply_transport_bounds_sanitized_graphql_stderr",
       "language": "python",
       "metadata": {
-        "line": 748,
+        "line": 767,
         "qualified_name": "tests.unit.test_project_control_provisioning.test_apply_transport_bounds_sanitized_graphql_stderr"
       },
       "name": "test_apply_transport_bounds_sanitized_graphql_stderr",
@@ -42933,7 +43889,7 @@
       "id": "function:python:tests.unit.test_project_control_provisioning.test_apply_transport_preserves_sanitized_graphql_validation_evidence",
       "language": "python",
       "metadata": {
-        "line": 713,
+        "line": 732,
         "qualified_name": "tests.unit.test_project_control_provisioning.test_apply_transport_preserves_sanitized_graphql_validation_evidence"
       },
       "name": "test_apply_transport_preserves_sanitized_graphql_validation_evidence",
@@ -42944,7 +43900,7 @@
       "id": "function:python:tests.unit.test_project_control_provisioning.test_apply_transport_wraps_operation_input_and_rejects_missing_ids",
       "language": "python",
       "metadata": {
-        "line": 475,
+        "line": 494,
         "qualified_name": "tests.unit.test_project_control_provisioning.test_apply_transport_wraps_operation_input_and_rejects_missing_ids"
       },
       "name": "test_apply_transport_wraps_operation_input_and_rejects_missing_ids",
@@ -42955,7 +43911,7 @@
       "id": "function:python:tests.unit.test_project_control_provisioning.test_create_day_field_input_serializes_literal_option_objects",
       "language": "python",
       "metadata": {
-        "line": 257,
+        "line": 276,
         "qualified_name": "tests.unit.test_project_control_provisioning.test_create_day_field_input_serializes_literal_option_objects"
       },
       "name": "test_create_day_field_input_serializes_literal_option_objects",
@@ -42977,7 +43933,7 @@
       "id": "function:python:tests.unit.test_project_control_provisioning.test_discovery_rejects_ambiguous_project_names",
       "language": "python",
       "metadata": {
-        "line": 970,
+        "line": 989,
         "qualified_name": "tests.unit.test_project_control_provisioning.test_discovery_rejects_ambiguous_project_names"
       },
       "name": "test_discovery_rejects_ambiguous_project_names",
@@ -42999,7 +43955,7 @@
       "id": "function:python:tests.unit.test_project_control_provisioning.test_duplicate_managed_regions_fail_closed",
       "language": "python",
       "metadata": {
-        "line": 442,
+        "line": 461,
         "qualified_name": "tests.unit.test_project_control_provisioning.test_duplicate_managed_regions_fail_closed"
       },
       "name": "test_duplicate_managed_regions_fail_closed",
@@ -43021,7 +43977,7 @@
       "id": "function:python:tests.unit.test_project_control_provisioning.test_field_mutation_documents_select_union_variants",
       "language": "python",
       "metadata": {
-        "line": 521,
+        "line": 540,
         "qualified_name": "tests.unit.test_project_control_provisioning.test_field_mutation_documents_select_union_variants"
       },
       "name": "test_field_mutation_documents_select_union_variants",
@@ -43032,7 +43988,7 @@
       "id": "function:python:tests.unit.test_project_control_provisioning.test_field_mutation_option_names_must_exactly_match_the_desired_order",
       "language": "python",
       "metadata": {
-        "line": 819,
+        "line": 838,
         "qualified_name": "tests.unit.test_project_control_provisioning.test_field_mutation_option_names_must_exactly_match_the_desired_order"
       },
       "name": "test_field_mutation_option_names_must_exactly_match_the_desired_order",
@@ -43043,7 +43999,7 @@
       "id": "function:python:tests.unit.test_project_control_provisioning.test_field_mutation_options_allow_omission_for_exact_non_select_variants",
       "language": "python",
       "metadata": {
-        "line": 575,
+        "line": 594,
         "qualified_name": "tests.unit.test_project_control_provisioning.test_field_mutation_options_allow_omission_for_exact_non_select_variants"
       },
       "name": "test_field_mutation_options_allow_omission_for_exact_non_select_variants",
@@ -43054,7 +44010,7 @@
       "id": "function:python:tests.unit.test_project_control_provisioning.test_field_mutation_options_reject_unknown_or_impossible_variant_shape",
       "language": "python",
       "metadata": {
-        "line": 633,
+        "line": 652,
         "qualified_name": "tests.unit.test_project_control_provisioning.test_field_mutation_options_reject_unknown_or_impossible_variant_shape"
       },
       "name": "test_field_mutation_options_reject_unknown_or_impossible_variant_shape",
@@ -43065,10 +44021,32 @@
       "id": "function:python:tests.unit.test_project_control_provisioning.test_field_mutation_options_require_options_for_single_select",
       "language": "python",
       "metadata": {
-        "line": 596,
+        "line": 615,
         "qualified_name": "tests.unit.test_project_control_provisioning.test_field_mutation_options_require_options_for_single_select"
       },
       "name": "test_field_mutation_options_require_options_for_single_select",
+      "path": "tests/unit/test_project_control_provisioning.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.unit.test_project_control_provisioning.test_field_value_input_rejects_boolean_number",
+      "language": "python",
+      "metadata": {
+        "line": 262,
+        "qualified_name": "tests.unit.test_project_control_provisioning.test_field_value_input_rejects_boolean_number"
+      },
+      "name": "test_field_value_input_rejects_boolean_number",
+      "path": "tests/unit/test_project_control_provisioning.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.unit.test_project_control_provisioning.test_field_value_inputs_nest_literal_values",
+      "language": "python",
+      "metadata": {
+        "line": 238,
+        "qualified_name": "tests.unit.test_project_control_provisioning.test_field_value_inputs_nest_literal_values"
+      },
+      "name": "test_field_value_inputs_nest_literal_values",
       "path": "tests/unit/test_project_control_provisioning.py",
       "type": "function"
     },
@@ -43087,7 +44065,7 @@
       "id": "function:python:tests.unit.test_project_control_provisioning.test_issue_update_preserves_unmanaged_preamble",
       "language": "python",
       "metadata": {
-        "line": 422,
+        "line": 441,
         "qualified_name": "tests.unit.test_project_control_provisioning.test_issue_update_preserves_unmanaged_preamble"
       },
       "name": "test_issue_update_preserves_unmanaged_preamble",
@@ -43098,7 +44076,7 @@
       "id": "function:python:tests.unit.test_project_control_provisioning.test_new_issue_body_contains_one_managed_region",
       "language": "python",
       "metadata": {
-        "line": 432,
+        "line": 451,
         "qualified_name": "tests.unit.test_project_control_provisioning.test_new_issue_body_contains_one_managed_region"
       },
       "name": "test_new_issue_body_contains_one_managed_region",
@@ -43120,7 +44098,7 @@
       "id": "function:python:tests.unit.test_project_control_provisioning.test_plan_is_dependency_ordered_and_printable",
       "language": "python",
       "metadata": {
-        "line": 393,
+        "line": 412,
         "qualified_name": "tests.unit.test_project_control_provisioning.test_plan_is_dependency_ordered_and_printable"
       },
       "name": "test_plan_is_dependency_ordered_and_printable",
@@ -43131,7 +44109,7 @@
       "id": "function:python:tests.unit.test_project_control_provisioning.test_reconciliation_report_is_strict_and_immutable",
       "language": "python",
       "metadata": {
-        "line": 467,
+        "line": 486,
         "qualified_name": "tests.unit.test_project_control_provisioning.test_reconciliation_report_is_strict_and_immutable"
       },
       "name": "test_reconciliation_report_is_strict_and_immutable",
@@ -43161,21 +44139,10 @@
       "type": "function"
     },
     {
-      "id": "function:python:tests.unit.test_project_control_provisioning.test_round2_field_value_inputs_are_typed_and_day_is_single_select",
-      "language": "python",
-      "metadata": {
-        "line": 225,
-        "qualified_name": "tests.unit.test_project_control_provisioning.test_round2_field_value_inputs_are_typed_and_day_is_single_select"
-      },
-      "name": "test_round2_field_value_inputs_are_typed_and_day_is_single_select",
-      "path": "tests/unit/test_project_control_provisioning.py",
-      "type": "function"
-    },
-    {
       "id": "function:python:tests.unit.test_project_control_provisioning.test_round2_mutation_identity_has_no_legacy_fallbacks",
       "language": "python",
       "metadata": {
-        "line": 378,
+        "line": 397,
         "qualified_name": "tests.unit.test_project_control_provisioning.test_round2_mutation_identity_has_no_legacy_fallbacks"
       },
       "name": "test_round2_mutation_identity_has_no_legacy_fallbacks",
@@ -43186,7 +44153,7 @@
       "id": "function:python:tests.unit.test_project_control_provisioning.test_round2_remote_values_are_frozen_typed_models",
       "language": "python",
       "metadata": {
-        "line": 385,
+        "line": 404,
         "qualified_name": "tests.unit.test_project_control_provisioning.test_round2_remote_values_are_frozen_typed_models"
       },
       "name": "test_round2_remote_values_are_frozen_typed_models",
@@ -43197,7 +44164,7 @@
       "id": "function:python:tests.unit.test_project_control_provisioning.test_supported_views_still_require_exact_post_apply_configuration",
       "language": "python",
       "metadata": {
-        "line": 862,
+        "line": 881,
         "qualified_name": "tests.unit.test_project_control_provisioning.test_supported_views_still_require_exact_post_apply_configuration"
       },
       "name": "test_supported_views_still_require_exact_post_apply_configuration",
@@ -43208,7 +44175,7 @@
       "id": "function:python:tests.unit.test_project_control_provisioning.test_unrelated_view_failures_remain_normal_partial_errors",
       "language": "python",
       "metadata": {
-        "line": 881,
+        "line": 900,
         "qualified_name": "tests.unit.test_project_control_provisioning.test_unrelated_view_failures_remain_normal_partial_errors"
       },
       "name": "test_unrelated_view_failures_remain_normal_partial_errors",
@@ -43219,7 +44186,7 @@
       "id": "function:python:tests.unit.test_project_control_provisioning.test_unsupported_views_are_excluded_from_post_apply_rediscovery_only",
       "language": "python",
       "metadata": {
-        "line": 845,
+        "line": 864,
         "qualified_name": "tests.unit.test_project_control_provisioning.test_unsupported_views_are_excluded_from_post_apply_rediscovery_only"
       },
       "name": "test_unsupported_views_are_excluded_from_post_apply_rediscovery_only",
@@ -43230,7 +44197,7 @@
       "id": "function:python:tests.unit.test_project_control_provisioning.test_unsupported_views_are_partial_with_six_manual_instructions",
       "language": "python",
       "metadata": {
-        "line": 786,
+        "line": 805,
         "qualified_name": "tests.unit.test_project_control_provisioning.test_unsupported_views_are_partial_with_six_manual_instructions"
       },
       "name": "test_unsupported_views_are_partial_with_six_manual_instructions",
@@ -43241,7 +44208,7 @@
       "id": "function:python:tests.unit.test_project_control_provisioning.test_update_field_input_rejects_duplicate_desired_option_names",
       "language": "python",
       "metadata": {
-        "line": 365,
+        "line": 384,
         "qualified_name": "tests.unit.test_project_control_provisioning.test_update_field_input_rejects_duplicate_desired_option_names"
       },
       "name": "test_update_field_input_rejects_duplicate_desired_option_names",
@@ -43252,7 +44219,7 @@
       "id": "function:python:tests.unit.test_project_control_provisioning.test_update_field_input_rejects_malformed_option_id_maps",
       "language": "python",
       "metadata": {
-        "line": 352,
+        "line": 371,
         "qualified_name": "tests.unit.test_project_control_provisioning.test_update_field_input_rejects_malformed_option_id_maps"
       },
       "name": "test_update_field_input_rejects_malformed_option_id_maps",
@@ -43263,7 +44230,7 @@
       "id": "function:python:tests.unit.test_project_control_provisioning.test_update_status_field_input_reuses_matching_ids_without_create_only_keys",
       "language": "python",
       "metadata": {
-        "line": 292,
+        "line": 311,
         "qualified_name": "tests.unit.test_project_control_provisioning.test_update_status_field_input_reuses_matching_ids_without_create_only_keys"
       },
       "name": "test_update_status_field_input_reuses_matching_ids_without_create_only_keys",
@@ -45338,6 +46305,16 @@
       "type": "import"
     },
     {
+      "id": "import:python:app.core.task_spec_gate.evaluate_negative_contract",
+      "language": "python",
+      "metadata": {
+        "imported_from": "app.core.task_spec_gate"
+      },
+      "name": "app.core.task_spec_gate.evaluate_negative_contract",
+      "path": null,
+      "type": "import"
+    },
+    {
       "id": "import:python:app.core.test_runner.TestRunner",
       "language": "python",
       "metadata": {
@@ -46914,6 +47891,16 @@
         "imported_from": "app.schemas.showcase"
       },
       "name": "app.schemas.showcase.ShowcaseManifest",
+      "path": null,
+      "type": "import"
+    },
+    {
+      "id": "import:python:app.schemas.task_spec.SweTaskSpec",
+      "language": "python",
+      "metadata": {
+        "imported_from": "app.schemas.task_spec"
+      },
+      "name": "app.schemas.task_spec.SweTaskSpec",
       "path": null,
       "type": "import"
     },
@@ -50761,7 +51748,7 @@
       "id": "method:python:app.project_control.github.ApplyGhTransport.mutate",
       "language": "python",
       "metadata": {
-        "line": 817,
+        "line": 828,
         "qualified_name": "app.project_control.github.ApplyGhTransport.mutate"
       },
       "name": "mutate",
@@ -50783,7 +51770,7 @@
       "id": "method:python:app.project_control.github.GitHubClient.__init__",
       "language": "python",
       "metadata": {
-        "line": 2173,
+        "line": 2195,
         "qualified_name": "app.project_control.github.GitHubClient.__init__"
       },
       "name": "__init__",
@@ -50794,7 +51781,7 @@
       "id": "method:python:app.project_control.github.GitHubClient._connection_pages",
       "language": "python",
       "metadata": {
-        "line": 2176,
+        "line": 2198,
         "qualified_name": "app.project_control.github.GitHubClient._connection_pages"
       },
       "name": "_connection_pages",
@@ -50805,7 +51792,7 @@
       "id": "method:python:app.project_control.github.GitHubClient._expand_discovered_project",
       "language": "python",
       "metadata": {
-        "line": 2227,
+        "line": 2249,
         "qualified_name": "app.project_control.github.GitHubClient._expand_discovered_project"
       },
       "name": "_expand_discovered_project",
@@ -50816,7 +51803,7 @@
       "id": "method:python:app.project_control.github.GitHubClient.discover_state",
       "language": "python",
       "metadata": {
-        "line": 2275,
+        "line": 2297,
         "qualified_name": "app.project_control.github.GitHubClient.discover_state"
       },
       "name": "discover_state",
@@ -50827,7 +51814,7 @@
       "id": "method:python:app.project_control.github.GitHubClient.export_project",
       "language": "python",
       "metadata": {
-        "line": 2421,
+        "line": 2443,
         "qualified_name": "app.project_control.github.GitHubClient.export_project"
       },
       "name": "export_project",
@@ -50838,7 +51825,7 @@
       "id": "method:python:app.project_control.github.GitHubProvisioner.__init__",
       "language": "python",
       "metadata": {
-        "line": 1170,
+        "line": 1183,
         "qualified_name": "app.project_control.github.GitHubProvisioner.__init__"
       },
       "name": "__init__",
@@ -50849,7 +51836,7 @@
       "id": "method:python:app.project_control.github.GitHubProvisioner._write_report",
       "language": "python",
       "metadata": {
-        "line": 1522,
+        "line": 1535,
         "qualified_name": "app.project_control.github.GitHubProvisioner._write_report"
       },
       "name": "_write_report",
@@ -50860,7 +51847,7 @@
       "id": "method:python:app.project_control.github.GitHubProvisioner.apply",
       "language": "python",
       "metadata": {
-        "line": 1365,
+        "line": 1378,
         "qualified_name": "app.project_control.github.GitHubProvisioner.apply"
       },
       "name": "apply",
@@ -50871,7 +51858,7 @@
       "id": "method:python:app.project_control.github.GitHubProvisioner.plan",
       "language": "python",
       "metadata": {
-        "line": 1180,
+        "line": 1193,
         "qualified_name": "app.project_control.github.GitHubProvisioner.plan"
       },
       "name": "plan",
@@ -50893,7 +51880,7 @@
       "id": "method:python:app.project_control.github.SubprocessGhTransport.graphql",
       "language": "python",
       "metadata": {
-        "line": 787,
+        "line": 798,
         "qualified_name": "app.project_control.github.SubprocessGhTransport.graphql"
       },
       "name": "graphql",
@@ -51539,6 +52526,39 @@
       "type": "method"
     },
     {
+      "id": "method:python:app.schemas.task_spec.SweTaskSpec._reject_head_ref",
+      "language": "python",
+      "metadata": {
+        "line": 66,
+        "qualified_name": "app.schemas.task_spec.SweTaskSpec._reject_head_ref"
+      },
+      "name": "_reject_head_ref",
+      "path": "app/schemas/task_spec.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:app.schemas.task_spec.SweTaskSpec._require_negative_contract",
+      "language": "python",
+      "metadata": {
+        "line": 76,
+        "qualified_name": "app.schemas.task_spec.SweTaskSpec._require_negative_contract"
+      },
+      "name": "_require_negative_contract",
+      "path": "app/schemas/task_spec.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:app.schemas.task_spec.SweTaskSpec.from_swebench_instance",
+      "language": "python",
+      "metadata": {
+        "line": 86,
+        "qualified_name": "app.schemas.task_spec.SweTaskSpec.from_swebench_instance"
+      },
+      "name": "from_swebench_instance",
+      "path": "app/schemas/task_spec.py",
+      "type": "method"
+    },
+    {
       "id": "method:python:app.schemas.test.TestRunSummary.passed",
       "language": "python",
       "metadata": {
@@ -51847,6 +52867,116 @@
       "type": "method"
     },
     {
+      "id": "method:python:tests.test_task_spec.TestNegativeContractGate.test_gate_blocks_when_fail_to_pass_passes_at_base",
+      "language": "python",
+      "metadata": {
+        "line": 81,
+        "qualified_name": "tests.test_task_spec.TestNegativeContractGate.test_gate_blocks_when_fail_to_pass_passes_at_base"
+      },
+      "name": "test_gate_blocks_when_fail_to_pass_passes_at_base",
+      "path": "tests/test_task_spec.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_task_spec.TestNegativeContractGate.test_gate_blocks_when_test_runner_errors",
+      "language": "python",
+      "metadata": {
+        "line": 105,
+        "qualified_name": "tests.test_task_spec.TestNegativeContractGate.test_gate_blocks_when_test_runner_errors"
+      },
+      "name": "test_gate_blocks_when_test_runner_errors",
+      "path": "tests/test_task_spec.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_task_spec.TestNegativeContractGate.test_gate_passes_when_bug_reproduces",
+      "language": "python",
+      "metadata": {
+        "line": 95,
+        "qualified_name": "tests.test_task_spec.TestNegativeContractGate.test_gate_passes_when_bug_reproduces"
+      },
+      "name": "test_gate_passes_when_bug_reproduces",
+      "path": "tests/test_task_spec.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_task_spec.TestNegativeContractGate.test_gate_records_commands_and_exit_codes",
+      "language": "python",
+      "metadata": {
+        "line": 117,
+        "qualified_name": "tests.test_task_spec.TestNegativeContractGate.test_gate_records_commands_and_exit_codes"
+      },
+      "name": "test_gate_records_commands_and_exit_codes",
+      "path": "tests/test_task_spec.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_task_spec.TestSweTaskSpecSchema.test_spec_from_swebench_json_tuple",
+      "language": "python",
+      "metadata": {
+        "line": 65,
+        "qualified_name": "tests.test_task_spec.TestSweTaskSpecSchema.test_spec_from_swebench_json_tuple"
+      },
+      "name": "test_spec_from_swebench_json_tuple",
+      "path": "tests/test_task_spec.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_task_spec.TestSweTaskSpecSchema.test_spec_requires_at_least_one_fail_to_pass",
+      "language": "python",
+      "metadata": {
+        "line": 55,
+        "qualified_name": "tests.test_task_spec.TestSweTaskSpecSchema.test_spec_requires_at_least_one_fail_to_pass"
+      },
+      "name": "test_spec_requires_at_least_one_fail_to_pass",
+      "path": "tests/test_task_spec.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_task_spec.TestSweTaskSpecSchema.test_spec_requires_core_fields",
+      "language": "python",
+      "metadata": {
+        "line": 35,
+        "qualified_name": "tests.test_task_spec.TestSweTaskSpecSchema.test_spec_requires_core_fields"
+      },
+      "name": "test_spec_requires_core_fields",
+      "path": "tests/test_task_spec.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_task_spec.TestSweTaskSpecSchema.test_spec_roundtrip_and_identity",
+      "language": "python",
+      "metadata": {
+        "line": 39,
+        "qualified_name": "tests.test_task_spec.TestSweTaskSpecSchema.test_spec_roundtrip_and_identity"
+      },
+      "name": "test_spec_roundtrip_and_identity",
+      "path": "tests/test_task_spec.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_task_spec_solve.TestTaskSpecCLIWiring.test_solve_blocks_when_negative_contract_fails",
+      "language": "python",
+      "metadata": {
+        "line": 72,
+        "qualified_name": "tests.test_task_spec_solve.TestTaskSpecCLIWiring.test_solve_blocks_when_negative_contract_fails"
+      },
+      "name": "test_solve_blocks_when_negative_contract_fails",
+      "path": "tests/test_task_spec_solve.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_task_spec_solve.TestTaskSpecCLIWiring.test_solve_with_task_spec_pins_commit_and_composes_task",
+      "language": "python",
+      "metadata": {
+        "line": 121,
+        "qualified_name": "tests.test_task_spec_solve.TestTaskSpecCLIWiring.test_solve_with_task_spec_pins_commit_and_composes_task"
+      },
+      "name": "test_solve_with_task_spec_pins_commit_and_composes_task",
+      "path": "tests/test_task_spec_solve.py",
+      "type": "method"
+    },
+    {
       "id": "method:python:tests.unit.test_project_control_github.FakeTransport.__init__",
       "language": "python",
       "metadata": {
@@ -51872,7 +53002,7 @@
       "id": "method:python:tests.unit.test_project_control_provisioning.BrokenView.mutate",
       "language": "python",
       "metadata": {
-        "line": 885,
+        "line": 904,
         "qualified_name": "tests.unit.test_project_control_provisioning.BrokenView.mutate"
       },
       "name": "mutate",
@@ -51883,7 +53013,7 @@
       "id": "method:python:tests.unit.test_project_control_provisioning.SomeViewsUnsupported.mutate",
       "language": "python",
       "metadata": {
-        "line": 866,
+        "line": 885,
         "qualified_name": "tests.unit.test_project_control_provisioning.SomeViewsUnsupported.mutate"
       },
       "name": "mutate",
@@ -51894,7 +53024,7 @@
       "id": "method:python:tests.unit.test_project_control_provisioning.ViewUnsupported.mutate",
       "language": "python",
       "metadata": {
-        "line": 796,
+        "line": 815,
         "qualified_name": "tests.unit.test_project_control_provisioning.ViewUnsupported.mutate"
       },
       "name": "mutate",
@@ -51905,7 +53035,7 @@
       "id": "method:python:tests.unit.test_project_control_provisioning.ViewsUnsupported.mutate",
       "language": "python",
       "metadata": {
-        "line": 849,
+        "line": 868,
         "qualified_name": "tests.unit.test_project_control_provisioning.ViewsUnsupported.mutate"
       },
       "name": "mutate",
@@ -51916,7 +53046,7 @@
       "id": "method:python:tests.unit.test_project_control_provisioning.WrongOptions.mutate",
       "language": "python",
       "metadata": {
-        "line": 825,
+        "line": 844,
         "qualified_name": "tests.unit.test_project_control_provisioning.WrongOptions.mutate"
       },
       "name": "mutate",
@@ -51927,7 +53057,7 @@
       "id": "method:python:tests.unit.test_project_control_provisioning._DiscoveryTransport.__init__",
       "language": "python",
       "metadata": {
-        "line": 1003,
+        "line": 1022,
         "qualified_name": "tests.unit.test_project_control_provisioning._DiscoveryTransport.__init__"
       },
       "name": "__init__",
@@ -51938,7 +53068,7 @@
       "id": "method:python:tests.unit.test_project_control_provisioning._DiscoveryTransport.graphql",
       "language": "python",
       "metadata": {
-        "line": 1006,
+        "line": 1025,
         "qualified_name": "tests.unit.test_project_control_provisioning._DiscoveryTransport.graphql"
       },
       "name": "graphql",
@@ -51949,7 +53079,7 @@
       "id": "method:python:tests.unit.test_project_control_provisioning._FakeMutationTransport.__init__",
       "language": "python",
       "metadata": {
-        "line": 1012,
+        "line": 1031,
         "qualified_name": "tests.unit.test_project_control_provisioning._FakeMutationTransport.__init__"
       },
       "name": "__init__",
@@ -51960,7 +53090,7 @@
       "id": "method:python:tests.unit.test_project_control_provisioning._FakeMutationTransport.mutate",
       "language": "python",
       "metadata": {
-        "line": 1016,
+        "line": 1035,
         "qualified_name": "tests.unit.test_project_control_provisioning._FakeMutationTransport.mutate"
       },
       "name": "mutate",
@@ -52126,8 +53256,8 @@
       "python"
     ],
     "risk_count": 0,
-    "source_file_count": 230,
-    "test_file_count": 97,
+    "source_file_count": 234,
+    "test_file_count": 99,
     "test_frameworks": [
       "pytest"
     ]
