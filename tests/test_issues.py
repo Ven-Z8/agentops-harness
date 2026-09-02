@@ -320,7 +320,6 @@ def test_solve_cli_passes_test_commands_through(tmp_path: Path) -> None:
     from app.core import issues as issues_module
 
     issue = _fixture_issue()
-    remote = _make_remote_fixture(tmp_path)
 
     captured: dict[str, object] = {}
 
