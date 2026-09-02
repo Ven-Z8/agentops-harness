@@ -1,10 +1,10 @@
 {
   "counts": {
-    "edges": 3879,
-    "included_files": 310,
-    "nodes": 2613,
-    "source_files": 228,
-    "test_files": 96
+    "edges": 3992,
+    "included_files": 313,
+    "nodes": 2695,
+    "source_files": 230,
+    "test_files": 97
   },
   "exclusions": [
     ".cache/",
@@ -27,7 +27,7 @@
     "target/",
     "vendor/"
   ],
-  "generated_at": "2026-09-01T14:08:02Z",
+  "generated_at": "2026-09-02T20:52:12Z",
   "generator_version": "1",
   "included_paths": [
     ".claude/launch.json",
@@ -38,6 +38,7 @@
     ".gitignore",
     "AGENTS.md",
     "Dockerfile",
+    "LICENSE",
     "Makefile",
     "README.md",
     "ROADMAP.md",
@@ -72,6 +73,7 @@
     "app/core/graph.py",
     "app/core/handoff.py",
     "app/core/integrations.py",
+    "app/core/issues.py",
     "app/core/llm.py",
     "app/core/memory.py",
     "app/core/packs/__init__.py",
@@ -264,6 +266,7 @@
     "tests/test_graph_smoke.py",
     "tests/test_handoff.py",
     "tests/test_integrations.py",
+    "tests/test_issues.py",
     "tests/test_langgraph_workflow.py",
     "tests/test_llm_agents.py",
     "tests/test_llm_provider.py",
@@ -365,6 +368,6 @@
     ]
   },
   "schema_version": 1,
-  "source_commit": "95978f5e2e3448adae2f52256a4750e4086f067d",
-  "source_tree_digest": "6e8ff714704e5f33c5cd72d523047817ea9bfeb83d00153101e90dd26956b3bb"
+  "source_commit": "7db320a3b6230b491ce0dde5a1b43ce2843671a1",
+  "source_tree_digest": "a20c1743a0abc22c76176af5e84f027f7c7c3d43354d5f35c6d87dfdb5c3ef9e"
 }
