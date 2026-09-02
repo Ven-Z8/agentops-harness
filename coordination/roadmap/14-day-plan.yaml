@@ -1,0 +1,665 @@
+schema_version: 1
+roadmap_id: AO-14D
+items:
+  - &base
+    id: AO-14D
+    verification_readiness: available
+    title: AgentOps 14-Day Research Control Plane
+    kind: roadmap
+    day: null
+    phase_id: null
+    parent_id: null
+    status: planned
+    maturity: confirmed
+    priority: P0
+    risk: critical
+    blocker: release-blocking
+    outcome: A reviewable 14-day control-plane roadmap keeps approved scope and evidence authoritative in Git.
+    scope: [Maintain stable roadmap identifiers, Render approved roadmap scope deterministically.]
+    non_goals: [Change AgentOps runtime behavior, Treat GitHub issue text as the roadmap authority.]
+    dependencies: []
+    acceptance_criteria: [All approved roadmap records validate, Generated Markdown identifies its authoritative YAML source.]
+    required_evidence: [Validated roadmap YAML, Byte-stable rendered Markdown.]
+    likely_files: []
+    test_first: null
+    terminal_semantics: Failed, blocked, or inconclusive roadmap evidence cannot be reported as a completed release plan.
+    compatibility: Additive coordination metadata does not alter persisted AgentOps runtime records or CLI behavior.
+    verification_commands: [uv run pytest tests/unit/test_project_control_schema.py tests/unit/test_project_control_rendering.py -q, uv run ruff check app/project_control]
+    risks: [False-success reporting could hide missing roadmap evidence, Existing coordination consumers require additive migration only.]
+    rollback: Revert the coordination roadmap slice while preserving committed truthful evidence and prior generated artifacts.
+    source_documents: &sources [coordination/designs/2026-08-30-project-control-room-design.md]
+    github: &github {issue_number: null, issue_url: null}
+  - <<: *base
+    id: AO-P1
+    verification_readiness: planned
+    title: Trust and Benchmark Integrity
+    kind: phase
+    parent_id: AO-14D
+    blocker: release-blocking
+    outcome: Phase 1 establishes evidence and boundary gates before later roadmap work is considered.
+    scope: [Coordinate confirmed Days 1 and 2, Require truthful evidence before Phase 2 work proceeds.]
+    non_goals: [Implement deferred Phase 2 work, Change runtime behavior through coordination records.]
+    acceptance_criteria: [Day 1 and Day 2 records are confirmed and reviewable, Phase gate evidence is explicit.]
+    required_evidence: [Validated child task records, Phase gate verification results.]
+    verification_commands: [uv run pytest tests/test_langgraph_workflow.py tests/test_workload.py tests/test_permission_gate.py tests/test_sandbox_worker_type_guard.py -q, uv run ruff check app/core app/agents app/schemas]
+    terminal_semantics: Failed, blocked, or inconclusive Phase 1 work prevents opening its downstream gate and cannot imply completion.
+    compatibility: Additive phase metadata preserves existing configuration and CLI contracts.
+    risks: [False-success phase status could authorize unsafe downstream work, Existing evidence references must remain readable.]
+    rollback: Revert the Phase 1 coordination slice while retaining truthful child evidence.
+  - <<: *base
+    id: AO-P2
+    verification_readiness: planned
+    title: Experiment Kernel and DeepEval
+    kind: phase
+    parent_id: AO-14D
+    maturity: needs-revalidation
+    priority: P1
+    risk: high
+    blocker: deferred until Phase 1 gate
+    outcome: Revalidate the experiment-kernel scope after Phase 1 evidence before committing implementation claims.
+    scope: [Assess Days 3 through 5 against the then-current repository, Define only confirmed kernel work.]
+    non_goals: [Assert historical defects remain present, Start work before the Phase 1 gate.]
+    dependencies: [AO-P1]
+    acceptance_criteria: [Revalidation records current evidence, Any implemented scope is approved from that evidence.]
+    required_evidence: [Phase 1 gate result, Current repository and test evidence.]
+    verification_commands: [uv run pytest tests/test_experiment_identity.py tests/test_deepeval_adapter.py tests/test_benchmark.py -q, uv run ruff check app/core/benchmark.py app/schemas/benchmark.py]
+    terminal_semantics: Failed, blocked, or inconclusive revalidation prevents Phase 2 promotion and cannot imply kernel readiness.
+    compatibility: Any future persisted-schema or provider migration is deferred until revalidation confirms it.
+    risks: [Stale assumptions can cause false success, Future schema changes require backward-compatible readers.]
+    rollback: Revert only confirmed Phase 2 coordination updates while preserving recorded revalidation evidence.
+  - <<: *base
+    id: AO-P3
+    verification_readiness: planned
+    title: Governed Training
+    kind: phase
+    parent_id: AO-14D
+    maturity: needs-revalidation
+    priority: P1
+    risk: high
+    blocker: deferred until Phase 2 gate
+    outcome: Revalidate governed-training objectives after the Phase 2 gate before any training claim is made.
+    scope: [Assess Days 6 through 8 using current contracts, Define evidence and budget gates from current findings.]
+    non_goals: [Claim a training provider is ready, Spend training budget before approval.]
+    dependencies: [AO-P2]
+    acceptance_criteria: [Current provider and budget evidence is documented, Promotion criteria are explicit.]
+    required_evidence: [Phase 2 gate result, Current training-contract evidence.]
+    verification_commands: [uv run pytest tests/test_training_contracts.py tests/test_governed_training.py tests/test_training_promotion.py -q, uv run ruff check app/core app/schemas]
+    terminal_semantics: Failed, blocked, or inconclusive training evidence prevents promotion and cannot imply governed readiness.
+    compatibility: Future provider or persisted-run changes require explicit migration after revalidation.
+    risks: [Unvalidated training claims create false success, Provider changes can break existing records.]
+    rollback: Revert only Phase 3 coordination updates while preserving truthful training evidence.
+  - <<: *base
+    id: AO-P4
+    verification_readiness: planned
+    title: Swappable Loops and Skills
+    kind: phase
+    parent_id: AO-14D
+    maturity: needs-revalidation
+    priority: P2
+    risk: medium
+    blocker: deferred until kernel contracts
+    outcome: Revalidate swappable-loop and capability-pack objectives against confirmed kernel contracts.
+    scope: [Assess Days 9 and 10 after kernel contracts are known, Record only validated capability seams.]
+    non_goals: [Assume existing loop defects, Redesign packs before contract review.]
+    dependencies: [AO-P2]
+    acceptance_criteria: [Compatibility seams are evidenced, Revalidation distinguishes proposed from verified behavior.]
+    required_evidence: [Kernel contract evidence, Focused compatibility checks.]
+    verification_commands: [uv run pytest tests/test_capability_pack.py tests/test_strategy_pack.py -q, uv run ruff check app/core/packs app/schemas/pack.py]
+    terminal_semantics: Failed, blocked, or inconclusive seam validation cannot imply swappability or completion.
+    compatibility: Future pack migrations remain additive until contract revalidation confirms their shape.
+    risks: [False-success capability claims can hide incompatible packs, Contract migration can break consumers.]
+    rollback: Revert only confirmed Phase 4 coordination updates and keep revalidation evidence.
+  - <<: *base
+    id: AO-P5
+    verification_readiness: planned
+    title: VLM and VLA Reference Paths
+    kind: phase
+    parent_id: AO-14D
+    maturity: needs-revalidation
+    priority: P2
+    risk: high
+    blocker: deferred until kernel contracts
+    outcome: Revalidate VLM and VLA reference-path objectives against confirmed kernel interfaces.
+    scope: [Assess Days 11 and 12 with current provider and simulator evidence, Define reproducibility gates only after review.]
+    non_goals: [Claim provider support without evidence, Bind to a simulator before interface validation.]
+    dependencies: [AO-P2]
+    acceptance_criteria: [Provider and simulator seams have current evidence, Reference workflow claims remain reproducible.]
+    required_evidence: [Kernel contract evidence, Current provider or simulator verification.]
+    verification_commands: [uv run pytest tests/test_vlm_reference_workflow.py tests/test_vla_provider_seam.py -q, uv run ruff check app/core app/schemas]
+    terminal_semantics: Failed, blocked, or inconclusive reference-path evidence cannot imply supported VLM or VLA completion.
+    compatibility: Future provider configuration changes require explicit migration and compatibility review.
+    risks: [Stale provider assumptions create false success, Interface changes can break existing configurations.]
+    rollback: Revert only confirmed Phase 5 coordination updates while retaining recorded evidence.
+  - <<: *base
+    id: AO-P6
+    verification_readiness: planned
+    title: Open-Source Release
+    kind: phase
+    parent_id: AO-14D
+    maturity: needs-revalidation
+    priority: P0
+    risk: critical
+    blocker: deferred until preceding gates
+    outcome: Revalidate release readiness only after the preceding phase gates have current evidence.
+    scope: [Assess Days 13 and 14 against current release inputs, Publish only verified limitations and results.]
+    non_goals: [Release on inferred evidence, Claim readiness before preceding gates pass.]
+    dependencies: [AO-P3, AO-P4, AO-P5]
+    acceptance_criteria: [All release gates have current evidence, Published limitations match verified results.]
+    required_evidence: [Preceding phase gates, Reproducible release verification.]
+    verification_commands: [uv run pytest tests/test_release_hygiene.py tests/test_v0_1_reproduction.py -q, npm test]
+    terminal_semantics: Failed, blocked, or inconclusive release gates prevent publication and cannot imply v0.1 completion.
+    compatibility: Release metadata changes require documented package and documentation migration effects.
+    risks: [False-success release claims mislead users, Package changes can break installation compatibility.]
+    rollback: Revert only release coordination updates while retaining truthful evidence and limitations.
+  - <<: *base
+    id: AO-D01
+    verification_readiness: planned
+    title: Truthful terminal states and strict boundaries
+    kind: outcome
+    day: 1
+    phase_id: AO-P1
+    parent_id: AO-P1
+    blocker: phase
+    outcome: Day 1 produces confirmed, fail-closed status and boundary work with reproducible evidence.
+    scope: [Coordinate terminal-state and boundary task slices, Require each slice to retain failed and inconclusive evidence.]
+    non_goals: [Begin deferred provider work, Infer success from partial evidence.]
+    dependencies: [AO-P1]
+    acceptance_criteria: [All Day 1 child records name focused tests, Day 1 completion requires evidence from each child slice.]
+    required_evidence: [Validated Day 1 task records, Focused test and status evidence.]
+    verification_commands: [uv run pytest tests/test_langgraph_workflow.py tests/test_boundary_kind_validation.py tests/test_workload.py -q, uv run ruff check app/core app/agents app/schemas]
+    terminal_semantics: Failed, blocked, or inconclusive Day 1 tasks prevent the day outcome from being completed.
+    compatibility: Day 1 changes require explicit persisted-schema, configuration, or CLI migration review.
+    risks: [False-success terminal states can promote failed work, Existing records may need compatible readers.]
+    rollback: Revert only a Day 1 task slice while preserving truthful evidence.
+  - <<: *base
+    id: AO-D01-01
+    verification_readiness: planned
+    title: Capture reproducible baseline and isolate ambient configuration
+    kind: task
+    day: 1
+    phase_id: AO-P1
+    parent_id: AO-D01
+    blocker: phase
+    outcome: Reproducible configuration does not change with ambient parent dotenv state.
+    scope: [Capture a baseline, Isolate provider configuration from parent dotenv input.]
+    non_goals: [Change provider selection policy, Add a new provider.]
+    acceptance_criteria: [Parent dotenv input cannot change provider configuration, Baseline evidence records effective configuration.]
+    required_evidence: [Focused red-green test output, Reproducible baseline record.]
+    likely_files: [app/core/config.py, app/core/workers/openhands_config.py, provider/config tests]
+    test_first: tests/test_openhands_config.py::test_parent_dotenv_does_not_change_provider_config
+    terminal_semantics: Failed, blocked, or inconclusive baseline isolation prevents completion; configuration success is never inferred.
+    compatibility: Configuration migration preserves explicit user settings and documents changed ambient-variable behavior.
+    verification_commands: [uv run pytest tests/test_openhands_config.py::test_parent_dotenv_does_not_change_provider_config -q, uv run pytest tests/test_openhands_config.py -q, uv run ruff check app/core/config.py app/core/workers/openhands_config.py]
+    risks: [Ambient configuration can create false-success baselines, Existing configuration users need backward-compatible migration.]
+    rollback: Revert only the configuration-isolation slice while retaining baseline and failing evidence.
+  - <<: *base
+    id: AO-D01-02
+    verification_readiness: planned
+    title: Separate execution, evaluation, and promotion status
+    kind: task
+    day: 1
+    phase_id: AO-P1
+    parent_id: AO-D01
+    blocker: phase
+    outcome: A failed required execution or evaluation can never produce a completed or promoted run.
+    scope: [Define independent execution, evaluation, and promotion terminal states., Derive overall status from required stages without inferring success.]
+    non_goals: [Add DeepEval integration., Redesign the experiment kernel.]
+    dependencies: [AO-D01-01]
+    acceptance_criteria: [Required test failure produces a non-successful run terminal state., Promotion is impossible when execution or evaluation is failed or inconclusive.]
+    required_evidence: [Focused red-green test output., Persisted run record showing independent statuses.]
+    likely_files: [app/schemas/run.py, app/core/graph.py, app/core/storage.py, app/core/benchmark.py, app/core/memory.py]
+    test_first: tests/test_langgraph_workflow.py::test_required_test_failure_cannot_complete_or_converge
+    terminal_semantics: Failed, blocked, or inconclusive required execution or evaluation prevents completion and promotion.
+    compatibility: Additive persisted-run schema change with an explicit reader migration for existing records.
+    verification_commands: [uv run pytest tests/test_langgraph_workflow.py::test_required_test_failure_cannot_complete_or_converge -q, uv run pytest tests/test_langgraph_workflow.py tests/test_benchmark.py tests/test_memory.py -q, uv run ruff check .]
+    risks: [Existing completed records may lack stage statuses and must not be reinterpreted silently.]
+    rollback: Revert the schema/derivation slice while retaining migrated records and recorded failing evidence.
+  - <<: *base
+    id: AO-D01-03
+    verification_readiness: planned
+    title: Reject unknown provider, worker, workspace, policy, and pack kinds
+    kind: task
+    day: 1
+    phase_id: AO-P1
+    parent_id: AO-D01
+    blocker: phase
+    outcome: Unknown execution-boundary kinds fail before any worker starts.
+    scope: [Validate provider, worker, workspace, policy, and pack kinds, Stop execution before unknown values reach a runtime seam.]
+    non_goals: [Add new kinds, Silently coerce unknown configuration.]
+    acceptance_criteria: [Unknown boundary kinds fail before execution, Error evidence identifies the rejected boundary.]
+    required_evidence: [Focused red-green test output, Rejected configuration record.]
+    likely_files: [app/core/config.py, app/core/llm.py, app/cli.py, app/core/graph.py, app/core/workspace/, app/core/packs/]
+    test_first: tests/test_boundary_kind_validation.py::test_unknown_boundary_kinds_fail_before_execution
+    terminal_semantics: Failed, blocked, or inconclusive boundary validation prevents completion and no accepted kind is inferred.
+    compatibility: Configuration and CLI migrations retain explicit supported kinds and reject removed kinds with actionable errors.
+    verification_commands: [uv run pytest tests/test_boundary_kind_validation.py::test_unknown_boundary_kinds_fail_before_execution -q, uv run pytest tests/test_boundary_kind_validation.py -q, uv run ruff check app/core app/cli.py]
+    risks: [Permissive fallback can create false-success execution, Existing configurations may require backward-compatible migration notices.]
+    rollback: Revert only the boundary-validation slice while preserving rejected-input evidence.
+  - <<: *base
+    id: AO-D01-04
+    verification_readiness: planned
+    title: Fail closed on missing evidence and failed required commands
+    kind: task
+    day: 1
+    phase_id: AO-P1
+    parent_id: AO-D01
+    blocker: phase
+    outcome: Missing evidence and failed required commands cannot pass a workload.
+    scope: [Require evidence for workload completion, Propagate required-command failure into terminal status.]
+    non_goals: [Relax evidence policy, Add unrelated workflow features.]
+    dependencies: [AO-D01-02]
+    acceptance_criteria: [Failed required command cannot pass, Missing evidence remains missing or inconclusive.]
+    required_evidence: [Focused red-green test output, Persisted failed-command evidence.]
+    likely_files: [app/core/workload.py, app/agents/evidence_guard.py, app/core/graph.py, app/schemas/evidence.py, app/schemas/workload.py]
+    test_first: tests/test_workload.py::test_failed_required_command_cannot_pass
+    terminal_semantics: Failed, blocked, or inconclusive evidence prevents completion; no workload pass is inferred.
+    compatibility: Persisted evidence and workload schema changes require explicit reader migration.
+    verification_commands: [uv run pytest tests/test_workload.py::test_failed_required_command_cannot_pass -q, uv run pytest tests/test_workload.py -q, uv run ruff check app/core/workload.py app/agents/evidence_guard.py]
+    risks: [Missing evidence can create false success, Existing workload records require backward-compatible interpretation.]
+    rollback: Revert only the evidence-guard slice while preserving recorded failed evidence.
+  - <<: *base
+    id: AO-D02
+    verification_readiness: planned
+    title: Permission, sandbox, grounding, CI, and release integrity
+    kind: outcome
+    day: 2
+    phase_id: AO-P1
+    parent_id: AO-P1
+    blocker: phase
+    outcome: Day 2 establishes confirmed permission, security, grounding, CI, and release-integrity gates.
+    scope: [Coordinate the five confirmed Day 2 task slices, Require explicit evidence for each gate.]
+    non_goals: [Claim sandbox enforcement without proof, Release before integrity checks are complete.]
+    dependencies: [AO-D01]
+    acceptance_criteria: [Each Day 2 child has a focused test target, Day completion is based on required evidence.]
+    required_evidence: [Validated Day 2 task records, Focused test and release-gate evidence.]
+    verification_commands: [uv run pytest tests/test_permission_gate.py tests/test_sandbox_worker_type_guard.py tests/test_worker_grounding.py tests/test_release_hygiene.py -q, npm test]
+    terminal_semantics: Failed, blocked, or inconclusive Day 2 tasks prevent the day outcome from being completed.
+    compatibility: Day 2 changes require explicit permission, sandbox, CI, or documentation migration review.
+    risks: [False-success security claims can expose unsafe work, Existing configurations and docs require compatible transitions.]
+    rollback: Revert only a Day 2 task slice while preserving truthful gate evidence.
+  - <<: *base
+    id: AO-D02-01
+    verification_readiness: planned
+    title: Normalize allow, ask, and deny semantics
+    kind: task
+    day: 2
+    phase_id: AO-P1
+    parent_id: AO-D02
+    blocker: phase
+    outcome: Ask requires approval and cannot be represented as completed work.
+    scope: [Normalize allow, ask, and deny decisions, Preserve approval state through the workflow.]
+    non_goals: [Bypass approval, Change unrelated worker policy.]
+    dependencies: [AO-D01-04]
+    acceptance_criteria: [Ask requires approval and is not completed, Deny remains a non-successful terminal decision.]
+    required_evidence: [Focused red-green test output, Persisted approval-state record.]
+    likely_files: [app/schemas/permission.py, app/agents/permission_gate.py, app/core/security.py, app/core/graph.py]
+    test_first: tests/test_permission_gate.py::test_ask_requires_approval_and_is_not_completed
+    terminal_semantics: Failed, blocked, and inconclusive permission outcomes prevent completion; approval is never inferred.
+    compatibility: Permission-schema and CLI behavior changes preserve explicit legacy decisions with documented migration.
+    verification_commands: [uv run pytest tests/test_permission_gate.py::test_ask_requires_approval_and_is_not_completed -q, uv run pytest tests/test_permission_gate.py -q, uv run ruff check app/schemas/permission.py app/agents/permission_gate.py app/core/security.py]
+    risks: [Ask interpreted as allow creates false success, Existing permission records need backward-compatible handling.]
+    rollback: Revert only the permission-semantic slice while preserving approval and denial evidence.
+  - <<: *base
+    id: AO-D02-02
+    verification_readiness: planned
+    title: Make sandbox and security claims match enforcement
+    kind: task
+    day: 2
+    phase_id: AO-P1
+    parent_id: AO-D02
+    blocker: phase
+    outcome: Isolation claims are limited to boundaries that are actually enforced.
+    scope: [Verify sandbox-worker enforcement, Align security claims and documentation with verified boundaries.]
+    non_goals: [Claim full isolation without enforcement, Replace the workspace architecture.]
+    dependencies: [AO-D02-01]
+    acceptance_criteria: [Full isolation claim requires an enforced container boundary, Unsupported claims are rejected or corrected.]
+    required_evidence: [Focused red-green test output, Enforcement configuration evidence.]
+    likely_files: [app/cli.py, app/core/workspace/local.py, app/core/workspace/docker.py, app/core/security.py, README.md, sandbox tests]
+    test_first: tests/test_sandbox_worker_type_guard.py::test_full_isolation_claim_requires_enforced_container_boundary
+    terminal_semantics: Failed, blocked, or inconclusive sandbox enforcement prevents a full-isolation claim and completion is not inferred.
+    compatibility: CLI, configuration, and documentation migration preserves accurate legacy boundary descriptions.
+    verification_commands: [uv run pytest tests/test_sandbox_worker_type_guard.py::test_full_isolation_claim_requires_enforced_container_boundary -q, uv run pytest tests/test_sandbox_worker_type_guard.py -q, uv run ruff check app/cli.py app/core/workspace app/core/security.py, npm test -- --runInBand]
+    risks: [Overstated sandbox claims create false success, Existing configurations and docs may require backward-compatible migration.]
+    rollback: Revert only the sandbox-claim slice while preserving enforcement and failing evidence.
+  - <<: *base
+    id: AO-D02-03
+    verification_readiness: planned
+    title: Provide equal grounding packets to equivalent workers
+    kind: task
+    day: 2
+    phase_id: AO-P1
+    parent_id: AO-D02
+    blocker: phase
+    outcome: Equivalent workers receive equal grounding inputs before work begins.
+    scope: [Define a common grounding packet, Verify equivalent worker handoffs receive the same packet.]
+    non_goals: [Make workers identical, Change worker-model selection.]
+    dependencies: [AO-D02-01]
+    acceptance_criteria: [Equivalent workers receive equal grounding packet, Missing grounding remains explicit rather than inferred.]
+    required_evidence: [Focused red-green test output, Captured equivalent-worker grounding records.]
+    likely_files: [app/core/graph.py, app/core/handoff.py, app/prompts/workers.py, app/core/workers/]
+    test_first: tests/test_worker_grounding.py::test_equivalent_workers_receive_equal_grounding_packet
+    terminal_semantics: Failed, blocked, or inconclusive grounding prevents completion and no equivalent context is inferred.
+    compatibility: Worker configuration and handoff migrations preserve existing explicit grounding inputs.
+    verification_commands: [uv run pytest tests/test_worker_grounding.py::test_equivalent_workers_receive_equal_grounding_packet -q, uv run pytest tests/test_worker_grounding.py -q, uv run ruff check app/core/graph.py app/core/handoff.py app/prompts/workers.py app/core/workers]
+    risks: [Unequal context can create false-success comparisons, Existing handoffs need compatible grounding migration.]
+    rollback: Revert only the grounding-packet slice while preserving captured comparison evidence.
+  - <<: *base
+    id: AO-D02-04
+    verification_readiness: planned
+    title: Run Python and JavaScript suites in CI
+    kind: task
+    day: 2
+    phase_id: AO-P1
+    parent_id: AO-D02
+    blocker: phase
+    outcome: CI runs both repository Python and JavaScript verification suites.
+    scope: [Define CI checks for Python and JavaScript, Report individual suite failure without inferring release success.]
+    non_goals: [Rewrite application tests, Hide flaky or missing suite results.]
+    dependencies: [AO-D02-02]
+    acceptance_criteria: [CI runs Python and JavaScript suites, Any required suite failure is non-successful.]
+    required_evidence: [Focused red-green test output, CI workflow and suite output.]
+    likely_files: [.github/workflows/ci.yml, web/package.json, Python and web test suites]
+    test_first: tests/test_release_hygiene.py::test_ci_runs_python_and_javascript_suites
+    terminal_semantics: Failed, blocked, or inconclusive required suites prevent CI completion and release success is never inferred.
+    compatibility: CI and package-script migrations preserve documented local commands and failure reporting.
+    verification_commands: [uv run pytest tests/test_release_hygiene.py::test_ci_runs_python_and_javascript_suites -q, uv run pytest tests/test_release_hygiene.py -q, uv run ruff check ., npm test]
+    risks: [A missing suite produces false-success CI, Existing package scripts and CI consumers need compatible migration.]
+    rollback: Revert only the CI-suite slice while preserving truthful workflow and failing-suite evidence.
+  - <<: *base
+    id: AO-D02-05
+    verification_readiness: planned
+    title: Add OSI license and reconcile documentation and package drift
+    kind: task
+    day: 2
+    phase_id: AO-P1
+    parent_id: AO-D02
+    blocker: phase
+    outcome: Release metadata has an OSI license and a consistent documented package identity.
+    scope: [Add or validate OSI license metadata, Reconcile package and documentation identity.]
+    non_goals: [Publish a release, Change product scope.]
+    dependencies: [AO-D02-04]
+    acceptance_criteria: [Release metadata has OSI license and consistent identity, Documentation and package evidence agree.]
+    required_evidence: [Focused red-green test output, License and metadata verification record.]
+    likely_files: [LICENSE, SECURITY.md, CONTRIBUTING.md, pyproject.toml, README.md, package/release docs]
+    test_first: tests/test_release_hygiene.py::test_release_metadata_has_osi_license_and_consistent_identity
+    terminal_semantics: Failed, blocked, or inconclusive metadata prevents release completion and no package identity is inferred.
+    compatibility: Documentation and package metadata migration records user-facing identity changes explicitly.
+    verification_commands: [uv run pytest tests/test_release_hygiene.py::test_release_metadata_has_osi_license_and_consistent_identity -q, uv run pytest tests/test_release_hygiene.py -q, uv run ruff check ., npm test]
+    risks: [Metadata drift creates false-success release claims, Existing users need backward-compatible documentation and package migration.]
+    rollback: Revert only the release-metadata slice while preserving validation evidence.
+  - <<: *base
+    id: AO-D03
+    verification_readiness: planned
+    title: Define experiment identity and immutable run records
+    kind: outcome
+    day: 3
+    phase_id: AO-P2
+    parent_id: AO-P2
+    maturity: needs-revalidation
+    priority: P1
+    risk: high
+    blocker: deferred until Phase 1 gate
+    outcome: Revalidate experiment identity and immutable-run objectives using current Phase 1 evidence.
+    scope: [Inspect current run-record contracts, Propose confirmed identity work only after review.]
+    non_goals: [Assert a run-record defect exists, Mutate persisted schemas before revalidation.]
+    dependencies: [AO-D02]
+    acceptance_criteria: [Current run identity evidence is captured, Any schema work has an explicit migration plan.]
+    required_evidence: [Current run-record inspection, Phase 1 gate evidence.]
+    verification_commands: [uv run pytest tests/test_experiment_identity.py -q, uv run ruff check app/schemas/benchmark.py app/core/benchmark.py]
+    terminal_semantics: Failed, blocked, or inconclusive revalidation prevents completed identity claims.
+    compatibility: Potential persisted-run migration remains deferred pending confirmed current evidence.
+    risks: [Stale defect claims create false success, Schema changes can break legacy readers.]
+    rollback: Revert only confirmed Day 3 coordination updates and retain inspection evidence.
+  - <<: *base
+    id: AO-D04
+    verification_readiness: planned
+    title: Add a DeepEval provider adapter without leaking provider schema
+    kind: outcome
+    day: 4
+    phase_id: AO-P2
+    parent_id: AO-P2
+    maturity: needs-revalidation
+    priority: P1
+    risk: high
+    blocker: deferred until Phase 1 gate
+    outcome: Revalidate whether a provider-agnostic DeepEval adapter is currently warranted.
+    scope: [Inspect provider interfaces, Define an adapter boundary only if current evidence supports it.]
+    non_goals: [Assume DeepEval integration is missing, Leak provider schema into shared contracts.]
+    dependencies: [AO-D03]
+    acceptance_criteria: [Current provider boundaries are evidenced, Any adapter proposal preserves provider isolation.]
+    required_evidence: [Current interface inspection, Focused adapter-contract evidence if approved.]
+    verification_commands: [uv run pytest tests/test_deepeval_adapter.py -q, uv run ruff check app/core/benchmark.py app/schemas/benchmark.py]
+    terminal_semantics: Failed, blocked, or inconclusive adapter evidence prevents a supported-provider claim.
+    compatibility: Future provider configuration migration is explicit and deferred until revalidation.
+    risks: [Provider leakage creates false success, Existing configurations can be incompatible with new adapters.]
+    rollback: Revert only confirmed Day 4 coordination updates while retaining interface evidence.
+  - <<: *base
+    id: AO-D05
+    verification_readiness: planned
+    title: Run split-safe coding benchmark comparison and promotion
+    kind: outcome
+    day: 5
+    phase_id: AO-P2
+    parent_id: AO-P2
+    maturity: needs-revalidation
+    priority: P1
+    risk: high
+    blocker: deferred until Phase 1 gate
+    outcome: Revalidate benchmark comparison and promotion criteria using current split and evidence contracts.
+    scope: [Inspect benchmark split controls, Define promotion only from verified comparison evidence.]
+    non_goals: [Assert a benchmark flaw exists, Promote a model from incomplete evidence.]
+    dependencies: [AO-D04]
+    acceptance_criteria: [Split handling is evidenced before comparison, Promotion criteria reject incomplete evidence.]
+    required_evidence: [Current benchmark inspection, Verified comparison output if work is approved.]
+    verification_commands: [uv run pytest tests/test_benchmark.py -q, uv run ruff check app/core/benchmark.py app/schemas/benchmark.py]
+    terminal_semantics: Failed, blocked, or inconclusive comparison evidence prevents promotion and completion.
+    compatibility: Future benchmark-record changes require explicit reader and CLI migration review.
+    risks: [Split leakage creates false success, Existing benchmark records may need compatible readers.]
+    rollback: Revert only confirmed Day 5 coordination updates while preserving comparison evidence.
+  - <<: *base
+    id: AO-D06
+    verification_readiness: planned
+    title: Define governed training provider and budget contracts
+    kind: outcome
+    day: 6
+    phase_id: AO-P3
+    parent_id: AO-P3
+    maturity: needs-revalidation
+    priority: P1
+    risk: high
+    blocker: deferred until Phase 2 gate
+    outcome: Revalidate training-provider and budget contract objectives from current Phase 2 evidence.
+    scope: [Inspect provider and budget controls, Define only evidenced governed-training contracts.]
+    non_goals: [Assume training controls are absent, Spend a training budget before approval.]
+    dependencies: [AO-D05]
+    acceptance_criteria: [Provider and budget boundaries have current evidence, Proposed controls identify approval gates.]
+    required_evidence: [Phase 2 gate result, Current provider and budget inspection.]
+    verification_commands: [uv run pytest tests/test_training_contracts.py -q, uv run ruff check app/core app/schemas]
+    terminal_semantics: Failed, blocked, or inconclusive contract evidence prevents governed-training completion.
+    compatibility: Future provider, CLI, and persisted-record migrations require explicit compatibility review.
+    risks: [Unvalidated controls create false success, Provider changes can break existing configurations.]
+    rollback: Revert only confirmed Day 6 coordination updates while preserving current evidence.
+  - <<: *base
+    id: AO-D07
+    verification_readiness: planned
+    title: Execute one tiny reproducible governed training run
+    kind: outcome
+    day: 7
+    phase_id: AO-P3
+    parent_id: AO-P3
+    maturity: needs-revalidation
+    priority: P1
+    risk: high
+    blocker: deferred until Phase 2 gate
+    outcome: Revalidate whether a small governed training run is safe and reproducible under confirmed contracts.
+    scope: [Assess current reproducibility controls, Execute only an approved minimal run with recorded evidence.]
+    non_goals: [Scale training, Infer reproducibility from a partial run.]
+    dependencies: [AO-D06]
+    acceptance_criteria: [Any run has declared budget and provider evidence, Reproducibility result is explicit.]
+    required_evidence: [Approved run contract, Captured run and verification output.]
+    verification_commands: [uv run pytest tests/test_governed_training.py -q, uv run ruff check app/core app/schemas]
+    terminal_semantics: Failed, blocked, or inconclusive run evidence prevents training completion and promotion.
+    compatibility: Future training-record migration preserves existing run evidence and configuration semantics.
+    risks: [Partial runs can create false success, Provider and record changes may break compatibility.]
+    rollback: Revert only confirmed Day 7 coordination updates while retaining run evidence.
+  - <<: *base
+    id: AO-D08
+    verification_readiness: planned
+    title: Compare training evidence and make a promotion decision
+    kind: outcome
+    day: 8
+    phase_id: AO-P3
+    parent_id: AO-P3
+    maturity: needs-revalidation
+    priority: P1
+    risk: high
+    blocker: deferred until Phase 2 gate
+    outcome: Revalidate the training-evidence comparison and promotion decision from current governed-run results.
+    scope: [Assess available training evidence, Record a promotion decision only from complete comparison evidence.]
+    non_goals: [Promote from incomplete evidence, Claim a prior comparison remains current.]
+    dependencies: [AO-D07]
+    acceptance_criteria: [Comparison inputs are documented, Promotion or non-promotion is evidence-backed.]
+    required_evidence: [Current training comparison, Explicit decision record.]
+    verification_commands: [uv run pytest tests/test_training_promotion.py -q, uv run ruff check app/core app/schemas]
+    terminal_semantics: Failed, blocked, or inconclusive comparison prevents promotion and cannot imply completion.
+    compatibility: Decision and persisted-run migrations remain explicit and additive.
+    risks: [Incomplete comparison creates false success, Record-format changes can break existing readers.]
+    rollback: Revert only confirmed Day 8 coordination updates while retaining decision evidence.
+  - <<: *base
+    id: AO-D09
+    verification_readiness: planned
+    title: Validate and record a swappable inner-loop capability pack
+    kind: outcome
+    day: 9
+    phase_id: AO-P4
+    parent_id: AO-P4
+    maturity: needs-revalidation
+    priority: P2
+    risk: medium
+    blocker: deferred until kernel contracts
+    outcome: Revalidate an inner-loop capability-pack seam against confirmed current kernel contracts.
+    scope: [Inspect inner-loop interfaces, Validate one pack only if the seam is confirmed.]
+    non_goals: [Assume a pack is compatible, Redesign the full capability system.]
+    dependencies: [AO-D08]
+    acceptance_criteria: [Current seam evidence is recorded, Any validated pack reports its compatibility limits.]
+    required_evidence: [Kernel-contract evidence, Focused pack validation output.]
+    verification_commands: [uv run pytest tests/test_capability_pack.py -q, uv run ruff check app/core/packs app/schemas/pack.py]
+    terminal_semantics: Failed, blocked, or inconclusive validation prevents a swappable-pack completion claim.
+    compatibility: Future pack configuration migration is explicit and preserves supported contracts.
+    risks: [Assumed compatibility creates false success, Pack contract changes can break consumers.]
+    rollback: Revert only confirmed Day 9 coordination updates while retaining seam evidence.
+  - <<: *base
+    id: AO-D10
+    verification_readiness: planned
+    title: Validate and record a swappable outer-loop strategy pack
+    kind: outcome
+    day: 10
+    phase_id: AO-P4
+    parent_id: AO-P4
+    maturity: needs-revalidation
+    priority: P2
+    risk: medium
+    blocker: deferred until kernel contracts
+    outcome: Revalidate an outer-loop strategy-pack seam against confirmed current kernel contracts.
+    scope: [Inspect outer-loop interfaces, Validate one strategy pack only when contract evidence supports it.]
+    non_goals: [Claim universal strategy support, Change unvalidated loop behavior.]
+    dependencies: [AO-D09]
+    acceptance_criteria: [Current outer-loop seam is evidenced, Validated strategy limits are recorded.]
+    required_evidence: [Kernel-contract evidence, Focused strategy-pack verification.]
+    verification_commands: [uv run pytest tests/test_strategy_pack.py -q, uv run ruff check app/core/packs app/schemas/pack.py]
+    terminal_semantics: Failed, blocked, or inconclusive validation prevents a swappable-strategy completion claim.
+    compatibility: Strategy-pack migration remains explicit and additive for existing loop consumers.
+    risks: [Unverified substitution creates false success, Contract changes can break existing strategies.]
+    rollback: Revert only confirmed Day 10 coordination updates while retaining validation evidence.
+  - <<: *base
+    id: AO-D11
+    verification_readiness: planned
+    title: Complete one small reproducible VLM workflow
+    kind: outcome
+    day: 11
+    phase_id: AO-P5
+    parent_id: AO-P5
+    maturity: needs-revalidation
+    priority: P2
+    risk: high
+    blocker: deferred until kernel contracts
+    outcome: Revalidate whether one small VLM workflow can be made reproducible with current interfaces.
+    scope: [Inspect VLM provider and workflow seams, Execute only an approved small reproducibility check.]
+    non_goals: [Claim broad VLM support, Scale a workflow without verified evidence.]
+    dependencies: [AO-D10]
+    acceptance_criteria: [Workflow inputs and output evidence are captured, Reproducibility result is explicit.]
+    required_evidence: [Current VLM interface evidence, Captured reproducibility verification.]
+    verification_commands: [uv run pytest tests/test_vlm_reference_workflow.py -q, uv run ruff check app/core app/schemas]
+    terminal_semantics: Failed, blocked, or inconclusive workflow evidence prevents a VLM completion claim.
+    compatibility: Future VLM configuration migration is documented and preserves existing provider settings.
+    risks: [A one-off result creates false success, Provider changes can break existing workflows.]
+    rollback: Revert only confirmed Day 11 coordination updates while retaining workflow evidence.
+  - <<: *base
+    id: AO-D12
+    verification_readiness: planned
+    title: Verify the VLA provider and simulator seam
+    kind: outcome
+    day: 12
+    phase_id: AO-P5
+    parent_id: AO-P5
+    maturity: needs-revalidation
+    priority: P2
+    risk: high
+    blocker: deferred until kernel contracts
+    outcome: Revalidate the VLA provider and simulator seam using current interface evidence.
+    scope: [Inspect provider and simulator interfaces, Verify only a confirmed seam.]
+    non_goals: [Claim simulator compatibility without evidence, Bind a provider to an unvalidated interface.]
+    dependencies: [AO-D11]
+    acceptance_criteria: [Provider and simulator assumptions are tested, Seam limitations are recorded.]
+    required_evidence: [Current interface inspection, Focused seam verification output.]
+    verification_commands: [uv run pytest tests/test_vla_provider_seam.py -q, uv run ruff check app/core app/schemas]
+    terminal_semantics: Failed, blocked, or inconclusive seam evidence prevents VLA readiness and completion claims.
+    compatibility: Provider and simulator configuration migration remains explicit and backward compatible.
+    risks: [Assumed seam compatibility creates false success, Interface changes can break existing configurations.]
+    rollback: Revert only confirmed Day 12 coordination updates while retaining verification evidence.
+  - <<: *base
+    id: AO-D13
+    verification_readiness: planned
+    title: Close license, packaging, documentation, and release gates
+    kind: outcome
+    day: 13
+    phase_id: AO-P6
+    parent_id: AO-P6
+    maturity: needs-revalidation
+    priority: P0
+    risk: critical
+    blocker: deferred until preceding gates
+    outcome: Revalidate release-gate inputs and close only the license, packaging, and documentation gaps proven by current evidence.
+    scope: [Inspect release inputs, Record complete and incomplete gates separately.]
+    non_goals: [Publish a release on inferred readiness, Treat prior documentation as current proof.]
+    dependencies: [AO-D12]
+    acceptance_criteria: [Each gate has current evidence, Incomplete gates remain explicit.]
+    required_evidence: [Current license and package inspection, Documentation and release-gate verification.]
+    verification_commands: [uv run pytest tests/test_release_hygiene.py -q, npm test]
+    terminal_semantics: Failed, blocked, or inconclusive gate evidence prevents release completion and publication.
+    compatibility: Package and documentation migration effects are documented before release changes.
+    risks: [Incomplete gates create false-success release claims, Metadata changes can break existing installation guidance.]
+    rollback: Revert only confirmed Day 13 coordination updates while retaining gate evidence.
+  - <<: *base
+    id: AO-D14
+    verification_readiness: planned
+    title: Reproduce v0.1 end to end and publish honest limitations
+    kind: outcome
+    day: 14
+    phase_id: AO-P6
+    parent_id: AO-P6
+    maturity: needs-revalidation
+    priority: P0
+    risk: critical
+    blocker: deferred until preceding gates
+    outcome: Revalidate v0.1 reproducibility and publish only limitations supported by current end-to-end evidence.
+    scope: [Attempt an approved end-to-end reproduction, Publish verified results and explicit limitations.]
+    non_goals: [Hide failed reproduction steps, Claim release readiness from partial evidence.]
+    dependencies: [AO-D13]
+    acceptance_criteria: [Reproduction result is captured, Published limitations match the evidence.]
+    required_evidence: [End-to-end reproduction output, Reviewed limitations record.]
+    verification_commands: [uv run pytest tests/test_v0_1_reproduction.py -q, npm test]
+    terminal_semantics: Failed, blocked, or inconclusive reproduction prevents release completion and cannot imply v0.1 success.
+    compatibility: Publication, package, and documentation changes identify explicit migration effects for users.
+    risks: [Partial evidence creates false-success publication, Release changes can break user installation expectations.]
+    rollback: Revert only confirmed Day 14 coordination updates while retaining reproduction evidence and limitations.

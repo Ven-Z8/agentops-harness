@@ -1,0 +1,24 @@
+schema_version: 1
+artifacts:
+- id: artifact-AO-D01-01-task-9-verification
+  task_id: AO-D01-01
+  kind: verification-evidence
+  availability: repository
+  locator: coordination/artifacts/task-9-verification.yaml
+  sha256: 2ff7601c69386527c51cd568ebe27625d2193573e3632a48e704ebb540036042
+  required: true
+  evidence_state: verified
+  created_at: '2026-09-01T14:00:00Z'
+  producer: codex
+  immutable: true
+- id: github-provisioning-df6860c6978c
+  task_id: AO-14D
+  kind: github-provisioning-report
+  availability: repository
+  locator: coordination/artifacts/reports/github-provisioning.json
+  sha256: df6860c6978cd8a3a8429a2f391aa6aa5ee8533ec8359997d98fb3b23989c3a1
+  required: false
+  evidence_state: partial
+  created_at: '2026-09-02T06:26:27.754363Z'
+  producer: github-provisioner
+  immutable: false
