@@ -1,8 +1,8 @@
 {
   "counts": {
-    "edges": 4080,
+    "edges": 4075,
     "included_files": 317,
-    "nodes": 2751,
+    "nodes": 2746,
     "source_files": 234,
     "test_files": 99
   },
@@ -27,10 +27,9 @@
     "target/",
     "vendor/"
   ],
-  "generated_at": "2026-09-02T23:13:50Z",
+  "generated_at": "2026-09-02T23:30:13Z",
   "generator_version": "1",
   "included_paths": [
-    ".claude/launch.json",
     ".env.example",
     ".gitattributes",
     ".github/workflows/ci.yml",
@@ -166,6 +165,7 @@
     "coordination/README.md",
     "coordination/decisions/README.md",
     "coordination/designs/2026-08-30-project-control-room-design.md",
+    "coordination/handoffs/2026-09-02-AO-D03-deepseek-harness.md",
     "coordination/handoffs/README.md",
     "coordination/plans/2026-08-30-project-control-room-implementation.md",
     "coordination/project.yaml",
@@ -372,6 +372,6 @@
     ]
   },
   "schema_version": 1,
-  "source_commit": "bed6a9bf8a12a64ae6070b15fbc353d9c91d31af",
-  "source_tree_digest": "5364cf7f5caa5a003d6ec32a0ba6dc525dd2d5415c6c04d22a68874622e7711d"
+  "source_commit": "ef5d86b0ac1ad749b0b5981700e17bab200fe22d",
+  "source_tree_digest": "c05e317cfc69299d68e142457ee65cfe709f7944e1bbaa5da68566c56f4c1b5b"
 }

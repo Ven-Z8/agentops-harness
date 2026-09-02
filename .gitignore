@@ -22,3 +22,5 @@ docs/harness/
 **/docs/superpowers/
 .Rhistory
 coordination/designs/*.html
+.claude/
+archive/

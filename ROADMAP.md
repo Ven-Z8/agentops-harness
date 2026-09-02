@@ -7,13 +7,13 @@ flagship path stays concrete: **solve real GitHub issues on real open-source
 repositories, governed end-to-end, with a patch and evidence bundle as the output.**
 
 The full 14-day research design lives in
-`agentops-codex-handover/docs/research/14-day-run/research-control-plane-design.md`
-(approved product boundary) and the control-room copy on branch
-`codex/project-control-room` (`coordination/roadmap/14-day-plan.{yaml,md}`).
+`archive/pre-dsh-checkpoint/agentops-codex-handover/docs/research/14-day-run/research-control-plane-design.md`
+(archived pre-checkpoint, local-only) and the control-room copy in-repo at
+`coordination/roadmap/14-day-plan.{yaml,md}`.
 Dates are treated as **ordering, not deadlines** — the calendar expired; the phase
 sequence is what matters.
 
-## Status — Sep 2, 2026 (this branch: `claude/phase1-trust-fixes`)
+## Status — Sep 2, 2026 (main, post DSH checkpoint)
 
 **Phase 1 trust work (AO-D01/D02) — landed, test-first, red→green evidence in commits:**
 
