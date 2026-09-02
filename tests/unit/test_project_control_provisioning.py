@@ -103,7 +103,7 @@ def test_desired_schema_and_views_are_exact() -> None:
         "Day",
         "Phase",
         "Workstream",
-        "Type",
+        "Roadmap kind",
         "Risk",
         "Evidence",
         "Harness",
@@ -147,6 +147,43 @@ def test_harness_definition_is_optionless_but_item_values_remain_unassigned_text
         and action.payload["logical_value"] == "Unassigned"
         for action in values
     )
+
+
+def test_reserved_type_is_unmanaged_and_roadmap_kind_preserves_item_kinds() -> None:
+    state = make_control_room_state()
+    plan = GitHubProvisioner().plan(
+        state,
+        RemoteGitHubState(
+            owner="Ven-Z8",
+            repository="Ven-Z8/agentops-harness",
+            fields=(RemoteField(id="PVTF_TYPE", name="Type", data_type="SINGLE_SELECT"),),
+        ),
+    )
+
+    definitions = {action.stable_key: action for action in plan.field_actions}
+    assert "Type" not in definitions
+    assert definitions["Roadmap kind"].payload == {
+        "name": "Roadmap kind",
+        "options": ("Roadmap", "phase", "outcome", "task", "decision", "research"),
+        "data_type": "SINGLE_SELECT",
+        "field_type": "single-select",
+        "option_ids": {},
+    }
+
+    roadmap_kind_values = [
+        action
+        for action in plan.field_value_actions
+        if action.payload.get("field") == "Roadmap kind"
+    ]
+    assert not any(
+        action.payload.get("field") == "Type" for action in plan.field_value_actions
+    )
+    planned_kinds = {
+        action.payload["task_id"]: action.payload["logical_value"]
+        for action in roadmap_kind_values
+    }
+    assert planned_kinds == {item.id: item.kind for item in state.roadmap.items}
+    assert all(action.payload["field_type"] == "single-select" for action in roadmap_kind_values)
 
 
 def test_round2_field_value_inputs_are_typed_and_day_is_single_select() -> None:

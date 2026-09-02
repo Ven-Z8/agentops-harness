@@ -192,6 +192,7 @@ LIVE_DEFAULT_BUILT_INS = (
     "Created",
     "Updated",
     "Closed",
+    "Type",
 )
 
 
@@ -373,7 +374,7 @@ def project_response(
             "Phase",
             "Evidence",
             "Workstream",
-            "Type",
+            "Roadmap kind",
             "Risk",
         }
         control_data_types = {
@@ -424,7 +425,7 @@ def complete_control_definitions(*, missing_data_type: str | None = None):
         "Phase": ["Phase 1", "Phase 2"],
         "Evidence": ["Missing", "Inconclusive", "Partial", "Verified"],
         "Workstream": ["Trust", "kernel"],
-        "Type": ["task", "outcome"],
+        "Roadmap kind": ["task", "outcome"],
         "Risk": ["Critical", "high", "medium", "low"],
     }
     definitions = []
@@ -468,7 +469,16 @@ def issue_item(
         field_data.setdefault(
             "__typename",
             "ProjectV2SingleSelectField"
-            if name in {"Status", "Priority", "Phase", "Evidence", "Workstream", "Type", "Risk"}
+            if name
+            in {
+                "Status",
+                "Priority",
+                "Phase",
+                "Evidence",
+                "Workstream",
+                "Roadmap kind",
+                "Risk",
+            }
             else "ProjectV2IterationField"
             if name == "Iteration"
             else "ProjectV2Field",

@@ -1074,7 +1074,7 @@ Expected: FAIL because provisioning models and services do not exist.
 - [ ] **Step 3: Implement exact desired-state planning**
 
 Desired project fields and options are exactly those in the approved design:
-Status, Priority, Day, Phase, Workstream, Type, Risk, Evidence, Harness,
+Status, Priority, Day, Phase, Workstream, Roadmap kind, Risk, Evidence, Harness,
 Dependency, Handoff, and Target date. Desired views are Inbox, Kanban, Phase,
 Harness, Trust Blockers, and Roadmap. Issue bodies come from
 `render_issue_body`; issue lookup uses stable task IDs, not mutable titles.

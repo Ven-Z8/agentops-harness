@@ -399,7 +399,7 @@ _KNOWN_FIELDS = {
     "Day",
     "Phase",
     "Workstream",
-    "Type",
+    "Roadmap kind",
     "Risk",
     "Evidence",
     "Harness",
@@ -422,6 +422,7 @@ _IGNORED_BUILT_INS = {
     "Created",
     "Updated",
     "Closed",
+    "Type",
 }
 _IGNORED_BUILT_IN_TYPES = {"Iteration": {"ProjectV2IterationField"}}
 _CONTROL_FIELD_TYPES = {
@@ -469,7 +470,7 @@ DESIRED_FIELDS: dict[str, tuple[str, ...]] = {
     "Day": tuple(f"Day {index}" for index in range(1, 15)),
     "Phase": tuple(f"Phase {index}" for index in range(1, 7)),
     "Workstream": ("Trust", "kernel", "training", "packs", "VLM/VLA", "release"),
-    "Type": ("Roadmap", "phase", "outcome", "task", "decision", "research"),
+    "Roadmap kind": ("Roadmap", "phase", "outcome", "task", "decision", "research"),
     "Risk": ("Critical", "high", "medium", "low"),
     "Evidence": ("Missing", "inconclusive", "partial", "verified"),
     "Harness": (),
@@ -483,7 +484,7 @@ FIELD_TYPES: dict[str, str] = {
     "Day": "single-select",
     "Phase": "single-select",
     "Workstream": "single-select",
-    "Type": "single-select",
+    "Roadmap kind": "single-select",
     "Risk": "single-select",
     "Evidence": "single-select",
     "Harness": "text",
@@ -652,7 +653,15 @@ def _field_value(
     kind, field_value = present[0]
     if kind == "name" and field_value not in definition[2]:
         raise InvalidControlRoom(f"GitHub field {name!r} has an unknown option: {field_value}")
-    if name in {"Status", "Priority", "Phase", "Evidence", "Workstream", "Type", "Risk"}:
+    if name in {
+        "Status",
+        "Priority",
+        "Phase",
+        "Evidence",
+        "Workstream",
+        "Roadmap kind",
+        "Risk",
+    }:
         if kind != "name":
             raise InvalidControlRoom(f"GitHub field {name!r} has an unsupported content type")
     elif name in {"Harness", "Dependency", "Blocker", "Handoff"} and kind != "text":
@@ -745,7 +754,7 @@ def _board_item(
         raise InvalidControlRoom(f"GitHub field 'Evidence' has an unknown option: {evidence}")
     for field_name, allowed in (
         ("Workstream", _WORKSTREAMS),
-        ("Type", _TYPES),
+        ("Roadmap kind", _TYPES),
         ("Risk", _RISKS),
     ):
         value = values.get(field_name)
@@ -1279,7 +1288,7 @@ class GitHubProvisioner:
                 "Day": f"Day {item.day}" if item.day is not None else None,
                 "Phase": _phase_label(item.phase_id),
                 "Workstream": "Trust",
-                "Type": item.kind,
+                "Roadmap kind": item.kind,
                 "Risk": item.risk.capitalize() if item.risk == "critical" else item.risk,
                 "Evidence": "Missing",
                 "Harness": "Unassigned",
@@ -1759,7 +1768,16 @@ def _status_label(status: object) -> str:
 
 
 def _field_data_type(name: str) -> str:
-    if name in {"Status", "Priority", "Day", "Phase", "Workstream", "Type", "Risk", "Evidence"}:
+    if name in {
+        "Status",
+        "Priority",
+        "Day",
+        "Phase",
+        "Workstream",
+        "Roadmap kind",
+        "Risk",
+        "Evidence",
+    }:
         return "SINGLE_SELECT"
     if name == "Target date":
         return "DATE"
