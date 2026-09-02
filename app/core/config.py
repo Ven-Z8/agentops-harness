@@ -19,7 +19,25 @@ class Settings(BaseSettings):
     vault_url: str = "https://localhost:27124"
     vault_api_key: str = ""
 
-    model_config = SettingsConfigDict(env_prefix="AGENTOPS_", env_file=".env", extra="ignore")
+    # AO-D01-01: configuration must be explicit and deterministic.
+    # ``env_file`` is deliberately NOT set here: pydantic-settings would otherwise
+    # silently read a CWD ``.env`` into every Settings() constructed in that
+    # directory (tests, CI runs on machines with a developer .env, workers),
+    # leaking ambient provider values into fields the caller never passed.
+    # Ambient dotenv content must never change provider configuration.
+    # Callers that want file-based config must pass ``_env_file=...`` explicitly
+    # (see ``load_settings``) or export real environment variables.
+    model_config = SettingsConfigDict(env_prefix="AGENTOPS_", extra="ignore")
 
 
-settings = Settings()
+def load_settings(env_file: str | Path | None = ".env") -> Settings:
+    """Build Settings, explicitly opting into a dotenv file.
+
+    Resolution precedence (pydantic-settings): real environment variables beat
+    dotenv values; dotenv values beat class defaults. Passing ``env_file=None``
+    returns the ambient-environment-only Settings used by tests and CLI defaults.
+    """
+    return Settings(_env_file=env_file)
+
+
+settings = load_settings()

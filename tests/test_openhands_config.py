@@ -115,3 +115,47 @@ def test_live_auth_detects_openrouter_loaded_from_project_settings(monkeypatch) 
     )
 
     assert openhands_config.auth_available(project_settings) is True
+
+
+def test_settings_do_not_read_repo_dotenv_by_default(
+    monkeypatch, tmp_path, chdir
+) -> None:
+    """AO-D01-01: a repo-root .env must not silently configure Settings.
+
+    Settings() reads env_file=".env" from the CWD, so running tests or CLI
+    commands inside a repository that carries a developer .env leaks those
+    values into every Settings instance that does not explicitly pass the
+    affected field. Configuration must be explicit: ambient dotenv content
+    must never change provider configuration.
+    """
+    # Arrange: a repo with a hostile .env, no ambient env vars set.
+    for name in (
+        "AGENTOPS_LLM_PROVIDER",
+        "AGENTOPS_OPENROUTER_API_KEY",
+        "AGENTOPS_OPENROUTER_MODEL",
+        "AGENTOPS_OPENROUTER_BASE_URL",
+    ):
+        monkeypatch.delenv(name, raising=False)
+    (tmp_path / ".env").write_text(
+        "AGENTOPS_OPENROUTER_BASE_URL=https://ambient-leak.example/v1\n"
+    )
+    chdir(tmp_path)
+
+    settings = Settings()
+
+    assert settings.openrouter_base_url == "https://openrouter.ai/api/v1"
+
+
+def test_explicit_env_file_still_loads_when_requested(monkeypatch, tmp_path) -> None:
+    """Opting into a dotenv file explicitly still works (explicit config wins)."""
+    for name in (
+        "AGENTOPS_LLM_PROVIDER",
+        "AGENTOPS_OPENROUTER_BASE_URL",
+    ):
+        monkeypatch.delenv(name, raising=False)
+    env_path = tmp_path / "explicit.env"
+    env_path.write_text("AGENTOPS_OPENROUTER_BASE_URL=https://explicit.example/v1\n")
+
+    settings = Settings(_env_file=env_path)
+
+    assert settings.openrouter_base_url == "https://explicit.example/v1"
