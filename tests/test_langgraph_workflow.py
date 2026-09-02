@@ -112,3 +112,38 @@ def test_required_test_failure_cannot_complete_or_converge(tmp_path: Path) -> No
     assert record.test_results.passed is False
     assert record.status != "completed"
     assert record.converged is False
+
+
+def test_unknown_worker_type_fails_closed(tmp_path: Path) -> None:
+    """AO-D01-03: an unknown worker type must block the run, not skip silently.
+
+    A typo in --worker-type previously fell through the dispatch chain to the
+    "no worker" branch: no worker ran, no error surfaced, and the run was
+    still reported completed. Unknown kinds must fail closed with a clear,
+    persisted reason.
+    """
+    import subprocess
+
+    repo = tmp_path / "victim"
+    repo.mkdir()
+    (repo / "README.md").write_text("hello\n")
+    for argv in (
+        ["git", "init", "-q"],
+        ["git", "add", "."],
+        ["git", "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "init"],
+    ):
+        subprocess.run(argv, cwd=repo, check=True)
+
+    record = run_harness(
+        repo_path=repo,
+        task="Do something",
+        storage_path=tmp_path / "runs.db",
+        worker_type="banana",
+        max_attempts=1,
+    )
+
+    # Fail closed: a worker was requested but none could run.
+    assert record.status == "blocked"
+    assert record.edit_result is not None
+    assert record.edit_result.status == "blocked"
+    assert "banana" in (record.edit_result.stderr or "")

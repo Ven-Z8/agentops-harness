@@ -372,6 +372,28 @@ def run_external_worker_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
             timeout_seconds=timeout,
             allow_dirty=allow_dirty,
         )
+    elif worker_type:
+        # AO-D01-03: an explicitly requested worker type that no branch handled
+        # must fail closed. Previously it fell through to the observe path: no
+        # worker ran, nothing was flagged, and the run reported completed as if
+        # the request never existed.
+        return {
+            "attempts": attempts,
+            "edit_result": ExternalEditResult(
+                status="blocked",
+                command=f"--worker-type {worker_type}",
+                stderr=(
+                    f"Unknown worker type {worker_type!r}. Supported types: "
+                    "claude, codex, opencode, openhands; or use --worker-command."
+                ),
+                termination_reason="unknown_worker_type",
+                worker_type=worker_type,
+            ),
+            "sandbox_blocked": [],
+            "execution_logs": append_logs(
+                state, "worker_blocked:unknown_worker_type"
+            ),
+        }
     else:
         return {"attempts": attempts, "edit_result": None, "sandbox_blocked": []}
 
