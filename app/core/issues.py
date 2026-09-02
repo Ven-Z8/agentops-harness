@@ -263,9 +263,13 @@ def compose_worker_command(worker: str, repo_path: Path, task: str) -> str:
     workers raise rather than guessing.
     """
     if worker == "codex":
+        # codex exec: non-interactive; -s workspace-write = sandboxed edits
+        # inside the workspace; -C sets the working repo; the task is the
+        # positional prompt. (--full-auto is deprecated in codex ≥0.140 and
+        # exits 1 with 'No such file or directory'.)
         return (
-            f"codex exec --full-auto --skip-git-repo-check -C {shlex.quote(str(repo_path))} "
-            f"{shlex.quote(task)}"
+            f"codex exec -s workspace-write --skip-git-repo-check "
+            f"-C {shlex.quote(str(repo_path))} {shlex.quote(task)}"
         )
     if worker == "claude":
         return (

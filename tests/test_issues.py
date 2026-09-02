@@ -196,7 +196,7 @@ def test_worker_command_template_for_issue(tmp_path: Path) -> None:
     cmd = compose_worker_command("codex", repo_path=tmp_path, task=issue.compose_task())
 
     assert cmd.startswith("codex")
-    assert "--full-auto" in cmd
+    assert "-s workspace-write" in cmd
     # The task must be passed as a single quoted argument (no shell re-parsing).
     assert "Resolve GitHub issue" in cmd
 
