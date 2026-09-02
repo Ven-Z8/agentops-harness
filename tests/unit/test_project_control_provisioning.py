@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 import pytest
 from pydantic import ValidationError
@@ -19,6 +20,7 @@ from app.project_control.github import (
     merge_managed_issue_body,
 )
 from app.project_control.models import (
+    ControlRoomState,
     ProvisionAction,
     ProvisioningPlan,
     ReconciliationReport,
@@ -29,7 +31,7 @@ from app.project_control.models import (
     RemoteProject,
     RemoteView,
 )
-from app.project_control.roadmap import render_issue_body
+from app.project_control.roadmap import load_roadmap, render_issue_body
 from tests.helpers_project_control import make_control_room_state
 
 
@@ -164,7 +166,7 @@ def test_reserved_type_is_unmanaged_and_roadmap_kind_preserves_item_kinds() -> N
     assert "Type" not in definitions
     assert definitions["Roadmap kind"].payload == {
         "name": "Roadmap kind",
-        "options": ("Roadmap", "phase", "outcome", "task", "decision", "research"),
+        "options": ("roadmap", "phase", "outcome", "task", "decision", "research"),
         "data_type": "SINGLE_SELECT",
         "field_type": "single-select",
         "option_ids": {},
@@ -184,6 +186,40 @@ def test_reserved_type_is_unmanaged_and_roadmap_kind_preserves_item_kinds() -> N
     }
     assert planned_kinds == {item.id: item.kind for item in state.roadmap.items}
     assert all(action.payload["field_type"] == "single-select" for action in roadmap_kind_values)
+
+
+def test_roadmap_kind_options_resolve_actual_root_item_kind() -> None:
+    fixture_state = make_control_room_state()
+    state = ControlRoomState(
+        project=fixture_state.project,
+        roadmap=load_roadmap(Path(__file__).resolve().parents[2]),
+    )
+
+    plan = GitHubProvisioner().plan(
+        state,
+        RemoteGitHubState(owner="Ven-Z8", repository="Ven-Z8/agentops-harness"),
+    )
+
+    root_item = next(item for item in state.roadmap.items if item.id == "AO-14D")
+    definition = next(
+        action for action in plan.field_actions if action.stable_key == "Roadmap kind"
+    )
+    root_value = next(
+        action
+        for action in plan.field_value_actions
+        if action.stable_key == "AO-14D:Roadmap kind"
+    )
+    assert root_item.kind == "roadmap"
+    assert definition.payload["options"] == (
+        "roadmap",
+        "phase",
+        "outcome",
+        "task",
+        "decision",
+        "research",
+    )
+    assert root_value.payload["logical_value"] == "roadmap"
+    assert root_value.payload["logical_value"] in definition.payload["options"]
 
 
 def test_round2_field_value_inputs_are_typed_and_day_is_single_select() -> None:

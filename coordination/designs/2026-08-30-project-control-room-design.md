@@ -338,7 +338,7 @@ Custom fields:
 | Day | Day 1 through Day 14 |
 | Phase | Phase 1 through Phase 6 |
 | Workstream | Trust, kernel, training, packs, VLM/VLA, release |
-| Roadmap kind | Roadmap, phase, outcome, task, decision, research |
+| Roadmap kind | roadmap, phase, outcome, task, decision, research |
 | Risk | Critical, high, medium, low |
 | Evidence | Missing, inconclusive, partial, verified |
 | Harness | Unassigned or harness slug |

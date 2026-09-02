@@ -460,7 +460,7 @@ _EVIDENCE = {
     "Verified": "verified",
 }
 _WORKSTREAMS = {"Trust", "kernel", "training", "packs", "VLM/VLA", "release"}
-_TYPES = {"Roadmap", "phase", "outcome", "task", "decision", "research"}
+_TYPES = {"roadmap", "phase", "outcome", "task", "decision", "research"}
 _RISKS = {"Critical", "high", "medium", "low"}
 
 PROVISION_PROJECT_NAME = "AgentOps Research Control Plane — 14-Day v0.1"
@@ -470,7 +470,7 @@ DESIRED_FIELDS: dict[str, tuple[str, ...]] = {
     "Day": tuple(f"Day {index}" for index in range(1, 15)),
     "Phase": tuple(f"Phase {index}" for index in range(1, 7)),
     "Workstream": ("Trust", "kernel", "training", "packs", "VLM/VLA", "release"),
-    "Roadmap kind": ("Roadmap", "phase", "outcome", "task", "decision", "research"),
+    "Roadmap kind": ("roadmap", "phase", "outcome", "task", "decision", "research"),
     "Risk": ("Critical", "high", "medium", "low"),
     "Evidence": ("Missing", "inconclusive", "partial", "verified"),
     "Harness": (),
