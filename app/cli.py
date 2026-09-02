@@ -452,6 +452,34 @@ def ping_provider(
 issues_app = typer.Typer(
     help="Governed runs against real GitHub issues (the flagship path).",
 )
+
+
+def _spec_issue_stub(task_spec, workspace_root: Path):
+    """A GitHubIssue-shaped identity derived from a task spec (spec mode).
+
+    prepare_issue_workspace needs owner/repo/number to name the clone dir
+    and branch; the spec carries all of it — no network fetch required.
+    """
+    from app.core.issues import GitHubIssue
+
+    owner, _, name = task_spec.repo.partition("/")
+    repo_name = name or owner
+    # Stable, deterministic issue-number stand-in derived from the pinned
+    # commit (never Python's randomized hash(): the clone dir must be
+    # reproducible across processes and runs).
+    number = int(task_spec.base_commit[:8], 16) % 900000
+    return GitHubIssue(
+        owner=owner or "spec",
+        repo=repo_name,
+        number=number,
+        title=task_spec.problem_statement[:120],
+        body=task_spec.problem_statement,
+        labels=(),
+        state="spec",
+        html_url=f"spec://{task_spec.repo}@{task_spec.base_commit}",
+    )
+
+
 app.add_typer(issues_app, name="issue")
 
 
@@ -502,7 +530,22 @@ def issue_solve(
         Path,
         typer.Option(help="Directory where the issue workspace is cloned."),
     ] = Path(".agentops/issues"),
-    ref: Annotated[str, typer.Option(help="Git ref to check out (default HEAD).")] = "HEAD",
+    ref: Annotated[
+        str, typer.Option(help="Git ref to check out (default HEAD).")
+    ] = "HEAD",
+    task_spec_file: Annotated[
+        Path | None,
+        typer.Option(
+            "--task-spec",
+            help=(
+                "SWE-bench-style task-spec JSON file pinning the run: repo, "
+                "base_commit, problem_statement, FAIL_TO_PASS, PASS_TO_PASS. "
+                "When given, the workspace is cloned at base_commit and the "
+                "negative-contract gate proves FAIL_TO_PASS fails BEFORE any "
+                "worker dispatch (fail-closed: no reproducible bug, no run)."
+            ),
+        ),
+    ] = None,
     max_attempts: Annotated[
         int, typer.Option(help="Maximum governed retry attempts.")
     ] = 2,
@@ -519,6 +562,13 @@ def issue_solve(
                 "host (e.g. a repo unit-suite subset) instead of failing on "
                 "environmental tests (redis, docker, snapshot gates)."
             ),
+        ),
+    ] = None,
+    clone_url: Annotated[
+        str | None,
+        typer.Option(
+            "--clone-url",
+            help="Override the clone URL (tests, mirrors, local fixtures).",
         ),
     ] = None,
     goal: Annotated[
@@ -545,14 +595,66 @@ def issue_solve(
         prepare_issue_workspace,
     )
 
-    issue = fetch_issue(owner, repo, number)
-    console.print(Panel(f"{issue.slug}: {issue.title}", title="Issue"))
-    repo_path, branch = prepare_issue_workspace(
-        issue, workspace_root, ref=ref
-    )
-    console.print(f"Workspace: {repo_path} (branch {branch})")
+    # --task-spec: the deterministic SWE-bench-style contract. When given, the
+    # spec (not the gh issue text) IS the run's contract: the clone is pinned
+    # to spec.base_commit, and the negative-contract gate must prove the bug
+    # reproducible before any worker dispatch. Fail-closed (AO-D01 class):
+    # no reproducible bug ⇒ no run, and the budget is not burned.
+    task_spec = None
+    if task_spec_file is not None:
+        from app.schemas.task_spec import SweTaskSpec
 
-    task = issue.compose_task()
+        task_spec = SweTaskSpec.from_swebench_instance(
+            json.loads(task_spec_file.read_text(encoding="utf-8"))
+        )
+        ref = task_spec.base_commit  # pin: never clone at a movable HEAD
+        console.print(
+            f"Task spec: {task_spec.repo} @ {task_spec.base_commit[:12]} "
+            f"({len(task_spec.fail_to_pass)} fail_to_pass, "
+            f"{len(task_spec.pass_to_pass)} pass_to_pass)"
+        )
+
+    if task_spec is not None:
+        # Spec mode: the spec IS the identity — repo + base_commit + statement.
+        # No gh fetch: the run is reproducible from the spec file alone.
+        repo_path, branch = prepare_issue_workspace(
+            _spec_issue_stub(task_spec, workspace_root),
+            workspace_root,
+            ref=task_spec.base_commit,
+            clone_url=clone_url,
+        )
+        console.print(f"Workspace: {repo_path} (branch {branch})")
+
+        from app.core.task_spec_gate import evaluate_negative_contract
+
+        console.print("[dim]Negative-contract gate: proving the bug at base_commit…[/dim]")
+        gate = evaluate_negative_contract(task_spec, repo_path)
+        if not gate.passed:
+            console.print("[red]Negative contract FAILED — run blocked before dispatch:[/red]")
+            for reason in gate.reasons:
+                console.print(f"  - {reason}")
+            raise typer.Exit(code=3)
+        console.print(
+            f"[green]Negative contract holds: {len(gate.command_results)} "
+            "fail_to_pass test(s) fail at base_commit as specified.[/green]"
+        )
+        task = task_spec.problem_statement
+        patch_name = (
+            f"{task_spec.repo.replace('/', '-')}-{task_spec.base_commit[:10]}.patch"
+        )
+        commit_message = (
+            f"fix: {task_spec.repo}@{task_spec.base_commit[:12]} (agentops task-spec run)"
+        )
+    else:
+        issue = fetch_issue(owner, repo, number)
+        console.print(Panel(f"{issue.slug}: {issue.title}", title="Issue"))
+        repo_path, branch = prepare_issue_workspace(
+            issue, workspace_root, ref=ref, clone_url=clone_url
+        )
+        console.print(f"Workspace: {repo_path} (branch {branch})")
+        task = issue.compose_task()
+        patch_name = f"{issue.repo}-{issue.number}.patch"
+        commit_message = f"fix: resolve {issue.slug} (agentops governed run)"
 
     if worker in ("codex", "claude"):
         worker_command = compose_worker_command(worker, repo_path=repo_path, task=task)
@@ -590,9 +692,7 @@ def issue_solve(
     console.print(f"status={record.status} attempts={record.attempts} converged={record.converged}")
 
     if record.changed_files:
-        patch_file = export_patch(
-            repo_path, workspace_root / f"{issue.repo}-{issue.number}.patch"
-        )
-        commit_workspace_changes(repo_path, f"fix: resolve {issue.slug} (agentops governed run)")
+        patch_file = export_patch(repo_path, workspace_root / patch_name)
+        commit_workspace_changes(repo_path, commit_message)
         console.print(f"Patch: {patch_file}")
     console.print(f"Evidence: .agentops/runs/{record.run_id}/")
