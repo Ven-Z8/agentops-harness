@@ -446,3 +446,100 @@ def ping_provider(
             "AGENTOPS_LLM_PROVIDER is mock. Set it to openrouter or openai first."
         )
     console.print(llm_client.generate_text(prompt))
+
+
+issues_app = typer.Typer(
+    help="Governed runs against real GitHub issues (the flagship path).",
+)
+app.add_typer(issues_app, name="issue")
+
+
+@issues_app.command("view")
+def issue_view(
+    owner: Annotated[str, typer.Option(help="Repository owner, e.g. 'pandas-dev'.")],
+    repo: Annotated[str, typer.Option(help="Repository name, e.g. 'pandas'.")],
+    number: Annotated[int, typer.Option(help="Issue number.")],
+) -> None:
+    """Fetch and display a GitHub issue as the harness sees it."""
+    from app.core.issues import fetch_issue
+
+    issue = fetch_issue(owner, repo, number)
+    console.print(
+        Panel(
+            issue.compose_task(),
+            title=f"{issue.slug} [{issue.state}]",
+            subtitle=", ".join(issue.labels) or "no labels",
+        )
+    )
+
+
+@issues_app.command("solve")
+def issue_solve(
+    owner: Annotated[str, typer.Option(help="Repository owner, e.g. 'pandas-dev'.")],
+    repo: Annotated[str, typer.Option(help="Repository name, e.g. 'pandas'.")],
+    number: Annotated[int, typer.Option(help="Issue number.")],
+    worker: Annotated[
+        str,
+        typer.Option(help="Worker to dispatch: codex or claude."),
+    ] = "codex",
+    workspace_root: Annotated[
+        Path,
+        typer.Option(help="Directory where the issue workspace is cloned."),
+    ] = Path(".agentops/issues"),
+    ref: Annotated[str, typer.Option(help="Git ref to check out (default HEAD).")] = "HEAD",
+    max_attempts: Annotated[
+        int, typer.Option(help="Maximum governed retry attempts.")
+    ] = 2,
+    worker_timeout_seconds: Annotated[
+        int, typer.Option(help="Maximum seconds to wait for the worker.")
+    ] = 900,
+    goal: Annotated[
+        str | None, typer.Option("--goal", help="Intent-graph goal id this run targets.")
+    ] = None,
+) -> None:
+    """Clone the issue's repo, dispatch a governed worker, produce a patch + evidence.
+
+    The flagship demo: a REAL issue from a REAL open-source repository, handed
+    to a coding worker inside the governed pipeline (plan → dispatch → enforce
+    → validate → retry → report). The output is a branch, a patch, and an
+    evidence bundle — never a bare claim.
+    """
+    from app.core.issues import (
+        commit_workspace_changes,
+        compose_worker_command,
+        export_patch,
+        fetch_issue,
+        prepare_issue_workspace,
+    )
+
+    issue = fetch_issue(owner, repo, number)
+    console.print(Panel(f"{issue.slug}: {issue.title}", title="Issue"))
+    repo_path, branch = prepare_issue_workspace(
+        issue, workspace_root, ref=ref
+    )
+    console.print(f"Workspace: {repo_path} (branch {branch})")
+
+    task = issue.compose_task()
+    worker_command = compose_worker_command(worker, repo_path=repo_path, task=task)
+
+    record = run_harness(
+        repo_path=repo_path,
+        task=task,
+        storage_path=Path(".agentops/runs.jsonl"),
+        worker_command=worker_command,
+        worker_timeout_seconds=worker_timeout_seconds,
+        max_attempts=max_attempts,
+        target_goal_id=goal,
+        allow_dirty=True,  # the issue branch IS the workspace; attribution is per-branch
+    )
+
+    console.print(Panel(record.final_report.markdown, title=f"Run {record.run_id}"))
+    console.print(f"status={record.status} attempts={record.attempts} converged={record.converged}")
+
+    if record.changed_files:
+        patch_file = export_patch(
+            repo_path, workspace_root / f"{issue.repo}-{issue.number}.patch"
+        )
+        commit_workspace_changes(repo_path, f"fix: resolve {issue.slug} (agentops governed run)")
+        console.print(f"Patch: {patch_file}")
+    console.print(f"Evidence: .agentops/runs/{record.run_id}/")
