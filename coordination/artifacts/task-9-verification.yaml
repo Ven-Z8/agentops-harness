@@ -1,0 +1,63 @@
+schema_version: 1
+task_id: AO-D01-01
+results:
+  - command: uv run pytest tests/unit/test_project_control_schema.py -q
+    exit_code: 0
+    passed: true
+    stdout: 122 passed in 0.11s
+    stderr: ''
+  - command: uv run pytest tests/unit/test_project_control_rendering.py -q
+    exit_code: 0
+    passed: true
+    stdout: 14 passed in 0.48s
+    stderr: ''
+  - command: uv run pytest tests/unit/test_project_control_handoffs.py tests/unit/test_project_control_artifacts.py -q
+    exit_code: 0
+    passed: true
+    stdout: 20 passed in 0.13s
+    stderr: ''
+  - command: uv run pytest tests/unit/test_project_control_codegraph.py -q
+    exit_code: 0
+    passed: true
+    stdout: 14 passed in 1.32s
+    stderr: ''
+  - command: uv run pytest tests/unit/test_project_control_snapshots.py -q
+    exit_code: 0
+    passed: true
+    stdout: 52 passed
+    stderr: ''
+  - command: uv run pytest tests/unit/test_project_control_github.py tests/unit/test_project_control_provisioning.py -q
+    exit_code: 0
+    passed: true
+    stdout: 70 passed in 0.09s
+    stderr: ''
+  - command: uv run pytest tests/integration/test_project_control_cli.py -q
+    exit_code: 0
+    passed: true
+    stdout: 23 passed in 5.84s
+    stderr: ''
+  - command: uv run ruff check .
+    exit_code: 0
+    passed: true
+    stdout: All checks passed!
+    stderr: ''
+  - command: uv run python scripts/project_control.py validate
+    exit_code: 0
+    passed: true
+    stdout: Control room valid.
+    stderr: ''
+  - command: uv run pytest -q
+    exit_code: 1
+    passed: false
+    stdout: 674 passed, 6 skipped, 2 failed in 81.50s
+    stderr: 'Failures: tests/test_llm_provider.py::test_build_llm_client_creates_openrouter_compatible_client; tests/test_showcase_workload.py::test_fixture_lock_keeps_canonical_uv_test_run_clean (dependency/network download).'
+  - command: npm --prefix web test
+    exit_code: 0
+    passed: true
+    stdout: 74 tests passed
+    stderr: ''
+  - command: git diff --check
+    exit_code: 0
+    passed: true
+    stdout: ''
+    stderr: ''

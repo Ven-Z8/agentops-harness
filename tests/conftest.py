@@ -5,6 +5,8 @@ from pathlib import Path
 
 import pytest
 
+from tests.helpers_project_control import make_control_room_state
+
 # AO-D01-01: hermetic test environment.
 #
 # ``openhands.sdk`` imports ``litellm``, whose ``__init__`` calls
@@ -19,6 +21,16 @@ import pytest
 # The suite stays deterministic and developer credentials are never read.
 if os.environ.get("LITELLM_MODE", "DEV") == "DEV":
     os.environ.setdefault("LITELLM_MODE", "")  # not "DEV" → litellm skips load_dotenv
+
+
+@pytest.fixture
+def repo_root() -> Path:
+    return Path(__file__).resolve().parents[1]
+
+
+@pytest.fixture
+def control_room_state():
+    return make_control_room_state()
 
 
 @pytest.fixture

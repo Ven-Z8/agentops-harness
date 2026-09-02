@@ -10,8 +10,8 @@ jobs:
           set -e
           hits=$(git ls-files | grep -E 'docs/superpowers/|(^|/)PORTFOLIO\.md$|(^|/)AUDIT-|(^|/)docs/cursor/|(^|/)docs/harness/' || true)
           if [ -n "$hits" ]; then
-            echo "::error::Process/planning docs must stay local (public-repo policy):"
+            echo "::error::Private tool-process docs must stay local (public-repo policy):"
             echo "$hits"
             exit 1
           fi
-          echo "OK: no process docs tracked."
+          echo "OK: no private tool-process docs tracked."

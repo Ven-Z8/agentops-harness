@@ -16,6 +16,11 @@ jobs:
         uses: astral-sh/setup-uv@v6
         with:
           enable-cache: true
+          python-version: "3.12"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
 
       - name: Sync dependencies
         run: uv sync --extra dev
@@ -32,6 +37,11 @@ jobs:
         run: |
           cd web
           npm test
+
+      # Control-room integrity (new main): the coordination layer's strict
+      # schemas must validate on every push.
+      - name: Validate control room
+        run: uv run python scripts/project_control.py validate
 
       # Hermeticity guard (AO-D01-01): CI must never depend on a developer
       # .env. The suite runs with an empty AGENTOPS_* environment and a
