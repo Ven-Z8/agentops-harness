@@ -14,8 +14,11 @@ build/
 
 # Process/planning docs — local only (see public-repo policy)
 docs/superpowers/
+docs/dsh/
 PORTFOLIO.md
 AUDIT-*.md
 docs/cursor/
 docs/harness/
 **/docs/superpowers/
+.Rhistory
+coordination/designs/*.html

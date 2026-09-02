@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 from typing import Annotated
 
@@ -446,3 +447,152 @@ def ping_provider(
             "AGENTOPS_LLM_PROVIDER is mock. Set it to openrouter or openai first."
         )
     console.print(llm_client.generate_text(prompt))
+
+
+issues_app = typer.Typer(
+    help="Governed runs against real GitHub issues (the flagship path).",
+)
+app.add_typer(issues_app, name="issue")
+
+
+@issues_app.command("view")
+def issue_view(
+    owner: Annotated[str, typer.Option(help="Repository owner, e.g. 'pandas-dev'.")],
+    repo: Annotated[str, typer.Option(help="Repository name, e.g. 'pandas'.")],
+    number: Annotated[int, typer.Option(help="Issue number.")],
+) -> None:
+    """Fetch and display a GitHub issue as the harness sees it."""
+    from app.core.issues import fetch_issue
+
+    issue = fetch_issue(owner, repo, number)
+    console.print(
+        Panel(
+            issue.compose_task(),
+            title=f"{issue.slug} [{issue.state}]",
+            subtitle=", ".join(issue.labels) or "no labels",
+        )
+    )
+
+
+@issues_app.command("solve")
+def issue_solve(
+    owner: Annotated[str, typer.Option(help="Repository owner, e.g. 'pandas-dev'.")],
+    repo: Annotated[str, typer.Option(help="Repository name, e.g. 'pandas'.")],
+    number: Annotated[int, typer.Option(help="Issue number.")],
+    worker: Annotated[
+        str,
+        typer.Option(
+            help=(
+                "Worker kind: 'openhands' (default — the harness's own SDK loop, "
+                "provider-agnostic via OpenRouter/OpenAI-compatible endpoints), "
+                "or a vendor CLI: 'codex' / 'claude' (subscription credit-gated)."
+            )
+        ),
+    ] = "openhands",
+    model: Annotated[
+        str | None,
+        typer.Option(
+            help=(
+                "LLM for the openhands worker, e.g. 'minimax/minimax-m3:free'. "
+                "Defaults to AGENTOPS_OPENROUTER_MODEL from the environment."
+            )
+        ),
+    ] = None,
+    workspace_root: Annotated[
+        Path,
+        typer.Option(help="Directory where the issue workspace is cloned."),
+    ] = Path(".agentops/issues"),
+    ref: Annotated[str, typer.Option(help="Git ref to check out (default HEAD).")] = "HEAD",
+    max_attempts: Annotated[
+        int, typer.Option(help="Maximum governed retry attempts.")
+    ] = 2,
+    worker_timeout_seconds: Annotated[
+        int, typer.Option(help="Maximum seconds to wait for the worker.")
+    ] = 900,
+    test_commands: Annotated[
+        list[str] | None,
+        typer.Option(
+            "--test-commands",
+            help=(
+                "Validation command(s) the harness runs after the worker edits. "
+                "Repeatable. Scopes validation to what can honestly run on this "
+                "host (e.g. a repo unit-suite subset) instead of failing on "
+                "environmental tests (redis, docker, snapshot gates)."
+            ),
+        ),
+    ] = None,
+    goal: Annotated[
+        str | None, typer.Option("--goal", help="Intent-graph goal id this run targets.")
+    ] = None,
+) -> None:
+    """Clone the issue's repo, dispatch a governed worker, produce a patch + evidence.
+
+    The flagship demo: a REAL issue from a REAL open-source repository, handed
+    to a coding worker inside the governed pipeline (plan → dispatch → enforce
+    → validate → retry → report). The output is a branch, a patch, and an
+    evidence bundle — never a bare claim.
+
+    The default worker is the harness's own OpenHands SDK loop — a real agent
+    loop on any OpenAI-compatible provider (OpenRouter free-tier models work),
+    so the flagship is never gated on one vendor's subscription credits. The
+    vendor CLIs (codex/claude) are explicit opt-ins for when you have them.
+    """
+    from app.core.issues import (
+        commit_workspace_changes,
+        compose_worker_command,
+        export_patch,
+        fetch_issue,
+        prepare_issue_workspace,
+    )
+
+    issue = fetch_issue(owner, repo, number)
+    console.print(Panel(f"{issue.slug}: {issue.title}", title="Issue"))
+    repo_path, branch = prepare_issue_workspace(
+        issue, workspace_root, ref=ref
+    )
+    console.print(f"Workspace: {repo_path} (branch {branch})")
+
+    task = issue.compose_task()
+
+    if worker in ("codex", "claude"):
+        worker_command = compose_worker_command(worker, repo_path=repo_path, task=task)
+        worker_type = None
+        console.print(f"Vendor CLI worker: {worker}")
+    elif worker == "openhands":
+        worker_command = None
+        worker_type = "openhands"
+        # The override flows via the environment: _runner_env() copies os.environ
+        # (setdefault preserves it), and the runner's load_openhands_config()
+        # resolves AGENTOPS_OPENROUTER_MODEL → LLM(model="openrouter/<model>").
+        if model:
+            os.environ["AGENTOPS_OPENROUTER_MODEL"] = model
+        resolved_model = model or settings.openrouter_model
+        console.print(f"OpenHands SDK worker · model: {resolved_model}")
+    else:
+        raise typer.BadParameter(
+            f"Unknown worker {worker!r}. Supported: openhands (default), codex, claude."
+        )
+
+    record = run_harness(
+        repo_path=repo_path,
+        task=task,
+        storage_path=Path(".agentops/runs.jsonl"),
+        worker_command=worker_command,
+        worker_type=worker_type,
+        worker_timeout_seconds=worker_timeout_seconds,
+        test_commands=list(test_commands) if test_commands else None,
+        max_attempts=max_attempts,
+        target_goal_id=goal,
+        allow_dirty=True,  # the issue branch IS the workspace; attribution is per-branch
+    )
+
+    console.print(Panel(record.final_report.markdown, title=f"Run {record.run_id}"))
+    console.print(f"status={record.status} attempts={record.attempts} converged={record.converged}")
+
+    if record.changed_files:
+        patch_file = export_patch(
+            repo_path, workspace_root / f"{issue.repo}-{issue.number}.patch"
+        )
+        commit_workspace_changes(repo_path, f"fix: resolve {issue.slug} (agentops governed run)")
+        console.print(f"Patch: {patch_file}")
+    console.print(f"Evidence: .agentops/runs/{record.run_id}/")

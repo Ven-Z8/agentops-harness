@@ -74,3 +74,76 @@ def test_langgraph_plan_is_graph_aware(tmp_path: Path) -> None:
     assert "uv run pytest -q" in record.plan.tests_to_run
     inspected = {path for step in record.plan.steps for path in step.files_to_inspect}
     assert "app/main.py" in inspected
+
+
+def test_required_test_failure_cannot_complete_or_converge(tmp_path: Path) -> None:
+    """AO-D01-02: failed required validation must not report success.
+
+    A worker that exits cleanly but leaves the repository's required tests
+    failing cannot produce a ``completed`` run or a converged loop — execution
+    success and evaluation success are separate concerns, and evaluation
+    failure must dominate the terminal status.
+    """
+    import subprocess
+
+    repo = tmp_path / "victim"
+    repo.mkdir()
+    (repo / "app.py").write_text("def broken(:\n")
+    (repo / "test_app.py").write_text("def test_x():\n    import app\n    assert False\n")
+    for argv in (
+        ["git", "init", "-q"],
+        ["git", "add", "."],
+        ["git", "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "init"],
+    ):
+        subprocess.run(argv, cwd=repo, check=True)
+
+    record = run_harness(
+        repo_path=repo,
+        task="Make the code work",
+        storage_path=tmp_path / "runs.db",
+        worker_command="touch modified_marker.txt",
+        max_attempts=1,
+    )
+
+    # Execution succeeded (worker exit 0)…
+    assert record.edit_result is not None
+    assert record.edit_result.status == "completed"
+    # …but the required validation failed: the run must not be completed or converged.
+    assert record.test_results.passed is False
+    assert record.status != "completed"
+    assert record.converged is False
+
+
+def test_unknown_worker_type_fails_closed(tmp_path: Path) -> None:
+    """AO-D01-03: an unknown worker type must block the run, not skip silently.
+
+    A typo in --worker-type previously fell through the dispatch chain to the
+    "no worker" branch: no worker ran, no error surfaced, and the run was
+    still reported completed. Unknown kinds must fail closed with a clear,
+    persisted reason.
+    """
+    import subprocess
+
+    repo = tmp_path / "victim"
+    repo.mkdir()
+    (repo / "README.md").write_text("hello\n")
+    for argv in (
+        ["git", "init", "-q"],
+        ["git", "add", "."],
+        ["git", "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "init"],
+    ):
+        subprocess.run(argv, cwd=repo, check=True)
+
+    record = run_harness(
+        repo_path=repo,
+        task="Do something",
+        storage_path=tmp_path / "runs.db",
+        worker_type="banana",
+        max_attempts=1,
+    )
+
+    # Fail closed: a worker was requested but none could run.
+    assert record.status == "blocked"
+    assert record.edit_result is not None
+    assert record.edit_result.status == "blocked"
+    assert "banana" in (record.edit_result.stderr or "")

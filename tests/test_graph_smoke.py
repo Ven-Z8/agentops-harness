@@ -167,9 +167,17 @@ def test_run_harness_maps_changed_file_to_impacted_graph(tmp_path: Path) -> None
         task="Add a /smoke endpoint to the FastAPI app",
         storage_path=storage_path,
         worker_command=f"python {worker_path}",
+        # AO-D01-02: a completed status now requires validation that genuinely
+        # runs and passes. The default planner selects `uv run pytest -q`, but
+        # this fresh copy has no pre-built venv with the dev extras installed
+        # (pytest is a dev dependency) — previously that failure was invisible
+        # in the status. Run the suite with the harness's own interpreter,
+        # which already has pytest and fastapi available.
+        test_commands=["python -m pytest -q"],
     )
 
     assert result.status == "completed"
+    assert result.test_results.passed
     assert "app/main.py" in result.changed_files
     assert "app/main.py" in result.changed_subgraph.changed_files
     # M2: the worker-added route is detected; the untouched /health and /version

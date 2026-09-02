@@ -372,6 +372,28 @@ def run_external_worker_node(state: AgentOpsGraphState) -> AgentOpsGraphState:
             timeout_seconds=timeout,
             allow_dirty=allow_dirty,
         )
+    elif worker_type:
+        # AO-D01-03: an explicitly requested worker type that no branch handled
+        # must fail closed. Previously it fell through to the observe path: no
+        # worker ran, nothing was flagged, and the run reported completed as if
+        # the request never existed.
+        return {
+            "attempts": attempts,
+            "edit_result": ExternalEditResult(
+                status="blocked",
+                command=f"--worker-type {worker_type}",
+                stderr=(
+                    f"Unknown worker type {worker_type!r}. Supported types: "
+                    "claude, codex, opencode, openhands; or use --worker-command."
+                ),
+                termination_reason="unknown_worker_type",
+                worker_type=worker_type,
+            ),
+            "sandbox_blocked": [],
+            "execution_logs": append_logs(
+                state, "worker_blocked:unknown_worker_type"
+            ),
+        }
     else:
         return {"attempts": attempts, "edit_result": None, "sandbox_blocked": []}
 
@@ -978,6 +1000,16 @@ def run_harness(
         and not graph_state["workspace_report"].ok
     ):
         status = "blocked"
+    # AO-D01-02: a worker that exited cleanly can still have failed REQUIRED
+    # validation. Execution success (process exit 0) and evaluation success
+    # (tests passed) are separate concerns; evaluation failure dominates the
+    # terminal status — the run must never be reported "completed" while its
+    # own validation commands are red. This is the convergence benchmark's
+    # "implicit convergence" gap made structurally impossible in the record.
+    if status == "completed" and edit_result is not None:
+        test_results = graph_state.get("test_results")
+        if test_results is not None and not test_results.passed:
+            status = "failed"
     artifact_dir = artifact_dir_for_run(storage_path, run_id)
     worker_summary = read_worker_summary(artifact_dir)
     record = RunRecord(

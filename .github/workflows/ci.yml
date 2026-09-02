@@ -7,18 +7,56 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
-      - uses: actions/setup-python@v5
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
         with:
+          enable-cache: true
           python-version: "3.12"
+
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - run: uv sync --extra dev
-      - run: uv run --extra dev ruff check .
-      - run: uv run --extra dev pytest -q
-      - run: npm test
-        working-directory: web
-      - run: uv run python scripts/project_control.py validate
+
+      - name: Sync dependencies
+        run: uv sync --extra dev
+
+      - name: Lint (ruff)
+        run: uv run --extra dev ruff check .
+
+      - name: Test (pytest)
+        run: uv run --extra dev pytest -q
+
+      # Python and JavaScript CI coverage (AO-D02-05): the web suite is part of
+      # the harness surface and must gate every push, not only local runs.
+      - name: Test (web)
+        run: |
+          cd web
+          npm test
+
+      # Control-room integrity (new main): the coordination layer's strict
+      # schemas must validate on every push.
+      - name: Validate control room
+        run: uv run python scripts/project_control.py validate
+
+      # Hermeticity guard (AO-D01-01): CI must never depend on a developer
+      # .env. The suite runs with an empty AGENTOPS_* environment and a
+      # non-DEV LITELLM_MODE so litellm's import-time load_dotenv() cannot
+      # inject anything ambient.
+      - name: Verify hermetic test run (no .env, clean env)
+        env:
+          LITELLM_MODE: ""
+        run: |
+          if [ -f .env ]; then
+            echo "::error::A .env file must not be committed"
+            exit 1
+          fi
+          env -u AGENTOPS_LLM_PROVIDER \
+              -u AGENTOPS_OPENROUTER_API_KEY \
+              -u AGENTOPS_OPENROUTER_MODEL \
+              -u AGENTOPS_OPENROUTER_BASE_URL \
+              uv run --extra dev pytest tests/test_openhands_config.py tests/test_llm_provider.py -q
