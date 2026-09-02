@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 from typing import Annotated
 
@@ -480,8 +481,23 @@ def issue_solve(
     number: Annotated[int, typer.Option(help="Issue number.")],
     worker: Annotated[
         str,
-        typer.Option(help="Worker to dispatch: codex or claude."),
-    ] = "codex",
+        typer.Option(
+            help=(
+                "Worker kind: 'openhands' (default — the harness's own SDK loop, "
+                "provider-agnostic via OpenRouter/OpenAI-compatible endpoints), "
+                "or a vendor CLI: 'codex' / 'claude' (subscription credit-gated)."
+            )
+        ),
+    ] = "openhands",
+    model: Annotated[
+        str | None,
+        typer.Option(
+            help=(
+                "LLM for the openhands worker, e.g. 'minimax/minimax-m3:free'. "
+                "Defaults to AGENTOPS_OPENROUTER_MODEL from the environment."
+            )
+        ),
+    ] = None,
     workspace_root: Annotated[
         Path,
         typer.Option(help="Directory where the issue workspace is cloned."),
@@ -503,6 +519,11 @@ def issue_solve(
     to a coding worker inside the governed pipeline (plan → dispatch → enforce
     → validate → retry → report). The output is a branch, a patch, and an
     evidence bundle — never a bare claim.
+
+    The default worker is the harness's own OpenHands SDK loop — a real agent
+    loop on any OpenAI-compatible provider (OpenRouter free-tier models work),
+    so the flagship is never gated on one vendor's subscription credits. The
+    vendor CLIs (codex/claude) are explicit opt-ins for when you have them.
     """
     from app.core.issues import (
         commit_workspace_changes,
@@ -520,13 +541,32 @@ def issue_solve(
     console.print(f"Workspace: {repo_path} (branch {branch})")
 
     task = issue.compose_task()
-    worker_command = compose_worker_command(worker, repo_path=repo_path, task=task)
+
+    if worker in ("codex", "claude"):
+        worker_command = compose_worker_command(worker, repo_path=repo_path, task=task)
+        worker_type = None
+        console.print(f"Vendor CLI worker: {worker}")
+    elif worker == "openhands":
+        worker_command = None
+        worker_type = "openhands"
+        # The override flows via the environment: _runner_env() copies os.environ
+        # (setdefault preserves it), and the runner's load_openhands_config()
+        # resolves AGENTOPS_OPENROUTER_MODEL → LLM(model="openrouter/<model>").
+        if model:
+            os.environ["AGENTOPS_OPENROUTER_MODEL"] = model
+        resolved_model = model or settings.openrouter_model
+        console.print(f"OpenHands SDK worker · model: {resolved_model}")
+    else:
+        raise typer.BadParameter(
+            f"Unknown worker {worker!r}. Supported: openhands (default), codex, claude."
+        )
 
     record = run_harness(
         repo_path=repo_path,
         task=task,
         storage_path=Path(".agentops/runs.jsonl"),
         worker_command=worker_command,
+        worker_type=worker_type,
         worker_timeout_seconds=worker_timeout_seconds,
         max_attempts=max_attempts,
         target_goal_id=goal,

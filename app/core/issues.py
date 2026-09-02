@@ -254,13 +254,18 @@ def quote_args(argv: list[str]) -> str:
     return " ".join(shlex.quote(part) for part in argv)
 
 
+WORKER_KINDS = ("openhands", "codex", "claude")
+
+
 def compose_worker_command(worker: str, repo_path: Path, task: str) -> str:
     """Render the concrete worker CLI invocation for an issue run.
 
-    The mapping is intentionally explicit per worker: each CLI has its own
-    non-interactive invocation contract, and a wrong flag silently produces a
-    worker that does nothing (the exact AO-D01-03 class of failure). Unknown
-    workers raise rather than guessing.
+    Only vendor-CLI workers (codex, claude) render a command here — they are
+    credit-gated subscription CLIs and therefore explicit opt-ins. The default
+    issue worker is the harness's own OpenHands SDK loop (``worker_type
+    "openhands"``), driven directly by ``run_harness`` with any OpenAI-
+    compatible provider (OpenRouter, SiliconFlow, …) — no vendor subscription
+    involved. Unknown workers raise rather than guessing (AO-D01-03 class).
     """
     if worker == "codex":
         # codex exec: non-interactive; -s workspace-write = sandboxed edits
@@ -277,5 +282,6 @@ def compose_worker_command(worker: str, repo_path: Path, task: str) -> str:
             f"--dangerously-skip-permissions"
         )
     raise IssueError(
-        f"Unknown worker {worker!r} for issue runs. Supported: codex, claude."
+        f"Unknown worker {worker!r} for issue runs. Supported: {', '.join(WORKER_KINDS)} "
+        "(openhands needs no command — the harness drives it directly)."
     )
