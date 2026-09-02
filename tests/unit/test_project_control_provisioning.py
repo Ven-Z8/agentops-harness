@@ -265,8 +265,16 @@ def test_update_status_field_input_reuses_matching_ids_without_create_only_keys(
         {"": "OPT_DONE"},
         {"Done": ""},
         {"Done": "unsafe option id"},
+        {"Inbox": "OPT_DUP", "Done": "OPT_DUP"},
     ),
-    ids=("not-a-map", "non-string-name", "empty-name", "empty-id", "unsafe-id"),
+    ids=(
+        "not-a-map",
+        "non-string-name",
+        "empty-name",
+        "empty-id",
+        "unsafe-id",
+        "duplicate-id",
+    ),
 )
 def test_update_field_input_rejects_malformed_option_id_maps(option_ids: object) -> None:
     with pytest.raises(InvalidControlRoom, match="field option"):
@@ -275,8 +283,21 @@ def test_update_field_input_rejects_malformed_option_id_maps(option_ids: object)
             {
                 "field_id": "PVTSSF_STATUS",
                 "name": "Status",
-                "options": ("Done",),
+                "options": ("Inbox", "Done"),
                 "option_ids": option_ids,
+            },
+        )
+
+
+def test_update_field_input_rejects_duplicate_desired_option_names() -> None:
+    with pytest.raises(InvalidControlRoom, match="field options"):
+        _typed_input(
+            "update_field",
+            {
+                "field_id": "PVTSSF_STATUS",
+                "name": "Status",
+                "options": ("Done", "Done"),
+                "option_ids": {"Done": "OPT_DONE"},
             },
         )
 

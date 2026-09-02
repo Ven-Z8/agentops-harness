@@ -885,7 +885,7 @@ def _field_option_inputs(
     options = variables.get("options", [])
     if not isinstance(options, (list, tuple)) or not all(
         isinstance(option, str) and option for option in options
-    ):
+    ) or len(options) != len(set(options)):
         raise MutationInputError("GitHub mutation field options are malformed")
     option_ids = variables.get("option_ids", {})
     if not isinstance(option_ids, Mapping) or any(
@@ -896,6 +896,8 @@ def _field_option_inputs(
         for name, option_id in option_ids.items()
     ):
         raise MutationInputError("GitHub mutation field option IDs are malformed")
+    if len(option_ids) != len(set(option_ids.values())):
+        raise MutationInputError("GitHub mutation field option IDs are duplicated")
 
     # The control-room schema specifies names, not visual semantics.  A neutral
     # fixed color and empty description keep serialization total and stable.
