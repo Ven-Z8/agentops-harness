@@ -1,73 +1,71 @@
-# Roadmap — Jun 12 → 18, 2026
+# Roadmap — current arc: trust + the issue flagship
 
-**North star:** the outer loop (AgentOps) *equips* the inner loop (OpenHands worker) with **domain capability packs** — `{ manifest, skills/*.md, tools, hooks }` loaded per repo/task — and the headline demo is a **real codebase migration** on a good repo, governed end-to-end and rendered transparently from the run artifacts.
+**North star (v0.1, approved 2026-08-28):** AgentOps becomes a research control
+plane that can *independently govern and evaluate* an agent experiment, preserve
+reproducible evidence, and make trustworthy promotion decisions — while its first
+flagship path stays concrete: **solve real GitHub issues on real open-source
+repositories, governed end-to-end, with a patch and evidence bundle as the output.**
 
-The inner loop is **locked** (all 9 worker-harness components wired + verified live on `nl2sql-viz`; PRs #12/#14/#15 merged). These milestones carry that foundation into the outer loop and the migration finale.
+The full 14-day research design lives in
+`agentops-codex-handover/docs/research/14-day-run/research-control-plane-design.md`
+(approved product boundary) and the control-room copy on branch
+`codex/project-control-room` (`coordination/roadmap/14-day-plan.{yaml,md}`).
+Dates are treated as **ordering, not deadlines** — the calendar expired; the phase
+sequence is what matters.
 
-**Status — Jun 15:** M1–M3 are **done** and the observability **Cockpit shipped** (#16 docs, #19 M2+M3, #18 Cockpit all merged to `main`). The outer→inner pack mechanism (M3) and the transparency surface (Cockpit) are both in place; the M2 fix was verified **end-to-end** (complex OpenHands run → outer Verification Stack `Accepted: True`, Evidence Guard clean). What remains is the payoff — author the migration pack (M4) and run the governed migration demo (M5) — **gated on the migration repo + domain resources coming from the owner's side.**
+## Status — Sep 2, 2026 (this branch: `claude/phase1-trust-fixes`)
 
-| # | Milestone | Due | Status |
-|---|---|---|---|
-| M1 | Inner loop locked + README + north-star | Jun 13 | ✅ done |
-| M2 | Outer evidence fidelity: route-impact | Jun 14 | ✅ done (#19, verified e2e) |
-| M3 | Capability-pack loader (outer → inner) | Jun 16 | ✅ done (#19) |
-| — | Observability Cockpit (Phase 1 Run Inspector) | Jun 14 | ✅ shipped (#18) |
-| M4 | Migration domain pack | Jun 17 | open — awaiting repo + resources |
-| M5 | Final migration demo on a good repo | Jun 18 | open |
+**Phase 1 trust work (AO-D01/D02) — landed, test-first, red→green evidence in commits:**
 
----
+| Task | Status | Evidence |
+|---|---|---|
+| AO-D01-01 ambient dotenv isolation | ✅ fixed | `1b0d1ac` — Settings no longer auto-loads CWD `.env`; litellm's import-time `load_dotenv()` neutralized in tests via `LITELLM_MODE`; hermeticity tripwire added to CI |
+| AO-D01-02 truthful terminal statuses | ✅ fixed | `4112d42` — failed required validation ⇒ `status="failed"`, never `"completed"`; one suite test that silently relied on the bug repaired honestly |
+| AO-D01-03 unknown kinds fail closed | ✅ fixed | `b8e65fc` — `--worker-type banana` blocks with `unknown_worker_type` instead of silently running no worker |
+| LICENSE + CI hardening | ✅ done | `636de2c` — MIT + pyproject license field; uv v6 + cache, 30-min timeout, web suite in CI, no-`.env` guard |
 
-## M1 — Inner loop locked + README + north-star · due Jun 13
+**The flagship — governed GitHub-issue runs — first implementation landed:**
 
-Declare the inner loop locked and make the repo communicate it.
+| Task | Status | Evidence |
+|---|---|---|
+| `agentops issue view/solve` + `app/core/issues.py` | ✅ built | `a0b823c` — fetch (gh) → isolated per-issue clone on `agentops/issue-N` branch → composed task with scope guidance → governed run → patch + evidence bundle; 10 tests incl. 2 end-to-end governed runs (one green, one fail-closed) |
+| Live demo target | ✅ selected | `piskoviste/pisek#683` — real `good first issue` on a real Python OSS repo (GPL-3.0, unittest suite, active maintainer) |
+| Live run #1 | ✅ failed *honestly* | Run `0debbbbf…` reported `status=failed` with an empty diff — evidence bundle pinpointed the deprecated `--full-auto` codex flag as root cause. **The trust fix caught a bug in the flagship's own first version.** |
+| Worker command fix | ✅ landed | `6fc9c3c` — `codex exec -s workspace-write` |
+| Live run #2 | 🔄 in progress | fresh workspace, fixed command — patch + evidence being generated |
 
-- [x] Audit the harness architecture + 9 components against merged code (this session)
-- [x] README: agent-loop + nine-components slides visible, **inner loop** section, 9-component coverage table, inner/outer boundary
-- [x] README: *Where this is going* — domain capability packs + migration finale
-- [x] ROADMAP.md (this file)
-- [x] Lock-in artifact: architecture → code matrix — the README's 9-component coverage table *is* the slide→code matrix (slides `agent-loop.png` / `nine-components.png` → wired-via column)
+## What remains for the v0.1 arc (phase-gated, in order)
 
-## M2 — Outer evidence fidelity: route-impact · due Jun 14
+1. **Finish the live issue demo** (this branch): patch lands on the issue branch,
+   validation passes, evidence bundle captured; write the walkthrough as the
+   portfolio artifact (`docs/dsh/` + README section).
+2. **PR the flagship demo upstream** (optional but high-signal): open a PR to
+   pisek from `agentops/issue-683` with the evidence bundle linked.
+3. **Phase 2 — experiment kernel + DeepEval seam** (14-day Days 3–5):
+   `ExperimentSpec` / `ExecutionProvider` / `EvaluationProvider` contracts so
+   the issue-run becomes a *benchmark* — same task, multiple workers/packs,
+   normalized metrics, split-aware comparison. The issue path built today is
+   the coding-agent benchmark's execution provider.
+4. **Control Room merge decision**: `codex/project-control-room` (93 commits)
+   is now unblocked (`gh` re-authenticated). Re-run its suites, merge or
+   tag-and-park. Keep it as a *tool* (validator, handoffs, board export),
+   never a gate in front of product work.
+5. **Old M4/M5 migration-pack finale**: now folds into the issue flagship —
+   the "domain capability pack" proves itself by equipping a worker to solve
+   an issue class, measured with-vs-without by the Phase 2 kernel.
 
-So migration diffs get graded correctly. `changed_subgraph.impacted_routes` is built from the **pre-edit** graph, so worker-added routes are flagged as ungrounded by the Evidence Guard (reproduced 2/2 on `nl2sql-viz`).
+## Standing discipline
 
-- [x] Detect routes **added by the diff**, include them as impacted nodes (`ChangedSubgraphBuilder` re-parses post-edit changed files; `route_added_by_diff`)
-- [x] Scope impacted_routes to diff-touched routes (stop over-including untouched ones) — scoped by `git diff -U0` line ranges
-- [x] Re-run: Evidence Guard no longer false-flags a new route (covered by `tests/test_route_impact.py` + updated `test_graph_smoke`)
-- Tracked: background task `task_f774a6fc`
+- Process work never sits in front of unblocked product work.
+- Every behavior change lands test-first with red→green evidence in the commit.
+- No README/report claim exceeds demonstrated evidence.
+- Missing evidence is `inconclusive`, never an inferred pass.
 
-## M3 — Capability-pack loader (outer → inner) · due Jun 16
+## Historical milestones (Jun 12–18 arc — all merged to main)
 
-The key new architectural piece. The outer loop assembles a pack and injects it into the inner OpenHands loop through existing seams.
-
-- [x] Define the pack format: `manifest.yaml` (name, domain, version, skills/tools/hooks) + `skills/*.md` + `hooks.py` (`app/schemas/pack.py`; shipped `packs/example/`)
-- [x] Outer-loop selector: `--pack` flag → `select_pack` (path or built-in name); auto-by-profile is a stubbed future hook (lands with M4)
-- [x] Loader: skills → `AgentContext` system suffix, tools → `Tool` name list, hooks → `callbacks` (`app/core/packs/loader.py`; injected in `openhands_runner`)
-- [x] Guardrail: pack tools must be in the terminal/file-only allowlist — `PackError` otherwise
-- [x] Tests: `tests/test_capability_pack.py` — trivial pack loads end-to-end; `assemble_agent_inputs` proves skill/tools/hooks reach the agent
-
-## M4 — Migration domain pack · due Jun 17
-
-Author the first real pack.
-
-- [ ] Pick the migration (e.g. a framework/API/version migration on a chosen "good repo")
-- [ ] Skills: the migration playbook (step-by-step, what to change, how to verify)
-- [ ] Tools: any migration-specific helpers (codemod-style, still terminal/file-only)
-- [ ] Hooks: guardrails specific to the migration (e.g. block edits outside target paths)
-- [ ] Eval harness: run **with vs without** the pack to show the pack earns its keep
-
-## M5 — Final migration demo on a good repo · due Jun 18
-
-The payoff.
-
-- [ ] Run the governed migration end-to-end: outer loads the pack → inner executes → outer validates
-- [ ] Transparency: render the loop trajectory + guard verdicts from run artifacts (folds in the viewer goal)
-- [ ] Capture evidence bundle + a written walkthrough as the portfolio artifact
-
----
-
-## Supporting tasks (slot in as time allows, not standalone milestones)
-
-- **Observability Cockpit** — ✅ **Phase 1 (Run Inspector) shipped** (#18): in-repo vanilla-JS + SSE UI at `/cockpit` — run list, 5-phase governance ribbon, guard cards, raw-artifact browser, bundle download, and a **Worker loop** tab streaming the OpenHands `prompt→tool→observation` trajectory. **Still open:** dispatch console (POST a run + watch live), run history/trends, goals/intent-graph view. Folds into M5. (`agentops-observability-viewer-goal` memory.)
-- **Product-Reviewer success-signal fidelity** — surfaced during M2 e2e: the Product Reviewer returned "0 of 2 signals met" even though the endpoint **and** its test were added — it doesn't yet credit M2-recognized routes (`impacted_routes`) or untracked new test files. Same *class* of gap as M2, but for the CEO/intent layer. Teach it to read `impacted_routes` + the on-disk test files.
-- **Run-artifact retention / GC** — `task_9767cbb9` — keep-last-N / max-age + `agentops prune`; do before the Cockpit reads many run folders.
+- ✅ M1 inner loop locked (9/9 worker-harness components, live-verified)
+- ✅ M2 outer evidence fidelity (route-impact; verified e2e)
+- ✅ M3 capability-pack loader (outer equips inner)
+- ✅ Cockpit Phase 1 (Run Inspector) + 3D showcase (recorded governed migration)
+- M4 migration domain pack → superseded by the issue flagship (see above)
+- M5 final demo → the live pisek run is the new finale
