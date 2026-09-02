@@ -3,6 +3,7 @@ name = "agentops-harness"
 version = "0.1.0"
 description = "Local-first coding-agent orchestration and evaluation harness."
 readme = "README.md"
+license = { file = "LICENSE" }
 requires-python = ">=3.12"
 dependencies = [
     "pyyaml>=6.0",
