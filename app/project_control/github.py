@@ -877,6 +877,38 @@ def _required_text(variables: dict[str, object], key: str) -> str:
     return value
 
 
+def _field_option_inputs(
+    variables: dict[str, object],
+    *,
+    include_existing_ids: bool,
+) -> list[dict[str, str]]:
+    options = variables.get("options", [])
+    if not isinstance(options, (list, tuple)) or not all(
+        isinstance(option, str) and option for option in options
+    ):
+        raise MutationInputError("GitHub mutation field options are malformed")
+    option_ids = variables.get("option_ids", {})
+    if not isinstance(option_ids, Mapping) or any(
+        not isinstance(name, str)
+        or not name
+        or not isinstance(option_id, str)
+        or not re.fullmatch(r"^[A-Za-z0-9_:-]+$", option_id)
+        for name, option_id in option_ids.items()
+    ):
+        raise MutationInputError("GitHub mutation field option IDs are malformed")
+
+    # The control-room schema specifies names, not visual semantics.  A neutral
+    # fixed color and empty description keep serialization total and stable.
+    result: list[dict[str, str]] = []
+    for name in options:
+        option = {"name": name, "color": "GRAY", "description": ""}
+        existing_id = option_ids.get(name) if include_existing_ids else None
+        if existing_id is not None:
+            option["id"] = existing_id
+        result.append(option)
+    return result
+
+
 def _typed_input(operation: str, variables: dict[str, object]) -> dict[str, object]:
     """Build the exact, operation-specific GraphQL input; no caller text is accepted."""
     if operation == "create_project":
@@ -889,21 +921,21 @@ def _typed_input(operation: str, variables: dict[str, object]) -> dict[str, obje
             "projectId": _required_id(variables, "project_id"),
             "title": _required_text(variables, "title"),
         }
-    if operation in {"create_field", "update_field"}:
-        field_id = (
-            {"fieldId": _required_id(variables, "field_id")} if operation == "update_field" else {}
-        )
+    if operation == "create_field":
         result = {
             "projectId": _required_id(variables, "project_id"),
             "name": _required_text(variables, "name"),
             "dataType": _required_text(variables, "data_type"),
-            **field_id,
         }
-        options = variables.get("options", [])
-        if not isinstance(options, (list, tuple)) or not all(
-            isinstance(option, str) and option for option in options
-        ):
-            raise MutationInputError("GitHub mutation field options are malformed")
+        options = _field_option_inputs(variables, include_existing_ids=False)
+        if options:
+            result["singleSelectOptions"] = options
+        return result
+    if operation == "update_field":
+        result = {"fieldId": _required_id(variables, "field_id")}
+        if "name" in variables:
+            result["name"] = _required_text(variables, "name")
+        options = _field_option_inputs(variables, include_existing_ids=True)
         if options:
             result["singleSelectOptions"] = options
         return result

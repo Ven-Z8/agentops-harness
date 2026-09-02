@@ -181,6 +181,106 @@ def test_round2_field_value_inputs_are_typed_and_day_is_single_select() -> None:
         )
 
 
+def test_create_day_field_input_serializes_literal_option_objects() -> None:
+    payload = _typed_input(
+        "create_field",
+        {
+            "project_id": "PVT_1",
+            "name": "Day",
+            "data_type": "SINGLE_SELECT",
+            "options": DESIRED_FIELDS["Day"],
+            "option_ids": {},
+        },
+    )
+
+    assert payload == {
+        "projectId": "PVT_1",
+        "name": "Day",
+        "dataType": "SINGLE_SELECT",
+        "singleSelectOptions": [
+            {"name": "Day 1", "color": "GRAY", "description": ""},
+            {"name": "Day 2", "color": "GRAY", "description": ""},
+            {"name": "Day 3", "color": "GRAY", "description": ""},
+            {"name": "Day 4", "color": "GRAY", "description": ""},
+            {"name": "Day 5", "color": "GRAY", "description": ""},
+            {"name": "Day 6", "color": "GRAY", "description": ""},
+            {"name": "Day 7", "color": "GRAY", "description": ""},
+            {"name": "Day 8", "color": "GRAY", "description": ""},
+            {"name": "Day 9", "color": "GRAY", "description": ""},
+            {"name": "Day 10", "color": "GRAY", "description": ""},
+            {"name": "Day 11", "color": "GRAY", "description": ""},
+            {"name": "Day 12", "color": "GRAY", "description": ""},
+            {"name": "Day 13", "color": "GRAY", "description": ""},
+            {"name": "Day 14", "color": "GRAY", "description": ""},
+        ],
+    }
+
+
+def test_update_status_field_input_reuses_matching_ids_without_create_only_keys() -> None:
+    payload = _typed_input(
+        "update_field",
+        {
+            "field_id": "PVTSSF_STATUS",
+            "project_id": "PVT_CREATE_ONLY",
+            "name": "Status",
+            "data_type": "SINGLE_SELECT",
+            "options": DESIRED_FIELDS["Status"],
+            "option_ids": {
+                "Todo": "OPT_REMOVED_TODO",
+                "In progress": "OPT_IN_PROGRESS",
+                "Done": "OPT_DONE",
+            },
+        },
+    )
+
+    assert payload == {
+        "fieldId": "PVTSSF_STATUS",
+        "name": "Status",
+        "singleSelectOptions": [
+            {"name": "Inbox", "color": "GRAY", "description": ""},
+            {"name": "Ready", "color": "GRAY", "description": ""},
+            {
+                "name": "In progress",
+                "color": "GRAY",
+                "description": "",
+                "id": "OPT_IN_PROGRESS",
+            },
+            {"name": "In review", "color": "GRAY", "description": ""},
+            {"name": "Blocked", "color": "GRAY", "description": ""},
+            {
+                "name": "Done",
+                "color": "GRAY",
+                "description": "",
+                "id": "OPT_DONE",
+            },
+        ],
+    }
+
+
+@pytest.mark.parametrize(
+    "option_ids",
+    (
+        [],
+        {1: "OPT_DONE"},
+        {"": "OPT_DONE"},
+        {"Done": ""},
+        {"Done": "unsafe option id"},
+    ),
+    ids=("not-a-map", "non-string-name", "empty-name", "empty-id", "unsafe-id"),
+)
+def test_update_field_input_rejects_malformed_option_id_maps(option_ids: object) -> None:
+    with pytest.raises(InvalidControlRoom, match="field option"):
+        _typed_input(
+            "update_field",
+            {
+                "field_id": "PVTSSF_STATUS",
+                "name": "Status",
+                "options": ("Done",),
+                "option_ids": option_ids,
+            },
+        )
+
+
 def test_round2_mutation_identity_has_no_legacy_fallbacks() -> None:
     with pytest.raises(InvalidControlRoom):
         _mutation_id("create_project", {"id": "P"})
