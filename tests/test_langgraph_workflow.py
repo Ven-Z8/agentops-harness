@@ -74,3 +74,41 @@ def test_langgraph_plan_is_graph_aware(tmp_path: Path) -> None:
     assert "uv run pytest -q" in record.plan.tests_to_run
     inspected = {path for step in record.plan.steps for path in step.files_to_inspect}
     assert "app/main.py" in inspected
+
+
+def test_required_test_failure_cannot_complete_or_converge(tmp_path: Path) -> None:
+    """AO-D01-02: failed required validation must not report success.
+
+    A worker that exits cleanly but leaves the repository's required tests
+    failing cannot produce a ``completed`` run or a converged loop — execution
+    success and evaluation success are separate concerns, and evaluation
+    failure must dominate the terminal status.
+    """
+    import subprocess
+
+    repo = tmp_path / "victim"
+    repo.mkdir()
+    (repo / "app.py").write_text("def broken(:\n")
+    (repo / "test_app.py").write_text("def test_x():\n    import app\n    assert False\n")
+    for argv in (
+        ["git", "init", "-q"],
+        ["git", "add", "."],
+        ["git", "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "init"],
+    ):
+        subprocess.run(argv, cwd=repo, check=True)
+
+    record = run_harness(
+        repo_path=repo,
+        task="Make the code work",
+        storage_path=tmp_path / "runs.db",
+        worker_command="touch modified_marker.txt",
+        max_attempts=1,
+    )
+
+    # Execution succeeded (worker exit 0)…
+    assert record.edit_result is not None
+    assert record.edit_result.status == "completed"
+    # …but the required validation failed: the run must not be completed or converged.
+    assert record.test_results.passed is False
+    assert record.status != "completed"
+    assert record.converged is False

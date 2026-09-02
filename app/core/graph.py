@@ -978,6 +978,16 @@ def run_harness(
         and not graph_state["workspace_report"].ok
     ):
         status = "blocked"
+    # AO-D01-02: a worker that exited cleanly can still have failed REQUIRED
+    # validation. Execution success (process exit 0) and evaluation success
+    # (tests passed) are separate concerns; evaluation failure dominates the
+    # terminal status — the run must never be reported "completed" while its
+    # own validation commands are red. This is the convergence benchmark's
+    # "implicit convergence" gap made structurally impossible in the record.
+    if status == "completed" and edit_result is not None:
+        test_results = graph_state.get("test_results")
+        if test_results is not None and not test_results.passed:
+            status = "failed"
     artifact_dir = artifact_dir_for_run(storage_path, run_id)
     worker_summary = read_worker_summary(artifact_dir)
     record = RunRecord(
