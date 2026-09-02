@@ -20,3 +20,5 @@ AUDIT-*.md
 docs/cursor/
 docs/harness/
 **/docs/superpowers/
+.Rhistory
+coordination/designs/*.html
