@@ -6,6 +6,7 @@ from typing import Literal
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import PlainTextResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from app.cockpit import mount_cockpit
@@ -52,8 +53,8 @@ def _worker_event(seq: int, payload: dict) -> dict[str, object]:
     timestamp = event.get("timestamp") or payload.get("timestamp")
     detail = ""
     if isinstance(event, dict):
-        action = event.get("action") or {}
-        if isinstance(action, dict):
+        action = event.get("action")
+        if isinstance(action, dict) and action:
             command = action.get("command")
             if isinstance(command, str):
                 detail = command
@@ -61,6 +62,10 @@ def _worker_event(seq: int, payload: dict) -> dict[str, object]:
                 detail = action.get("kind") or action.get("path") or ""
         elif event.get("observation"):
             detail = "observation returned"
+        elif event.get("llm_message"):
+            detail = "worker message composed (task + constraints)"
+        elif event.get("system_prompt"):
+            detail = "system prompt set (harness constraints)"
     if not detail:
         detail = event_type
     return {
@@ -293,6 +298,17 @@ def create_api(storage_path: Path | None = None, llm_client: LLMClient | None = 
                     if result.exit_code != 0
                 ),
                 "started_at": record.started_at.isoformat(),
+                # Detail-grade columns for the runs table (AO-UI-01).
+                "attempts": record.attempts,
+                "risk_score": record.risk_report.risk_score,
+                "tests_exit": (
+                    record.test_results.commands[-1].exit_code
+                    if record.test_results.commands
+                    else None
+                ),
+                "stages_done": sum(
+                    1 for entry in record.execution_logs if entry.endswith(":complete")
+                ),
             }
             if interrupted and summary is not None:
                 row["source"] = "interrupted"
@@ -404,7 +420,24 @@ def create_api(storage_path: Path | None = None, llm_client: LLMClient | None = 
         )
 
     mount_cockpit(api, selected_storage)
+    _mount_console(api)
     return api
+
+
+def _mount_console(api: FastAPI) -> None:
+    """Serve the OpenDesign operator console screens at /console.
+
+    The screens are design prototypes (docs/design/opendesign-console-v1)
+    wired to live API data by console-data.js. Mounted read-only; the runs
+    they show come from the same storage as every other surface.
+    """
+    console_dir = Path(__file__).resolve().parents[1] / "docs" / "design" / "opendesign-console-v1"
+    if console_dir.is_dir():
+        api.mount(
+            "/console",
+            StaticFiles(directory=console_dir, html=True),
+            name="console",
+        )
 
 
 api = create_api()

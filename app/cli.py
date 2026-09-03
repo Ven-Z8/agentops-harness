@@ -58,6 +58,27 @@ def init() -> None:
 
 
 @app.command()
+def serve(
+    host: Annotated[str, typer.Option(help="Bind host.")] = "127.0.0.1",
+    port: Annotated[int, typer.Option(help="Bind port.")] = 8000,
+    storage: Annotated[
+        Path | None,
+        typer.Option(help="Run storage path (defaults to settings.run_storage)."),
+    ] = None,
+) -> None:
+    """Serve the harness API + operator console (http://<host>:<port>/console)."""
+    import uvicorn
+
+    from app.api import create_api
+
+    api = create_api(storage_path=storage) if storage is not None else create_api()
+    console.print(f"API docs:    http://{host}:{port}/docs")
+    console.print(f"Console:     http://{host}:{port}/console/runs-list.html")
+    console.print(f"Cockpit:     http://{host}:{port}/cockpit/")
+    uvicorn.run(api, host=host, port=port)
+
+
+@app.command()
 def scan(
     repo: Annotated[
         Path,

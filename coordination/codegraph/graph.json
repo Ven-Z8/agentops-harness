@@ -1251,6 +1251,12 @@
     {
       "metadata": {},
       "source": "file:app/api.py",
+      "target": "function:python:app.api._mount_console",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/api.py",
       "target": "function:python:app.api._reconciled_records",
       "type": "defines"
     },
@@ -1467,6 +1473,12 @@
     {
       "metadata": {},
       "source": "file:app/api.py",
+      "target": "import:python:fastapi.staticfiles.StaticFiles",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/api.py",
       "target": "import:python:json",
       "type": "imports"
     },
@@ -1593,6 +1605,12 @@
     {
       "metadata": {},
       "source": "file:app/cli.py",
+      "target": "function:python:app.cli.serve",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/cli.py",
       "target": "function:python:app.cli.show_artifact_path",
       "type": "defines"
     },
@@ -1630,6 +1648,12 @@
       "metadata": {},
       "source": "file:app/cli.py",
       "target": "import:python:app.agents.repo_scanner.RepoScanner",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/cli.py",
+      "target": "import:python:app.api.create_api",
       "type": "imports"
     },
     {
@@ -1834,6 +1858,12 @@
       "metadata": {},
       "source": "file:app/cli.py",
       "target": "import:python:typing.Annotated",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/cli.py",
+      "target": "import:python:uvicorn",
       "type": "imports"
     },
     {
@@ -14756,6 +14786,216 @@
     },
     {
       "metadata": {},
+      "source": "file:tests/test_console_api.py",
+      "target": "class:python:tests.test_console_api.TestArtifactRecordReconciliation",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_console_api.py",
+      "target": "class:python:tests.test_console_api.TestConsoleRunsList",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_console_api.py",
+      "target": "class:python:tests.test_console_api.TestInterruptedRuns",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_console_api.py",
+      "target": "class:python:tests.test_console_api.TestRunEvents",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_console_api.py",
+      "target": "function:python:tests.test_console_api._client",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_console_api.py",
+      "target": "function:python:tests.test_console_api._interrupted_artifact",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_console_api.py",
+      "target": "function:python:tests.test_console_api._orphan_artifact",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_console_api.py",
+      "target": "function:python:tests.test_console_api._seed_run",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_console_api.py",
+      "target": "function:python:tests.test_console_api.test_detail_serves_artifact_only_run",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_console_api.py",
+      "target": "function:python:tests.test_console_api.test_interrupted_run_detail_includes_worker_summary_evidence",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_console_api.py",
+      "target": "function:python:tests.test_console_api.test_interrupted_run_events_serve_worker_timeline",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_console_api.py",
+      "target": "function:python:tests.test_console_api.test_kpis_count_reconciled_runs",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_console_api.py",
+      "target": "function:python:tests.test_console_api.test_list_includes_console_columns",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_console_api.py",
+      "target": "function:python:tests.test_console_api.test_list_includes_interrupted_run_as_blocked_with_reason",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_console_api.py",
+      "target": "function:python:tests.test_console_api.test_list_includes_runs_only_present_as_artifacts",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_console_api.py",
+      "target": "function:python:tests.test_console_api.test_list_kpis_endpoint_serves_honest_counts",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_console_api.py",
+      "target": "function:python:tests.test_console_api.test_list_orders_runs_most_recent_first_across_sources",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_console_api.py",
+      "target": "function:python:tests.test_console_api.test_run_events_404_on_unknown_run",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_console_api.py",
+      "target": "function:python:tests.test_console_api.test_run_events_returns_timeline",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_console_api.py",
+      "target": "method:python:tests.test_console_api.TestArtifactRecordReconciliation.test_detail_serves_artifact_only_run",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_console_api.py",
+      "target": "method:python:tests.test_console_api.TestArtifactRecordReconciliation.test_kpis_count_reconciled_runs",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_console_api.py",
+      "target": "method:python:tests.test_console_api.TestArtifactRecordReconciliation.test_list_includes_runs_only_present_as_artifacts",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_console_api.py",
+      "target": "method:python:tests.test_console_api.TestArtifactRecordReconciliation.test_list_orders_runs_most_recent_first_across_sources",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_console_api.py",
+      "target": "method:python:tests.test_console_api.TestConsoleRunsList.test_list_includes_console_columns",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_console_api.py",
+      "target": "method:python:tests.test_console_api.TestConsoleRunsList.test_list_kpis_endpoint_serves_honest_counts",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_console_api.py",
+      "target": "method:python:tests.test_console_api.TestInterruptedRuns.test_interrupted_run_detail_includes_worker_summary_evidence",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_console_api.py",
+      "target": "method:python:tests.test_console_api.TestInterruptedRuns.test_interrupted_run_events_serve_worker_timeline",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_console_api.py",
+      "target": "method:python:tests.test_console_api.TestInterruptedRuns.test_list_includes_interrupted_run_as_blocked_with_reason",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_console_api.py",
+      "target": "method:python:tests.test_console_api.TestRunEvents.test_run_events_404_on_unknown_run",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_console_api.py",
+      "target": "method:python:tests.test_console_api.TestRunEvents.test_run_events_returns_timeline",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_console_api.py",
+      "target": "import:python:__future__.annotations",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_console_api.py",
+      "target": "import:python:app.api.create_api",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_console_api.py",
+      "target": "import:python:fastapi.testclient.TestClient",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_console_api.py",
+      "target": "import:python:json",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_console_api.py",
+      "target": "import:python:pathlib.Path",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
       "source": "file:tests/test_docker_workspace.py",
       "target": "function:python:tests.test_docker_workspace._docker_up",
       "type": "defines"
@@ -22311,6 +22551,12 @@
     {
       "metadata": {},
       "source": "folder:.",
+      "target": "file:.DS_Store",
+      "type": "contains"
+    },
+    {
+      "metadata": {},
+      "source": "folder:.",
       "target": "file:.env.example",
       "type": "contains"
     },
@@ -24039,6 +24285,12 @@
     {
       "metadata": {},
       "source": "folder:tests",
+      "target": "file:tests/test_console_api.py",
+      "type": "contains"
+    },
+    {
+      "metadata": {},
+      "source": "folder:tests",
       "target": "file:tests/test_docker_workspace.py",
       "type": "contains"
     },
@@ -24842,7 +25094,7 @@
       "id": "class:python:app.api.CreateRunRequest",
       "language": "python",
       "metadata": {
-        "line": 28,
+        "line": 29,
         "qualified_name": "app.api.CreateRunRequest"
       },
       "name": "CreateRunRequest",
@@ -26907,6 +27159,50 @@
       "type": "class"
     },
     {
+      "id": "class:python:tests.test_console_api.TestArtifactRecordReconciliation",
+      "language": "python",
+      "metadata": {
+        "line": 128,
+        "qualified_name": "tests.test_console_api.TestArtifactRecordReconciliation"
+      },
+      "name": "TestArtifactRecordReconciliation",
+      "path": "tests/test_console_api.py",
+      "type": "class"
+    },
+    {
+      "id": "class:python:tests.test_console_api.TestConsoleRunsList",
+      "language": "python",
+      "metadata": {
+        "line": 89,
+        "qualified_name": "tests.test_console_api.TestConsoleRunsList"
+      },
+      "name": "TestConsoleRunsList",
+      "path": "tests/test_console_api.py",
+      "type": "class"
+    },
+    {
+      "id": "class:python:tests.test_console_api.TestInterruptedRuns",
+      "language": "python",
+      "metadata": {
+        "line": 177,
+        "qualified_name": "tests.test_console_api.TestInterruptedRuns"
+      },
+      "name": "TestInterruptedRuns",
+      "path": "tests/test_console_api.py",
+      "type": "class"
+    },
+    {
+      "id": "class:python:tests.test_console_api.TestRunEvents",
+      "language": "python",
+      "metadata": {
+        "line": 231,
+        "qualified_name": "tests.test_console_api.TestRunEvents"
+      },
+      "name": "TestRunEvents",
+      "path": "tests/test_console_api.py",
+      "type": "class"
+    },
+    {
       "id": "class:python:tests.test_evidence_guard.HallucinatingReportLLM",
       "language": "python",
       "metadata": {
@@ -27301,6 +27597,14 @@
       "name": "uvicorn",
       "path": null,
       "type": "dependency"
+    },
+    {
+      "id": "file:.DS_Store",
+      "language": null,
+      "metadata": {},
+      "name": ".DS_Store",
+      "path": ".DS_Store",
+      "type": "file"
     },
     {
       "id": "file:.env.example",
@@ -29212,6 +29516,14 @@
       "metadata": {},
       "name": "test_conflict.py",
       "path": "tests/test_conflict.py",
+      "type": "test"
+    },
+    {
+      "id": "file:tests/test_console_api.py",
+      "language": "python",
+      "metadata": {},
+      "name": "test_console_api.py",
+      "path": "tests/test_console_api.py",
       "type": "test"
     },
     {
@@ -31136,7 +31448,7 @@
       "id": "function:python:app.api._get_record",
       "language": "python",
       "metadata": {
-        "line": 76,
+        "line": 81,
         "qualified_name": "app.api._get_record"
       },
       "name": "_get_record",
@@ -31147,7 +31459,7 @@
       "id": "function:python:app.api._interrupted_run_record",
       "language": "python",
       "metadata": {
-        "line": 167,
+        "line": 172,
         "qualified_name": "app.api._interrupted_run_record"
       },
       "name": "_interrupted_run_record",
@@ -31158,7 +31470,7 @@
       "id": "function:python:app.api._is_interrupted_run",
       "language": "python",
       "metadata": {
-        "line": 159,
+        "line": 164,
         "qualified_name": "app.api._is_interrupted_run"
       },
       "name": "_is_interrupted_run",
@@ -31169,7 +31481,7 @@
       "id": "function:python:app.api._load_worker_summary",
       "language": "python",
       "metadata": {
-        "line": 152,
+        "line": 157,
         "qualified_name": "app.api._load_worker_summary"
       },
       "name": "_load_worker_summary",
@@ -31177,10 +31489,21 @@
       "type": "function"
     },
     {
+      "id": "function:python:app.api._mount_console",
+      "language": "python",
+      "metadata": {
+        "line": 427,
+        "qualified_name": "app.api._mount_console"
+      },
+      "name": "_mount_console",
+      "path": "app/api.py",
+      "type": "function"
+    },
+    {
       "id": "function:python:app.api._reconciled_records",
       "language": "python",
       "metadata": {
-        "line": 99,
+        "line": 104,
         "qualified_name": "app.api._reconciled_records"
       },
       "name": "_reconciled_records",
@@ -31191,7 +31514,7 @@
       "id": "function:python:app.api._worker_event",
       "language": "python",
       "metadata": {
-        "line": 47,
+        "line": 48,
         "qualified_name": "app.api._worker_event"
       },
       "name": "_worker_event",
@@ -31202,7 +31525,7 @@
       "id": "function:python:app.api.create_api",
       "language": "python",
       "metadata": {
-        "line": 241,
+        "line": 246,
         "qualified_name": "app.api.create_api"
       },
       "name": "create_api",
@@ -31213,7 +31536,7 @@
       "id": "function:python:app.api.create_run",
       "language": "python",
       "metadata": {
-        "line": 249,
+        "line": 254,
         "qualified_name": "app.api.create_run"
       },
       "name": "create_run",
@@ -31224,7 +31547,7 @@
       "id": "function:python:app.api.get_events",
       "language": "python",
       "metadata": {
-        "line": 350,
+        "line": 366,
         "qualified_name": "app.api.get_events"
       },
       "name": "get_events",
@@ -31235,7 +31558,7 @@
       "id": "function:python:app.api.get_handoff",
       "language": "python",
       "metadata": {
-        "line": 387,
+        "line": 403,
         "qualified_name": "app.api.get_handoff"
       },
       "name": "get_handoff",
@@ -31246,7 +31569,7 @@
       "id": "function:python:app.api.get_kpis",
       "language": "python",
       "metadata": {
-        "line": 308,
+        "line": 324,
         "qualified_name": "app.api.get_kpis"
       },
       "name": "get_kpis",
@@ -31257,7 +31580,7 @@
       "id": "function:python:app.api.get_logs",
       "language": "python",
       "metadata": {
-        "line": 342,
+        "line": 358,
         "qualified_name": "app.api.get_logs"
       },
       "name": "get_logs",
@@ -31268,7 +31591,7 @@
       "id": "function:python:app.api.get_report",
       "language": "python",
       "metadata": {
-        "line": 334,
+        "line": 350,
         "qualified_name": "app.api.get_report"
       },
       "name": "get_report",
@@ -31279,7 +31602,7 @@
       "id": "function:python:app.api.get_run",
       "language": "python",
       "metadata": {
-        "line": 321,
+        "line": 337,
         "qualified_name": "app.api.get_run"
       },
       "name": "get_run",
@@ -31290,7 +31613,7 @@
       "id": "function:python:app.api.list_runs",
       "language": "python",
       "metadata": {
-        "line": 263,
+        "line": 268,
         "qualified_name": "app.api.list_runs"
       },
       "name": "list_runs",
@@ -31301,7 +31624,7 @@
       "id": "function:python:app.cli._spec_issue_stub",
       "language": "python",
       "metadata": {
-        "line": 457,
+        "line": 478,
         "qualified_name": "app.cli._spec_issue_stub"
       },
       "name": "_spec_issue_stub",
@@ -31312,7 +31635,7 @@
       "id": "function:python:app.cli.draft_handoff_packet",
       "language": "python",
       "metadata": {
-        "line": 279,
+        "line": 300,
         "qualified_name": "app.cli.draft_handoff_packet"
       },
       "name": "draft_handoff_packet",
@@ -31323,7 +31646,7 @@
       "id": "function:python:app.cli.edit",
       "language": "python",
       "metadata": {
-        "line": 131,
+        "line": 152,
         "qualified_name": "app.cli.edit"
       },
       "name": "edit",
@@ -31334,7 +31657,7 @@
       "id": "function:python:app.cli.export_artifacts",
       "language": "python",
       "metadata": {
-        "line": 234,
+        "line": 255,
         "qualified_name": "app.cli.export_artifacts"
       },
       "name": "export_artifacts",
@@ -31345,7 +31668,7 @@
       "id": "function:python:app.cli.export_handoff",
       "language": "python",
       "metadata": {
-        "line": 251,
+        "line": 272,
         "qualified_name": "app.cli.export_handoff"
       },
       "name": "export_handoff",
@@ -31367,7 +31690,7 @@
       "id": "function:python:app.cli.install_cursor_integration",
       "language": "python",
       "metadata": {
-        "line": 405,
+        "line": 426,
         "qualified_name": "app.cli.install_cursor_integration"
       },
       "name": "install_cursor_integration",
@@ -31378,7 +31701,7 @@
       "id": "function:python:app.cli.install_goose_integration",
       "language": "python",
       "metadata": {
-        "line": 419,
+        "line": 440,
         "qualified_name": "app.cli.install_goose_integration"
       },
       "name": "install_goose_integration",
@@ -31389,7 +31712,7 @@
       "id": "function:python:app.cli.issue_solve",
       "language": "python",
       "metadata": {
-        "line": 506,
+        "line": 527,
         "qualified_name": "app.cli.issue_solve"
       },
       "name": "issue_solve",
@@ -31400,7 +31723,7 @@
       "id": "function:python:app.cli.issue_view",
       "language": "python",
       "metadata": {
-        "line": 487,
+        "line": 508,
         "qualified_name": "app.cli.issue_view"
       },
       "name": "issue_view",
@@ -31411,7 +31734,7 @@
       "id": "function:python:app.cli.package_portfolio_episode",
       "language": "python",
       "metadata": {
-        "line": 374,
+        "line": 395,
         "qualified_name": "app.cli.package_portfolio_episode"
       },
       "name": "package_portfolio_episode",
@@ -31422,7 +31745,7 @@
       "id": "function:python:app.cli.ping_provider",
       "language": "python",
       "metadata": {
-        "line": 437,
+        "line": 458,
         "qualified_name": "app.cli.ping_provider"
       },
       "name": "ping_provider",
@@ -31433,7 +31756,7 @@
       "id": "function:python:app.cli.plan",
       "language": "python",
       "metadata": {
-        "line": 76,
+        "line": 97,
         "qualified_name": "app.cli.plan"
       },
       "name": "plan",
@@ -31444,7 +31767,7 @@
       "id": "function:python:app.cli.report",
       "language": "python",
       "metadata": {
-        "line": 213,
+        "line": 234,
         "qualified_name": "app.cli.report"
       },
       "name": "report",
@@ -31455,7 +31778,7 @@
       "id": "function:python:app.cli.run",
       "language": "python",
       "metadata": {
-        "line": 91,
+        "line": 112,
         "qualified_name": "app.cli.run"
       },
       "name": "run",
@@ -31466,7 +31789,7 @@
       "id": "function:python:app.cli.scan",
       "language": "python",
       "metadata": {
-        "line": 61,
+        "line": 82,
         "qualified_name": "app.cli.scan"
       },
       "name": "scan",
@@ -31474,10 +31797,21 @@
       "type": "function"
     },
     {
+      "id": "function:python:app.cli.serve",
+      "language": "python",
+      "metadata": {
+        "line": 61,
+        "qualified_name": "app.cli.serve"
+      },
+      "name": "serve",
+      "path": "app/cli.py",
+      "type": "function"
+    },
+    {
       "id": "function:python:app.cli.show_artifact_path",
       "language": "python",
       "metadata": {
-        "line": 223,
+        "line": 244,
         "qualified_name": "app.cli.show_artifact_path"
       },
       "name": "show_artifact_path",
@@ -31488,7 +31822,7 @@
       "id": "function:python:app.cli.show_provider_status",
       "language": "python",
       "metadata": {
-        "line": 431,
+        "line": 452,
         "qualified_name": "app.cli.show_provider_status"
       },
       "name": "show_provider_status",
@@ -31499,7 +31833,7 @@
       "id": "function:python:app.cli.validate_workload_manifest",
       "language": "python",
       "metadata": {
-        "line": 314,
+        "line": 335,
         "qualified_name": "app.cli.validate_workload_manifest"
       },
       "name": "validate_workload_manifest",
@@ -31510,7 +31844,7 @@
       "id": "function:python:app.cli.workload_gate_check",
       "language": "python",
       "metadata": {
-        "line": 348,
+        "line": 369,
         "qualified_name": "app.cli.workload_gate_check"
       },
       "name": "workload_gate_check",
@@ -39160,6 +39494,171 @@
       },
       "name": "test_ungrounded_evidence_is_a_conflict",
       "path": "tests/test_conflict.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_console_api._client",
+      "language": "python",
+      "metadata": {
+        "line": 28,
+        "qualified_name": "tests.test_console_api._client"
+      },
+      "name": "_client",
+      "path": "tests/test_console_api.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_console_api._interrupted_artifact",
+      "language": "python",
+      "metadata": {
+        "line": 53,
+        "qualified_name": "tests.test_console_api._interrupted_artifact"
+      },
+      "name": "_interrupted_artifact",
+      "path": "tests/test_console_api.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_console_api._orphan_artifact",
+      "language": "python",
+      "metadata": {
+        "line": 42,
+        "qualified_name": "tests.test_console_api._orphan_artifact"
+      },
+      "name": "_orphan_artifact",
+      "path": "tests/test_console_api.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_console_api._seed_run",
+      "language": "python",
+      "metadata": {
+        "line": 33,
+        "qualified_name": "tests.test_console_api._seed_run"
+      },
+      "name": "_seed_run",
+      "path": "tests/test_console_api.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_console_api.test_detail_serves_artifact_only_run",
+      "language": "python",
+      "metadata": {
+        "line": 157,
+        "qualified_name": "tests.test_console_api.test_detail_serves_artifact_only_run"
+      },
+      "name": "test_detail_serves_artifact_only_run",
+      "path": "tests/test_console_api.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_console_api.test_interrupted_run_detail_includes_worker_summary_evidence",
+      "language": "python",
+      "metadata": {
+        "line": 198,
+        "qualified_name": "tests.test_console_api.test_interrupted_run_detail_includes_worker_summary_evidence"
+      },
+      "name": "test_interrupted_run_detail_includes_worker_summary_evidence",
+      "path": "tests/test_console_api.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_console_api.test_interrupted_run_events_serve_worker_timeline",
+      "language": "python",
+      "metadata": {
+        "line": 213,
+        "qualified_name": "tests.test_console_api.test_interrupted_run_events_serve_worker_timeline"
+      },
+      "name": "test_interrupted_run_events_serve_worker_timeline",
+      "path": "tests/test_console_api.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_console_api.test_kpis_count_reconciled_runs",
+      "language": "python",
+      "metadata": {
+        "line": 167,
+        "qualified_name": "tests.test_console_api.test_kpis_count_reconciled_runs"
+      },
+      "name": "test_kpis_count_reconciled_runs",
+      "path": "tests/test_console_api.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_console_api.test_list_includes_console_columns",
+      "language": "python",
+      "metadata": {
+        "line": 90,
+        "qualified_name": "tests.test_console_api.test_list_includes_console_columns"
+      },
+      "name": "test_list_includes_console_columns",
+      "path": "tests/test_console_api.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_console_api.test_list_includes_interrupted_run_as_blocked_with_reason",
+      "language": "python",
+      "metadata": {
+        "line": 178,
+        "qualified_name": "tests.test_console_api.test_list_includes_interrupted_run_as_blocked_with_reason"
+      },
+      "name": "test_list_includes_interrupted_run_as_blocked_with_reason",
+      "path": "tests/test_console_api.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_console_api.test_list_includes_runs_only_present_as_artifacts",
+      "language": "python",
+      "metadata": {
+        "line": 129,
+        "qualified_name": "tests.test_console_api.test_list_includes_runs_only_present_as_artifacts"
+      },
+      "name": "test_list_includes_runs_only_present_as_artifacts",
+      "path": "tests/test_console_api.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_console_api.test_list_kpis_endpoint_serves_honest_counts",
+      "language": "python",
+      "metadata": {
+        "line": 112,
+        "qualified_name": "tests.test_console_api.test_list_kpis_endpoint_serves_honest_counts"
+      },
+      "name": "test_list_kpis_endpoint_serves_honest_counts",
+      "path": "tests/test_console_api.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_console_api.test_list_orders_runs_most_recent_first_across_sources",
+      "language": "python",
+      "metadata": {
+        "line": 143,
+        "qualified_name": "tests.test_console_api.test_list_orders_runs_most_recent_first_across_sources"
+      },
+      "name": "test_list_orders_runs_most_recent_first_across_sources",
+      "path": "tests/test_console_api.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_console_api.test_run_events_404_on_unknown_run",
+      "language": "python",
+      "metadata": {
+        "line": 248,
+        "qualified_name": "tests.test_console_api.test_run_events_404_on_unknown_run"
+      },
+      "name": "test_run_events_404_on_unknown_run",
+      "path": "tests/test_console_api.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_console_api.test_run_events_returns_timeline",
+      "language": "python",
+      "metadata": {
+        "line": 232,
+        "qualified_name": "tests.test_console_api.test_run_events_returns_timeline"
+      },
+      "name": "test_run_events_returns_timeline",
+      "path": "tests/test_console_api.py",
       "type": "function"
     },
     {
@@ -53116,6 +53615,127 @@
       "type": "method"
     },
     {
+      "id": "method:python:tests.test_console_api.TestArtifactRecordReconciliation.test_detail_serves_artifact_only_run",
+      "language": "python",
+      "metadata": {
+        "line": 157,
+        "qualified_name": "tests.test_console_api.TestArtifactRecordReconciliation.test_detail_serves_artifact_only_run"
+      },
+      "name": "test_detail_serves_artifact_only_run",
+      "path": "tests/test_console_api.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_console_api.TestArtifactRecordReconciliation.test_kpis_count_reconciled_runs",
+      "language": "python",
+      "metadata": {
+        "line": 167,
+        "qualified_name": "tests.test_console_api.TestArtifactRecordReconciliation.test_kpis_count_reconciled_runs"
+      },
+      "name": "test_kpis_count_reconciled_runs",
+      "path": "tests/test_console_api.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_console_api.TestArtifactRecordReconciliation.test_list_includes_runs_only_present_as_artifacts",
+      "language": "python",
+      "metadata": {
+        "line": 129,
+        "qualified_name": "tests.test_console_api.TestArtifactRecordReconciliation.test_list_includes_runs_only_present_as_artifacts"
+      },
+      "name": "test_list_includes_runs_only_present_as_artifacts",
+      "path": "tests/test_console_api.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_console_api.TestArtifactRecordReconciliation.test_list_orders_runs_most_recent_first_across_sources",
+      "language": "python",
+      "metadata": {
+        "line": 143,
+        "qualified_name": "tests.test_console_api.TestArtifactRecordReconciliation.test_list_orders_runs_most_recent_first_across_sources"
+      },
+      "name": "test_list_orders_runs_most_recent_first_across_sources",
+      "path": "tests/test_console_api.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_console_api.TestConsoleRunsList.test_list_includes_console_columns",
+      "language": "python",
+      "metadata": {
+        "line": 90,
+        "qualified_name": "tests.test_console_api.TestConsoleRunsList.test_list_includes_console_columns"
+      },
+      "name": "test_list_includes_console_columns",
+      "path": "tests/test_console_api.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_console_api.TestConsoleRunsList.test_list_kpis_endpoint_serves_honest_counts",
+      "language": "python",
+      "metadata": {
+        "line": 112,
+        "qualified_name": "tests.test_console_api.TestConsoleRunsList.test_list_kpis_endpoint_serves_honest_counts"
+      },
+      "name": "test_list_kpis_endpoint_serves_honest_counts",
+      "path": "tests/test_console_api.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_console_api.TestInterruptedRuns.test_interrupted_run_detail_includes_worker_summary_evidence",
+      "language": "python",
+      "metadata": {
+        "line": 198,
+        "qualified_name": "tests.test_console_api.TestInterruptedRuns.test_interrupted_run_detail_includes_worker_summary_evidence"
+      },
+      "name": "test_interrupted_run_detail_includes_worker_summary_evidence",
+      "path": "tests/test_console_api.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_console_api.TestInterruptedRuns.test_interrupted_run_events_serve_worker_timeline",
+      "language": "python",
+      "metadata": {
+        "line": 213,
+        "qualified_name": "tests.test_console_api.TestInterruptedRuns.test_interrupted_run_events_serve_worker_timeline"
+      },
+      "name": "test_interrupted_run_events_serve_worker_timeline",
+      "path": "tests/test_console_api.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_console_api.TestInterruptedRuns.test_list_includes_interrupted_run_as_blocked_with_reason",
+      "language": "python",
+      "metadata": {
+        "line": 178,
+        "qualified_name": "tests.test_console_api.TestInterruptedRuns.test_list_includes_interrupted_run_as_blocked_with_reason"
+      },
+      "name": "test_list_includes_interrupted_run_as_blocked_with_reason",
+      "path": "tests/test_console_api.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_console_api.TestRunEvents.test_run_events_404_on_unknown_run",
+      "language": "python",
+      "metadata": {
+        "line": 248,
+        "qualified_name": "tests.test_console_api.TestRunEvents.test_run_events_404_on_unknown_run"
+      },
+      "name": "test_run_events_404_on_unknown_run",
+      "path": "tests/test_console_api.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_console_api.TestRunEvents.test_run_events_returns_timeline",
+      "language": "python",
+      "metadata": {
+        "line": 232,
+        "qualified_name": "tests.test_console_api.TestRunEvents.test_run_events_returns_timeline"
+      },
+      "name": "test_run_events_returns_timeline",
+      "path": "tests/test_console_api.py",
+      "type": "method"
+    },
+    {
       "id": "method:python:tests.test_evidence_guard.HallucinatingReportLLM.generate_structured",
       "language": "python",
       "metadata": {
@@ -53571,7 +54191,7 @@
       "id": "route:python:GET:/runs",
       "language": "python",
       "metadata": {
-        "line": 263,
+        "line": 268,
         "method": "GET",
         "path": "/runs"
       },
@@ -53583,7 +54203,7 @@
       "id": "route:python:GET:/runs/kpis",
       "language": "python",
       "metadata": {
-        "line": 308,
+        "line": 324,
         "method": "GET",
         "path": "/runs/kpis"
       },
@@ -53595,7 +54215,7 @@
       "id": "route:python:GET:/runs/{run_id}",
       "language": "python",
       "metadata": {
-        "line": 321,
+        "line": 337,
         "method": "GET",
         "path": "/runs/{run_id}"
       },
@@ -53631,7 +54251,7 @@
       "id": "route:python:GET:/runs/{run_id}/events",
       "language": "python",
       "metadata": {
-        "line": 350,
+        "line": 366,
         "method": "GET",
         "path": "/runs/{run_id}/events"
       },
@@ -53643,7 +54263,7 @@
       "id": "route:python:GET:/runs/{run_id}/handoff",
       "language": "python",
       "metadata": {
-        "line": 387,
+        "line": 403,
         "method": "GET",
         "path": "/runs/{run_id}/handoff"
       },
@@ -53655,7 +54275,7 @@
       "id": "route:python:GET:/runs/{run_id}/logs",
       "language": "python",
       "metadata": {
-        "line": 342,
+        "line": 358,
         "method": "GET",
         "path": "/runs/{run_id}/logs"
       },
@@ -53667,7 +54287,7 @@
       "id": "route:python:GET:/runs/{run_id}/report",
       "language": "python",
       "metadata": {
-        "line": 334,
+        "line": 350,
         "method": "GET",
         "path": "/runs/{run_id}/report"
       },
@@ -53715,7 +54335,7 @@
       "id": "route:python:POST:/runs",
       "language": "python",
       "metadata": {
-        "line": 249,
+        "line": 254,
         "method": "POST",
         "path": "/runs"
       },
@@ -53738,8 +54358,8 @@
       "python"
     ],
     "risk_count": 0,
-    "source_file_count": 236,
-    "test_file_count": 99,
+    "source_file_count": 237,
+    "test_file_count": 100,
     "test_frameworks": [
       "pytest"
     ]

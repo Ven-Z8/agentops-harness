@@ -524,6 +524,15 @@ var EV_RAW = [[0,0.0,"S","system prompt set (harness constraints)"],[1,0.0,"M","
     }, 120);
   });
 
+  /* live data: when console-data.js delivers real /runs/{id}/events,
+     re-render the scrubber over them (design demo rows are the default). */
+  window.addEventListener('console:events', function (ev) {
+    rows = ev.detail || [];
+    range.max = Math.max(0, rows.length - 1);
+    range.value = rows.length - 1;
+    render(rows.length - 1);
+  });
+
   /* ── showcase mode: a view, not a separate app ───────────────────── */
   var toggle = document.getElementById('showcaseToggle');
   var KEY = 'od-agentops-showcase';
@@ -544,6 +553,18 @@ var EV_RAW = [[0,0.0,"S","system prompt set (harness constraints)"],[1,0.0,"M","
     window.addEventListener('beforeunload', function () { localStorage.setItem('od-agentops-detail-y', String(window.scrollY)); });
   } catch (e) {}
 })();
+</script>
+<script src="console-data.js"></script>
+<script>
+/* replay hook: lets console-data.js feed real /runs/{id}/events
+   into this scrubber without touching the OpenDesign replay code. */
+window.__consoleWireReplay = function (events) {
+  var rows = events.map(function (e, i) {
+    return [i, i, e.kind || "?", e.detail || e.label || ""];
+  });
+  var evt = new CustomEvent("console:events", { detail: rows });
+  window.dispatchEvent(evt);
+};
 </script>
 </body>
 </html>

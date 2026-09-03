@@ -103,6 +103,11 @@ class TestConsoleRunsList:
         assert "duration_seconds" in row
         assert "tests_failed" in row
         assert "started_at" in row
+        # Detail-grade columns the runs table renders.
+        assert "attempts" in row
+        assert "risk_score" in row
+        assert "tests_exit" in row
+        assert "stages_done" in row
 
     def test_list_kpis_endpoint_serves_honest_counts(self, tmp_path: Path, monkeypatch) -> None:
         client = _client(tmp_path, monkeypatch)

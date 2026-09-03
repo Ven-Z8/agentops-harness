@@ -1,10 +1,10 @@
 {
   "counts": {
-    "edges": 4121,
-    "included_files": 333,
-    "nodes": 2778,
-    "source_files": 236,
-    "test_files": 99
+    "edges": 4163,
+    "included_files": 335,
+    "nodes": 2812,
+    "source_files": 237,
+    "test_files": 100
   },
   "exclusions": [
     ".cache/",
@@ -27,9 +27,10 @@
     "target/",
     "vendor/"
   ],
-  "generated_at": "2026-09-03T05:42:36Z",
+  "generated_at": "2026-09-03T06:42:29Z",
   "generator_version": "1",
   "included_paths": [
+    ".DS_Store",
     ".env.example",
     ".gitattributes",
     ".github/workflows/ci.yml",
@@ -269,6 +270,7 @@
     "tests/test_cli.py",
     "tests/test_cockpit.py",
     "tests/test_conflict.py",
+    "tests/test_console_api.py",
     "tests/test_docker_workspace.py",
     "tests/test_dogfood_goal_model.py",
     "tests/test_edit_mode.py",
@@ -388,6 +390,6 @@
     ]
   },
   "schema_version": 1,
-  "source_commit": "93fb42be0cf59aa33194a1cc632c6d792edafce9",
-  "source_tree_digest": "2f921b2a24e4985e3b410df810adeb387c8d442db712bbea772955c64cbc98de"
+  "source_commit": "ac31ed545bc6c8536e439604eaaa3d160021a425",
+  "source_tree_digest": "256739399906c0344f75edaed37e15eabdbd8beb7f9f03ab403c31de9e71aaa3"
 }
