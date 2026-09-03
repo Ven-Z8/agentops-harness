@@ -1,9 +1,9 @@
 {
   "counts": {
-    "edges": 4075,
-    "included_files": 317,
-    "nodes": 2746,
-    "source_files": 234,
+    "edges": 4121,
+    "included_files": 333,
+    "nodes": 2778,
+    "source_files": 236,
     "test_files": 99
   },
   "exclusions": [
@@ -27,7 +27,7 @@
     "target/",
     "vendor/"
   ],
-  "generated_at": "2026-09-02T23:30:13Z",
+  "generated_at": "2026-09-03T05:42:36Z",
   "generator_version": "1",
   "included_paths": [
     ".env.example",
@@ -163,6 +163,7 @@
     "app/vault_mcp.py",
     "coordination/PROJECT.md",
     "coordination/README.md",
+    "coordination/decisions/2026-09-02-AO-DEC-UI-1-operator-console.md",
     "coordination/decisions/README.md",
     "coordination/designs/2026-08-30-project-control-room-design.md",
     "coordination/handoffs/2026-09-02-AO-D03-deepseek-harness.md",
@@ -189,6 +190,21 @@
     "docs/assets/nine-components.png",
     "docs/assets/three-layer-harness.svg",
     "docs/assets/worker-harness-anatomy.png",
+    "docs/design/2026-09-02-opendesign-initial-prompt.md",
+    "docs/design/opendesign-console-v1/.od-skills/web-prototype-4ab6e4cb5f/SKILL.md",
+    "docs/design/opendesign-console-v1/.od-skills/web-prototype-4ab6e4cb5f/assets/template.html",
+    "docs/design/opendesign-console-v1/.od-skills/web-prototype-4ab6e4cb5f/example.html",
+    "docs/design/opendesign-console-v1/.od-skills/web-prototype-4ab6e4cb5f/open-design.json",
+    "docs/design/opendesign-console-v1/.od-skills/web-prototype-4ab6e4cb5f/references/checklist.md",
+    "docs/design/opendesign-console-v1/.od-skills/web-prototype-4ab6e4cb5f/references/layouts.md",
+    "docs/design/opendesign-console-v1/DESIGN.md",
+    "docs/design/opendesign-console-v1/ev_dmr.js",
+    "docs/design/opendesign-console-v1/ev_pisek.js",
+    "docs/design/opendesign-console-v1/index.html",
+    "docs/design/opendesign-console-v1/new-run.html",
+    "docs/design/opendesign-console-v1/run-detail.html",
+    "docs/design/opendesign-console-v1/runs-list.html",
+    "docs/design/opendesign-console-v1/task-specs.html",
     "examples/sample_fastapi_app/.gitignore",
     "examples/sample_fastapi_app/app/__init__.py",
     "examples/sample_fastapi_app/app/main.py",
@@ -372,6 +388,6 @@
     ]
   },
   "schema_version": 1,
-  "source_commit": "ef5d86b0ac1ad749b0b5981700e17bab200fe22d",
-  "source_tree_digest": "c05e317cfc69299d68e142457ee65cfe709f7944e1bbaa5da68566c56f4c1b5b"
+  "source_commit": "93fb42be0cf59aa33194a1cc632c6d792edafce9",
+  "source_tree_digest": "2f921b2a24e4985e3b410df810adeb387c8d442db712bbea772955c64cbc98de"
 }

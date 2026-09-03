@@ -2,7 +2,7 @@
 
 > Generated from validated repository state; do not edit manually.
 
-- Generated at: 2026-09-02T23:30:13Z
+- Generated at: 2026-09-03T05:42:37Z
 
 ## Current phase
 
@@ -69,11 +69,12 @@
 
 ## Latest decisions and handoffs
 
+- [Decision AO-DEC-UI-1](<coordination/decisions/2026-09-02-AO-DEC-UI-1-operator-console.md>): accepted
 - [Handoff AO-D03](<coordination/handoffs/2026-09-02-AO-D03-deepseek-harness.md>): partial
 
 ## Code graph freshness
 
-- Graph input provenance: `ef5d86b0ac1ad749b0b5981700e17bab200fe22d`; freshness is inconclusive until validated against the current source tree before relying on it.
+- Graph input provenance: `93fb42be0cf59aa33194a1cc632c6d792edafce9`; freshness is inconclusive until validated against the current source tree before relying on it.
 - Fresh: the manifest source-tree digest matches tracked inputs.
 
 ## Onboarding commands

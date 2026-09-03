@@ -1,11 +1,11 @@
 # Repository code graph
 
-- Generated at: 2026-09-02T23:30:13Z
-- Source commit: `ef5d86b0ac1ad749b0b5981700e17bab200fe22d`
-- Source tree digest: `c05e317cfc69299d68e142457ee65cfe709f7944e1bbaa5da68566c56f4c1b5b`
-- Included files: 317
-- Nodes: 2746
-- Edges: 4075
+- Generated at: 2026-09-03T05:42:36Z
+- Source commit: `93fb42be0cf59aa33194a1cc632c6d792edafce9`
+- Source tree digest: `2f921b2a24e4985e3b410df810adeb387c8d442db712bbea772955c64cbc98de`
+- Included files: 333
+- Nodes: 2778
+- Edges: 4121
 
 ## Language coverage
 
@@ -17,7 +17,7 @@ JavaScript and TypeScript receive file-level coverage only; this export does not
 
 ## Graph summary
 
-- Source files: 234
+- Source files: 236
 - Test files: 99
 - Dependencies: 14
 - Migration risks: 0

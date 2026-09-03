@@ -1,0 +1,549 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>piskoviste/pisek#683 · Run fe008544 · AgentOps Console</title>
+<style>
+/* ═══ tokens (DESIGN.md — same contract as runs-list) ═══ */
+:root {
+  --bg:      oklch(20% 0.02 260);
+  --surface: oklch(24.5% 0.021 260);
+  --surface-2: oklch(28% 0.021 260);
+  --fg:      oklch(93% 0.005 250);
+  --muted:   oklch(66% 0.014 255);
+  --border:  oklch(32% 0.018 260);
+  --border-strong: oklch(40% 0.02 260);
+  --accent:  oklch(80% 0.19 150);
+  --ok:      oklch(78% 0.17 150);
+  --fail:    oklch(67% 0.20 25);
+  --warn:    oklch(80% 0.15 85);
+  --info:    oklch(75% 0.12 240);
+  --font-display: 'Space Grotesk', system-ui, sans-serif;
+  --font-body: 'Inter', -apple-system, 'Segoe UI', system-ui, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, monospace;
+  --accent-soft: color-mix(in oklch, var(--accent) 14%, transparent);
+  --ok-soft: color-mix(in oklch, var(--ok) 14%, transparent);
+  --fail-soft: color-mix(in oklch, var(--fail) 13%, transparent);
+  --warn-soft: color-mix(in oklch, var(--warn) 13%, transparent);
+  --info-soft: color-mix(in oklch, var(--info) 14%, transparent);
+  --radius: 8px;
+  --sidebar-w: 240px;
+}
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 13px; line-height: 1.5; -webkit-font-smoothing: antialiased; min-width: 1280px; }
+img, svg { display: block; }
+a { color: var(--info); text-decoration: none; }
+a:hover { text-decoration: underline; }
+button { font: inherit; cursor: pointer; }
+h1, h2, h3 { margin: 0; font-weight: 600; }
+.mono, code { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.meta { font-size: 11.5px; color: var(--muted); }
+.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+
+.shell { display: grid; grid-template-columns: var(--sidebar-w) 1fr; min-height: 100vh; }
+.sidebar { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; background: oklch(18% 0.02 260); border-right: 1px solid var(--border); padding: 20px 14px; gap: 26px; }
+.brand { display: flex; align-items: center; gap: 10px; padding: 2px 8px; }
+.brand-mark { width: 26px; height: 26px; flex: 0 0 26px; }
+.brand-name { font-family: var(--font-display); font-size: 15px; letter-spacing: 0.02em; }
+.brand-sub { display: block; font-size: 10.5px; color: var(--muted); font-family: var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; margin-top: 1px; }
+.nav { display: flex; flex-direction: column; gap: 2px; }
+.nav a { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: var(--radius); color: var(--muted); font-size: 13px; font-weight: 500; }
+.nav a svg { width: 16px; height: 16px; flex: 0 0 16px; }
+.nav a:hover { color: var(--fg); background: var(--surface); text-decoration: none; }
+.nav a.active { color: var(--fg); background: var(--surface-2); box-shadow: inset 2px 0 0 var(--accent); }
+.sidebar-foot { margin-top: auto; display: flex; flex-direction: column; gap: 10px; padding: 0 8px; }
+.worker-status { display: flex; flex-direction: column; gap: 6px; }
+.worker-row { display: flex; align-items: center; justify-content: space-between; font-size: 11.5px; color: var(--muted); }
+.worker-row .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); }
+.worker-row.online .dot { background: var(--ok); }
+.worker-row.online { color: var(--fg); }
+.harness-id { font-family: var(--font-mono); font-size: 10.5px; color: var(--muted); line-height: 1.6; }
+
+.main { display: flex; flex-direction: column; min-width: 0; }
+.topbar { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 20px; padding: 10px 24px; background: color-mix(in oklch, var(--bg) 88%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); }
+.crumb { font-size: 12.5px; color: var(--muted); white-space: nowrap; }
+.crumb b { color: var(--fg); font-weight: 600; }
+.topbar-spacer { flex: 1; }
+.live-ind { display: inline-flex; align-items: center; gap: 7px; font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ok); padding: 5px 12px; border: 1px solid color-mix(in oklch, var(--ok) 40%, transparent); border-radius: 999px; }
+.live-ind .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); animation: pulse 1.6s ease infinite; }
+.live-ind.offline { color: var(--muted); border-color: var(--border-strong); }
+.live-ind.offline .dot { background: var(--muted); animation: none; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+.btn { display: inline-flex; align-items: center; gap: 7px; padding: 7px 14px; min-height: 32px; border-radius: var(--radius); border: 1px solid transparent; font-size: 13px; font-weight: 500; transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease; text-decoration: none; }
+.btn:hover { text-decoration: none; }
+.btn svg { width: 14px; height: 14px; }
+.btn-primary { background: var(--accent); color: oklch(20% 0.02 260); font-weight: 600; }
+.btn-primary:hover { background: color-mix(in oklch, var(--accent) 86%, white); }
+.btn-secondary { background: transparent; color: var(--fg); border-color: var(--border-strong); }
+.btn-secondary:hover { border-color: var(--fg); background: var(--surface); }
+.btn-ghost { background: transparent; color: var(--muted); border-color: transparent; }
+.btn-ghost:hover { color: var(--fg); background: var(--surface); }
+.btn-sm { padding: 4px 10px; min-height: 26px; font-size: 12px; }
+.btn[aria-pressed="true"] { color: var(--fg); background: var(--surface-2); border-color: var(--border-strong); }
+
+.content { padding: 24px; display: flex; flex-direction: column; gap: 20px; max-width: 1160px; }
+.page-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.page-title { font-family: var(--font-display); font-size: 22px; letter-spacing: -0.01em; }
+.page-sub { color: var(--muted); font-size: 12.5px; margin-top: 3px; max-width: 68ch; }
+
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 2px 9px; border-radius: 999px; font-family: var(--font-mono); font-size: 10.5px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; }
+.chip .cdot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.chip-ok { color: var(--ok); background: var(--ok-soft); border: 1px solid color-mix(in oklch, var(--ok) 35%, transparent); }
+.chip-fail { color: var(--fail); background: var(--fail-soft); border: 1px solid color-mix(in oklch, var(--fail) 35%, transparent); }
+.chip-warn { color: var(--warn); background: var(--warn-soft); border: 1px solid color-mix(in oklch, var(--warn) 35%, transparent); }
+
+.panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.panel-title { font-size: 13.5px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+.panel-body { padding: 16px; }
+
+/* ── pipeline timeline (the one flourish) ─────────────────────────── */
+.pipeline { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0; padding: 18px 16px 6px; }
+.stage { position: relative; display: flex; flex-direction: column; gap: 6px; padding: 0 10px 14px 0; }
+.stage .track { height: 4px; border-radius: 2px; background: var(--border-strong); position: relative; }
+.stage .track::before { content: ''; position: absolute; left: 0; top: -4px; width: 12px; height: 12px; border-radius: 50%; background: var(--border-strong); border: 3px solid var(--surface); }
+.stage.done .track { background: color-mix(in oklch, var(--ok) 60%, var(--border-strong)); }
+.stage.done .track::before { background: var(--ok); }
+.stage.current .track { background: color-mix(in oklch, var(--accent) 55%, var(--border-strong)); }
+.stage.current .track::before { background: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+.stage.failed .track { background: color-mix(in oklch, var(--fail) 60%, var(--border-strong)); }
+.stage.failed .track::before { background: var(--fail); }
+.stage-pending .track { background: var(--border-strong); }
+.stage-label { font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); }
+.stage.current .stage-label { color: var(--accent); }
+.stage.done .stage-label { color: var(--fg); }
+.stage.failed .stage-label { color: var(--fail); }
+.stage-time { font-family: var(--font-mono); font-size: 10.5px; color: var(--muted); }
+.stage-event-count { font-size: 10.5px; color: var(--muted); }
+.pipeline-meta { display: flex; justify-content: space-between; padding: 0 16px 12px; align-items: center; }
+
+/* ── test results table ───────────────────────────────────────────── */
+table.tests { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+table.tests th { text-align: left; padding: 9px 12px; font-family: var(--font-mono); font-size: 10.5px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border); white-space: nowrap; }
+table.tests td { padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+table.tests tbody tr:hover { background: var(--surface-2); }
+.exit { font-family: var(--font-mono); font-weight: 700; font-size: 12px; padding: 1px 8px; border-radius: 4px; display: inline-block; }
+.exit-0 { color: var(--ok); background: var(--ok-soft); }
+.exit-n { color: var(--fail); background: var(--fail-soft); }
+.cmd { font-family: var(--font-mono); font-size: 12px; color: var(--fg); }
+.log-link { font-size: 11.5px; white-space: nowrap; }
+
+/* ── evidence findings ───────────────────────────────────────────── */
+.finding { display: flex; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--border); }
+.finding:last-child { border-bottom: 0; }
+.finding .sev { flex: 0 0 84px; font-family: var(--font-mono); font-size: 10.5px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 2px 0; text-align: center; border-radius: 4px; align-self: flex-start; }
+.sev-info { color: var(--info); background: var(--info-soft); }
+.sev-warning { color: var(--warn); background: var(--warn-soft); }
+.sev-error { color: var(--fail); background: var(--fail-soft); }
+.finding .body { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.finding .claim { font-size: 13px; font-weight: 500; }
+.finding .detail { font-size: 12px; color: var(--muted); }
+.finding .cite { font-family: var(--font-mono); font-size: 11px; color: var(--info); }
+
+/* ── diff view ───────────────────────────────────────────────────── */
+.diff { font-family: var(--font-mono); font-size: 12px; line-height: 1.55; overflow-x: auto; }
+.diff .dhead { padding: 6px 16px; background: var(--surface-2); border-bottom: 1px solid var(--border); font-size: 11px; color: var(--muted); display: flex; justify-content: space-between; gap: 10px; }
+.diff .dl { padding: 0 16px; white-space: pre; }
+.diff .add { color: var(--ok); background: color-mix(in oklch, var(--ok) 8%, transparent); }
+.diff .del { color: var(--fail); background: color-mix(in oklch, var(--fail) 8%, transparent); }
+.diff .ctx { color: var(--muted); }
+.diff .hunk { color: var(--info); background: var(--info-soft); }
+
+/* ── usage grid ──────────────────────────────────────────────────── */
+.usage { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.usage .cell { border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; display: flex; flex-direction: column; gap: 2px; }
+.usage .u-label { font-size: 10.5px; font-family: var(--font-mono); letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); }
+.usage .u-value { font-family: var(--font-display); font-size: 20px; font-weight: 600; }
+.usage .u-note { font-size: 11px; color: var(--muted); }
+
+/* ── risk factors ────────────────────────────────────────────────── */
+.risk-factor { display: flex; align-items: baseline; gap: 8px; padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 12.5px; }
+.risk-factor:last-child { border-bottom: 0; }
+.risk-factor::before { content: '▸'; color: var(--warn); font-size: 10px; }
+
+/* ── event log ───────────────────────────────────────────────────── */
+.evlog { font-family: var(--font-mono); font-size: 11.5px; max-height: 420px; overflow-y: auto; }
+.evlog .ev { display: grid; grid-template-columns: 54px 34px 1fr; gap: 8px; padding: 3px 16px; }
+.evlog .ev:nth-child(odd) { background: color-mix(in oklch, var(--surface-2) 50%, transparent); }
+.evlog .t { color: var(--muted); text-align: right; }
+.evlog .k { font-weight: 700; }
+.evlog .k-T { color: var(--info); } .evlog .k-O { color: var(--muted); }
+.evlog .k-F { color: var(--info); } .evlog .k-E { color: var(--fail); }
+.evlog .k-C { color: var(--warn); } .evlog .k-K { color: var(--muted); font-weight: 400; }
+
+/* ── showcase mode ───────────────────────────────────────────────── */
+body.showcase { font-size: 14px; }
+body.showcase .content { max-width: 1400px; }
+body.showcase .panel { display: none; }
+body.showcase .panel.showcase-visible { display: block; }
+body.showcase .page-head { align-items: center; margin-top: 8px; }
+body.showcase .page-title { font-size: 44px; letter-spacing: -0.02em; line-height: 1.05; }
+body.showcase .page-sub { font-size: 17px; max-width: 60ch; color: color-mix(in oklch, var(--fg) 80%, var(--muted)); }
+body.showcase .kpi-strip { grid-template-columns: repeat(4, 1fr); }
+body.showcase .kpi-value { font-size: 42px; }
+body.showcase .kpi-label { font-size: 12px; }
+body.showcase .kpi { padding: 20px 22px; }
+body.showcase .kpi-note { font-size: 13px; }
+body.showcase .pipeline { padding-top: 34px; padding-bottom: 10px; }
+body.showcase .stage-label { font-size: 14px; }
+body.showcase .stage-time { font-size: 13px; }
+body.showcase .stage .track { height: 6px; }
+body.showcase .stage .track::before { width: 16px; height: 16px; top: -5px; }
+body.showcase .chip { font-size: 13px; padding: 4px 12px; }
+body.showcase .diff { font-size: 14px; }
+body.showcase .diff .dl { padding: 2px 20px; }
+body.showcase .panel-title { font-size: 16px; }
+body.showcase .tests-cell-big { font-size: 14px; }
+
+/* replay scrubber */
+.replay { padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+.replay-track { position: relative; height: 28px; display: flex; align-items: center; }
+.replay-track input[type="range"] { width: 100%; appearance: none; height: 4px; border-radius: 2px; background: var(--border-strong); }
+.replay-track input[type="range"]::-webkit-slider-thumb { appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--accent); cursor: pointer; border: 3px solid var(--surface); box-shadow: 0 0 0 2px var(--accent); }
+.replay-track input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: var(--accent); cursor: pointer; border: 3px solid var(--surface); box-shadow: 0 0 0 2px var(--accent); }
+.replay-controls { display: flex; align-items: center; gap: 10px; }
+.replay-now { font-family: var(--font-mono); font-size: 12px; color: var(--fg); background: var(--surface-2); border: 1px solid var(--border-strong); padding: 6px 12px; border-radius: 6px; min-width: 92%; max-width: 92%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.replay-t { font-family: var(--font-mono); font-size: 12px; color: var(--muted); min-width: 72px; text-align: right; }
+
+.kpi-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.kpi { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; }
+.kpi-label { font-size: 11px; font-family: var(--font-mono); letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); }
+.kpi-value { font-family: var(--font-display); font-size: 26px; font-weight: 600; line-height: 1.1; }
+.kpi-note { font-size: 11.5px; color: var(--muted); }
+
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+.three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; align-items: start; }
+</style>
+</head>
+<body>
+<div class="shell" data-od-id="app-shell">
+  <aside class="sidebar" data-od-id="sidebar" aria-label="Console navigation">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 4v5c0 4.4-3 8-7 9-4-1-7-4.6-7-9V7l7-4z"/><path d="M9.5 12l2 2 3.5-4"/></svg>
+      <div><span class="brand-name">AgentOps</span><span class="brand-sub">Operator Console</span></div>
+    </div>
+    <nav class="nav" aria-label="Primary">
+      <a href="runs-list.html" class="active" data-od-id="nav-runs" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h14"/></svg>Runs</a>
+      <a href="new-run.html" data-od-id="nav-new-run"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>New governed run</a>
+      <a href="task-specs.html" data-od-id="nav-task-specs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 5h16v4H4zM4 13h7v6H4z"/><path d="M15 13h5v6h-5z"/></svg>Task-spec library</a>
+    </nav>
+    <div class="sidebar-foot" data-od-id="sidebar-foot">
+      <div class="worker-status" aria-label="Worker availability">
+        <div class="worker-row online"><span style="display:flex;align-items:center;gap:6px;"><span class="dot"></span>openhands</span><span class="mono">sdk 1.28.1</span></div>
+        <div class="worker-row"><span style="display:flex;align-items:center;gap:6px;"><span class="dot"></span>codex</span><span class="mono">opt-in</span></div>
+        <div class="worker-row"><span style="display:flex;align-items:center;gap:6px;"><span class="dot"></span>claude</span><span class="mono">opt-in</span></div>
+      </div>
+      <p class="harness-id">storage <span style="color:var(--fg)">.agentops/runs</span><br/>local-first · no cloud</p>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar" data-od-id="topbar">
+      <span class="crumb"><a href="runs-list.html">Runs</a> / <b>fe008544</b> · wemake-services/django-modern-rest#1325</span>
+      <span class="topbar-spacer"></span>
+      <button class="btn btn-ghost" id="showcaseToggle" aria-pressed="false" data-od-id="showcase-toggle">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6z"/><circle cx="12" cy="12" r="2.5"/></svg>
+        Showcase mode
+      </button>
+    </header>
+
+    <main class="content" id="content">
+      <!-- head -->
+      <div class="page-head" data-od-id="run-head">
+        <div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <h1 class="page-title">Strict boolean <span class="mono">Query</span> cast</h1>
+            <span class="chip chip-ok" id="statusChip"><span class="cdot"></span>completed</span>
+          </div>
+          <p class="page-sub"><a href="https://github.com/wemake-services/django-modern-rest/issues/1325" rel="noopener">wemake-services/django-modern-rest#1325</a> — resolved in a governed run on <span class="mono">agentops/issue-1325</span> · worker <span class="mono">openhands</span> · <span class="mono">openrouter/minimax/minimax-m3:free</span> · <span class="mono">1</span> attempt · converged.</p>
+        </div>
+      </div>
+
+      <!-- KPI strip -->
+      <section class="kpi-strip" data-od-id="run-kpis" aria-label="Run metrics">
+        <div class="kpi"><span class="kpi-label">Changed files</span><span class="kpi-value num">6</span><span class="kpi-note">+153 / −6 · <a href="#patch">patch</a></span></div>
+        <div class="kpi"><span class="kpi-label">Tests</span><span class="kpi-value num" style="color:var(--ok)">2447</span><span class="kpi-note">passed · baseline 2442/4 · <a href="#tests">table</a></span></div>
+        <div class="kpi"><span class="kpi-label">Risk</span><span class="kpi-value num" style="color:var(--ok)">0</span><span class="kpi-note">low · no blocking factors · <a href="#risk">factors</a></span></div>
+        <div class="kpi"><span class="kpi-label">Duration</span><span class="kpi-value num">386<span style="font-size:0.55em;color:var(--muted)">s</span></span><span class="kpi-note">150 observable worker events</span></div>
+      </section>
+
+      <!-- stage timeline -->
+      <section class="panel showcase-visible" data-od-id="stage-timeline" aria-label="Pipeline stages">
+        <div class="panel-head">
+          <span class="panel-title">Pipeline · plan → dispatch → enforce → validate → retry → report</span>
+          <span class="meta mono" id="stageClock">total 09:46 · 27 governance events</span>
+        </div>
+        <div class="pipeline" role="list" aria-label="Stage progress">
+          <div class="stage done" role="listitem"><span class="track"></span><span class="stage-label">Plan</span><span class="stage-time">01:22</span><span class="stage-event-count">repo graph · profile · 5-step plan</span></div>
+          <div class="stage done" role="listitem"><span class="track"></span><span class="stage-label">Dispatch</span><span class="stage-time">06:26</span><span class="stage-event-count">worker packet → openhands sdk</span></div>
+          <div class="stage done" role="listitem"><span class="track"></span><span class="stage-label">Enforce</span><span class="stage-time">00:03</span><span class="stage-event-count">0 violations · 0 reverts</span></div>
+          <div class="stage done" role="listitem"><span class="track"></span><span class="stage-label">Validate</span><span class="stage-time">01:51</span><span class="stage-event-count">scoped suite green (env-scoped)</span></div>
+          <div class="stage done" role="listitem"><span class="track"></span><span class="stage-label">Retry</span><span class="stage-time">—</span><span class="stage-event-count">not needed · converged first pass</span></div>
+          <div class="stage done" role="listitem"><span class="track"></span><span class="stage-label">Report</span><span class="stage-time">00:04</span><span class="stage-event-count">evidence bundle assembled · <a href="#evidence">6 findings</a></span></div>
+        </div>
+        <div class="pipeline-meta">
+          <span class="meta">Current stage: <b style="color:var(--ok)">report — complete</b></span>
+          <span class="meta mono">base <a href="https://github.com/wemake-services/django-modern-rest/commit/0cf1affc7debeaec530a2c41bd2c080462eeb87e" rel="noopener">0cf1affc</a> → patch <a href="#patch">1361db1b</a></span>
+        </div>
+      </section>
+
+      <!-- tests + evidence -->
+      <div class="two-col">
+        <section class="panel" id="tests" data-od-id="test-results" aria-label="Test results">
+          <div class="panel-head">
+            <span class="panel-title">Test results</span>
+            <span class="meta">each row links to its log</span>
+          </div>
+          <table class="tests">
+            <thead><tr><th scope="col">Command</th><th scope="col">Exit</th><th scope="col" style="text-align:right;">Duration</th><th scope="col">Log</th></tr></thead>
+            <tbody>
+              <tr>
+                <td class="cmd">DJANGO_SETTINGS_MODULE=server.settings PYTHONPATH=django_test_app:docs python -m pytest tests/test_unit tests/test_integration/test_openapi/test_views.py</td>
+                <td><span class="exit exit-0">0</span></td>
+                <td class="num" style="text-align:right;">184.2s</td>
+                <td class="log-link"><a href="#log-1">open log ↗</a></td>
+              </tr>
+              <tr>
+                <td class="cmd">.venv/bin/python -m pytest -q tests/test_unit/test_components/test_query.py</td>
+                <td><span class="exit exit-0">0</span></td>
+                <td class="num" style="text-align:right;">6.8s</td>
+                <td class="log-link"><a href="#log-2">open log ↗</a></td>
+              </tr>
+              <tr>
+                <td class="cmd">curl -s "?random=false" -o /dev/null -w "%{http_code}"</td>
+                <td><span class="exit exit-0">0</span></td>
+                <td class="num" style="text-align:right;">0.4s</td>
+                <td class="log-link"><a href="#log-3">repro · 200 False</a></td>
+              </tr>
+              <tr>
+                <td class="cmd">curl -s "?random=false" -o /dev/null -w "%{http_code}" <span class="meta">(no marker · negative control)</span></td>
+                <td><span class="exit exit-0">0</span></td>
+                <td class="num" style="text-align:right;">0.4s</td>
+                <td class="log-link"><a href="#log-4">strictness kept · 400</a></td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="panel-body" style="border-top:1px solid var(--border);padding:10px 16px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+            <span class="meta">Baseline on untouched HEAD: 2442 passed / 4 skipped — zero regressions.</span>
+            <span class="meta mono">scoped via --test-commands (host env limits recorded)</span>
+          </div>
+        </section>
+
+        <section class="panel" id="evidence" data-od-id="evidence-findings" aria-label="Evidence report">
+          <div class="panel-head">
+            <span class="panel-title">Evidence findings</span>
+            <span class="meta">grounded · <span class="num">0</span> unsupported claims</span>
+          </div>
+          <div class="finding">
+            <span class="sev sev-info">info</span>
+            <div class="body">
+              <span class="claim">Fix is opt-in and backward compatible</span>
+              <span class="detail">Fields without <code>__dmr_cast_bool__</code> keep rejecting <code>?random=false</code> — strictness stays the default.</span>
+              <span class="cite">citation: tests/test_unit — negative control · <a href="#tests">row 4</a></span>
+            </div>
+          </div>
+          <div class="finding">
+            <span class="sev sev-info">pass</span>
+            <div class="body">
+              <span class="claim">Issue reproduction ran verbatim</span>
+              <span class="detail"><code>?random=true</code> → 200 <code>True</code>; <code>?random=false</code> → 200 <code>False</code> — the issue's own example.</span>
+              <span class="cite">citation: evidence bundle §3 · <a href="#log-3">log-3</a></span>
+            </div>
+          </div>
+          <div class="finding">
+            <span class="sev sev-warning">warn</span>
+            <div class="body">
+              <span class="claim">Harness bug surfaced, caught honestly</span>
+              <span class="detail"><code>TestRunner._resolve_argv</code> uses <code>shlex.split</code> + shell-less <code>Popen</code>; a <code>VAR=x</code> env prefix became the binary name and crashed <code>run_tests</code>. Worker edits survived intact.</span>
+              <span class="cite">citation: .agentops/runs/fe008544 — traceback in test_runner.py · follow-up filed</span>
+            </div>
+          </div>
+          <div class="finding">
+            <span class="sev sev-info">pass</span>
+            <div class="body">
+              <span class="claim">Convention fidelity verified by diff review</span>
+              <span class="detail">Mirrors the existing <code>__dmr_cast_null__</code> convention across code, tests, docs, and example.</span>
+              <span class="cite">citation: <a href="#patch">patch below</a> · evidence bundle §3 row 5</span>
+            </div>
+          </div>
+          <div class="finding">
+            <span class="sev sev-warning">inconclusive</span>
+            <div class="body">
+              <span class="claim">Product review: not evaluated</span>
+              <span class="detail">No intent graph (<code>agentops.goals.yaml</code>) for the target repo — recorded as <b>not_evaluated</b>, never inferred as pass.</span>
+              <span class="cite">citation: goal_model absent · product_review per-lens verdicts</span>
+            </div>
+          </div>
+          <div class="panel-body" style="border-top:1px solid var(--border);">
+            <span class="meta">Every finding cites its source of truth. Missing evidence stays <b>inconclusive</b> — distinct from failure.</span>
+          </div>
+        </section>
+      </div>
+
+      <!-- patch -->
+      <section class="panel showcase-visible" id="patch" data-od-id="patch-diff" aria-label="Produced patch">
+        <div class="panel-head">
+          <span class="panel-title">Produced patch · <span class="mono">1361db1b</span></span>
+          <span class="meta">6 files · +153 / −6 · <a href="https://github.com/wemake-services/django-modern-rest/commit/1361db1b" rel="noopener">commit</a></span>
+        </div>
+        <div class="diff">
+          <div class="dhead"><span class="mono">dmr/internal/django.py</span><span>index 785d3ac8..26996320</span></div>
+          <div class="dl ctx">@@ convert_multi_value_dict(..., cast_bool: frozenset[str] = frozenset())</div>
+          <div class="dl ctx">    """And the string literals ``'true'`` / ``'false'`` into Python's</div>
+          <div class="dl ctx">    ``True`` / ``False`` for fields in *cast_bool*."""</div>
+          <div class="dl del">-                _replace_null_string(dict_key, list_value, cast_null=cast_null)</div>
+          <div class="dl add">+                _replace_special_strings(</div>
+          <div class="dl add">+                    dict_key, list_value, cast_null=cast_null, cast_bool=cast_bool,</div>
+          <div class="dl add">+                )</div>
+          <div class="dhead" style="margin-top:10px;"><span class="mono">dmr/components.py</span><span>index 6e58cc2d..98eada8d</span></div>
+          <div class="dl ctx">@@ class QueryComponent(BaseModel):</div>
+          <div class="dl add">+        cast_bool: frozenset[str] = getattr(</div>
+          <div class="dl add">+            field_model, '__dmr_cast_bool__', frozenset(),</div>
+          <div class="dl add">+        )</div>
+          <div class="dl add">+            cast_bool=cast_bool,</div>
+          <div class="dhead" style="margin-top:10px;"><span class="mono">tests/test_unit/test_components/test_query.py</span><span>+85 parametrized cases</span></div>
+          <div class="dl add">+def test_cast_bool(</div>
+          <div class="dl add">+    raw_query: str, expected: bool,</div>
+          <div class="dl add">) -> None:</div>
+          <div class="dl add">+    """Ensures that opted-in fields accept the OpenAPI boolean strings."""</div>
+          <div class="dl ctx"> … 3 more files: docs example, docs page, multivalue tests (full patch in evidence bundle)</div>
+        </div>
+      </section>
+
+      <!-- risk + permissions + usage -->
+      <div class="three-col">
+        <section class="panel" id="risk" data-od-id="risk-factors" aria-label="Risk report">
+          <div class="panel-head"><span class="panel-title">Risk · score 0 / low</span><span class="meta"><a href="runs-list.html">all runs</a></span></div>
+          <div class="panel-body">
+            <div class="risk-factor">No material risk factors detected</div>
+            <div class="risk-factor">0 sensitive files touched (secrets / auth / payment / deps)</div>
+            <div class="risk-factor">0 deletions of existing behavior</div>
+            <p class="meta" style="margin:10px 0 0;">Risk guard verdict: <span class="chip chip-ok" style="font-size:9.5px;">pass</span> — factors list is exhaustive; empty would be dishonest.</p>
+          </div>
+        </section>
+
+        <section class="panel" data-od-id="permission-report" aria-label="Permission enforcement">
+          <div class="panel-head"><span class="panel-title">Permission enforcement</span></div>
+          <div class="panel-body">
+            <div class="risk-factor" style="color:var(--ok)">pre-dispatch: allowed — 0 denied paths</div>
+            <div class="risk-factor">secrets / auth / payment / dependency files: untouched</div>
+            <div class="risk-factor">destructive shell commands: 0 attempted</div>
+            <div class="risk-factor">enforced reverts: 0</div>
+          </div>
+        </section>
+
+        <section class="panel" data-od-id="token-usage" aria-label="Token usage">
+          <div class="panel-head"><span class="panel-title">Token usage</span></div>
+          <div class="panel-body" style="display:flex;flex-direction:column;gap:10px;">
+            <div class="usage" style="grid-template-columns:1fr 1fr;">
+              <div class="cell"><span class="u-label">Tokens in</span><span class="u-value num">—</span><span class="u-note">not reported by worker</span></div>
+              <div class="cell"><span class="u-label">Tokens out</span><span class="u-value num">—</span><span class="u-note">not reported by worker</span></div>
+            </div>
+            <p class="meta" style="margin:0;">The harness records token usage when the worker reports it. This worker reports <span class="mono">tokens_in: 0 / tokens_out: 0</span> — shown as unknown, not zero-cost. Free-tier model: <span class="mono">openrouter/minimax/minimax-m3:free</span>.</p>
+          </div>
+        </section>
+      </div>
+
+      <!-- event log + replay -->
+      <section class="panel showcase-visible" id="events" data-od-id="event-log" aria-label="Worker event log">
+        <div class="panel-head">
+          <span class="panel-title">Worker event log · <span class="num" id="evCount">150</span> observable events</span>
+          <span class="meta mono">openhands_events.jsonl · full fidelity on disk</span>
+        </div>
+        <div class="replay" data-od-id="replay-scrubber" aria-label="Replay scrubber">
+          <div class="replay-controls">
+            <button class="btn btn-secondary btn-sm" id="replayPlay" aria-label="Play replay">▶ play</button>
+            <div class="replay-track" style="flex:1;">
+              <input type="range" id="replayRange" min="0" max="149" value="149" aria-label="Scrub worker timeline" />
+            </div>
+            <span class="replay-t" id="replayTime">t+384s</span>
+          </div>
+          <div class="replay-now mono" id="replayNow" aria-live="polite">terminal · git diff --stat</div>
+          <div class="evlog" id="evLog" role="log" aria-label="Event stream"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<script>
+/* event stream: real OpenHands events from .agentops/runs/fe008544… —
+   ev_dmr.js is a bare JSON array literal; wrap it safely. */
+var EV_RAW = [[0,0.0,"S","system prompt set (harness constraints)"],[1,0.0,"M","worker packet composed (task + constraints)"],[2,2.1,"T","cd .agentops/issues/django-modern-rest-1325 && ls -la"],[3,2.6,"O","observation: terminal / editor output returned"],[4,4.4,"T","ls -la"],[5,5.1,"O","observation: terminal / editor output returned"],[6,6.5,"T","ls dmr/ && echo \"---\" && ls dmr/components/ 2>/dev/null"],[7,7.3,"O","observation: terminal / editor output returned"],[8,8.6,"T","grep -n -E \"class Query|^def |^def parse|^class \" dmr/components.py 2>/dev/null | head -50"],[9,8.8,"O","observation: terminal / editor output returned"],[10,10.5,"F","view"],[11,10.5,"O","observation: terminal / editor output returned"],[12,12.3,"T","ls dmr/internal/django/"],[13,12.5,"O","observation: terminal / editor output returned"],[14,40.0,"T","find dmr -path '*internal*' -type d"],[15,40.8,"O","observation: terminal / editor output returned"],[16,42.5,"T","find dmr/internal -maxdepth 4 -type f"],[17,42.7,"O","observation: terminal / editor output returned"],[18,46.4,"T","grep -n \"convert_multi_value_dict\\|__dmr_force_list__\\|__dmr_cast_null__\\|cast_null\\|force_list\" dmr/internal/"],[19,46.5,"O","observation: terminal / editor output returned"],[20,48.3,"F","view"],[21,48.3,"O","observation: terminal / editor output returned"],[22,50.3,"T","grep -rn \"__dmr_force_list__\\|__dmr_cast_null__\\|cast_null\" --include=\"*.py\" | head -50"],[23,51.1,"O","observation: terminal / editor output returned"],[24,52.3,"F","view"],[25,52.3,"O","observation: terminal / editor output returned"],[26,64.6,"K",""],[27,64.6,"O","observation: terminal / editor output returned"],[28,66.5,"T","grep -n \"StrictBool\\|strict_validation\\|__dmr_force_list__\\|__dmr_cast_null__\" tests/test_unit/test_plugins/te"],[29,66.7,"O","observation: terminal / editor output returned"],[30,68.5,"F","view"],[31,68.5,"O","observation: terminal / editor output returned"],[32,70.0,"F","view"],[33,70.0,"O","observation: terminal / editor output returned"],[34,72.0,"T","grep -rn \"StrictBool\" tests/ docs/ 2>/dev/null | head -20"],[35,72.7,"O","observation: terminal / editor output returned"],[36,74.8,"F","view"],[37,74.8,"O","observation: terminal / editor output returned"],[38,83.3,"F","view"],[39,83.3,"O","observation: terminal / editor output returned"],[40,85.1,"T","cd /Volumes/VeN/Claude-Code-Work/projects/agentops-harness/.agentops/issues/django-modern-rest-1325 && ls pypr"],[41,85.8,"O","observation: terminal / editor output returned"],[42,88.1,"T","cd /Volumes/VeN/Claude-Code-Work/projects/agentops-harness/.agentops/issues/django-modern-rest-1325 && python "],[43,88.8,"O","observation: terminal / editor output returned"],[44,107.2,"T","which uv && uv --version"],[45,107.9,"O","observation: terminal / editor output returned"],[46,109.7,"T","cd /Volumes/VeN/Claude-Code-Work/projects/agentops-harness/.agentops/issues/django-modern-rest-1325 && ls uv.l"],[47,109.9,"O","observation: terminal / editor output returned"],[48,113.4,"T","cd /Volumes/VeN/Claude-Code-Work/projects/agentops-harness/.agentops/issues/django-modern-rest-1325 && UV_CACH"],[49,118.9,"O","observation: terminal / editor output returned"],[50,120.8,"T","cd /Volumes/VeN/Claude-Code-Work/projects/agentops-harness/.agentops/issues/django-modern-rest-1325 && UV_CACH"],[51,129.3,"O","observation: terminal / editor output returned"],[52,132.1,"T","cd /Volumes/VeN/Claude-Code-Work/projects/agentops-harness/.agentops/issues/django-modern-rest-1325 && cat > /"],[53,132.1,"O","observation: terminal / editor output returned"],[54,134.8,"F","create"],[55,134.8,"O","observation: terminal / editor output returned"],[56,136.2,"T","cd /Volumes/VeN/Claude-Code-Work/projects/agentops-harness/.agentops/issues/django-modern-rest-1325 && UV_CACH"],[57,137.0,"O","observation: terminal / editor output returned"],[58,138.7,"T","cd /Volumes/VeN/Claude-Code-Work/projects/agentops-harness/.agentops/issues/django-modern-rest-1325/django_tes"],[59,139.4,"O","observation: terminal / editor output returned"],[60,146.7,"T","find /Volumes/VeN/Claude-Code-Work/projects/agentops-harness/.agentops/issues/django-modern-rest-1325 -name 's"],[61,147.5,"O","observation: terminal / editor output returned"],[62,149.9,"F","create"],[63,149.9,"O","observation: terminal / editor output returned"],[64,157.7,"T","cd /Volumes/VeN/Claude-Code-Work/projects/agentops-harness/.agentops/issues/django-modern-rest-1325 && UV_CACH"],[65,158.9,"O","observation: terminal / editor output returned"],[66,171.8,"K",""],[67,171.8,"O","observation: terminal / editor output returned"],[68,173.3,"T","grep -rn \"__dmr_cast_null__\\|__dmr_force_list__\\|__dmr_cast_bool__\" docs/ 2>/dev/null | head -30"],[69,174.1,"O","observation: terminal / editor output returned"],[70,175.8,"F","view"],[71,175.9,"O","observation: terminal / editor output returned"],[72,177.3,"F","view"],[73,177.3,"O","observation: terminal / editor output returned"],[74,183.2,"F","str_replace"],[75,183.2,"O","observation: terminal / editor output returned"],[76,185.8,"F","str_replace"],[77,185.8,"O","observation: terminal / editor output returned"],[78,189.4,"F","str_replace"],[79,189.4,"O","observation: terminal / editor output returned"],[80,191.1,"T","cd /Volumes/VeN/Claude-Code-Work/projects/agentops-harness/.agentops/issues/django-modern-rest-1325 && UV_CACH"],[81,192.3,"O","observation: terminal / editor output returned"],[82,200.7,"C","context condensed - 44 events forgotten"],[83,204.6,"T","cd /Volumes/VeN/Claude-Code-Work/projects/agentops-harness/.agentops/issues/django-modern-rest-1325 && UV_CACH"],[84,205.8,"O","observation: terminal / editor output returned"],[85,218.9,"T","cd /Volumes/VeN/Claude-Code-Work/projects/agentops-harness/.agentops/issues/django-modern-rest-1325 && UV_CACH"],[86,220.1,"O","observation: terminal / editor output returned"],[87,231.1,"F","view"],[88,231.1,"O","observation: terminal / editor output returned"],[89,232.6,"F","view"],[90,232.6,"O","observation: terminal / editor output returned"],[91,241.3,"F","str_replace"],[92,241.3,"O","observation: terminal / editor output returned"],[93,246.4,"F","str_replace"],[94,246.5,"O","observation: terminal / editor output returned"],[95,248.8,"T","cd /Volumes/VeN/Claude-Code-Work/projects/agentops-harness/.agentops/issues/django-modern-rest-1325 && UV_CACH"],[96,250.1,"O","observation: terminal / editor output returned"],[97,252.3,"F","str_replace"],[98,252.3,"O","observation: terminal / editor output returned"],[99,266.1,"T","cd /Volumes/VeN/Claude-Code-Work/projects/agentops-harness/.agentops/issues/django-modern-rest-1325 && python "],[100,266.9,"O","observation: terminal / editor output returned"],[101,268.2,"F","view"],[102,268.2,"O","observation: terminal / editor output returned"],[103,279.2,"F","create"],[104,279.3,"O","observation: terminal / editor output returned"],[105,286.6,"T","rm /Volumes/VeN/Claude-Code-Work/projects/agentops-harness/.agentops/issues/django-modern-rest-1325/tests/test"],[106,287.3,"O","observation: terminal / editor output returned"],[107,295.6,"F","create"],[108,295.6,"O","observation: terminal / editor output returned"],[109,297.4,"T","cd /Volumes/VeN/Claude-Code-Work/projects/agentops-harness/.agentops/issues/django-modern-rest-1325 && UV_CACH"],[110,299.2,"O","observation: terminal / editor output returned"],[111,301.8,"F","str_replace"],[112,301.8,"O","observation: terminal / editor output returned"],[113,303.4,"T","cd /Volumes/VeN/Claude-Code-Work/projects/agentops-harness/.agentops/issues/django-modern-rest-1325 && UV_CACH"],[114,304.6,"O","observation: terminal / editor output returned"],[115,306.2,"T","ls /Volumes/VeN/Claude-Code-Work/projects/agentops-harness/.agentops/issues/django-modern-rest-1325/docs/examp"],[116,306.4,"O","observation: terminal / editor output returned"],[117,311.9,"T","cat /Volumes/VeN/Claude-Code-Work/projects/agentops-harness/.agentops/issues/django-modern-rest-1325/docs/exam"],[118,312.1,"O","observation: terminal / editor output returned"],[119,314.5,"F","create"],[120,314.5,"O","observation: terminal / editor output returned"],[121,317.3,"F","str_replace"],[122,317.3,"O","observation: terminal / editor output returned"],[123,319.1,"T","ls /Volumes/VeN/Claude-Code-Work/projects/agentops-harness/.agentops/issues/django-modern-rest-1325/tests/test"],[124,319.3,"O","observation: terminal / editor output returned"],[125,324.6,"C","context condensed - 43 events forgotten"],[126,326.5,"T","grep -n \"StrictSerializerContext\\|MsgspecQueryController\\|__dmr_cast\" /Volumes/VeN/Claude-Code-Work/projects/a"],[127,327.3,"O","observation: terminal / editor output returned"],[128,329.1,"T","cd /Volumes/VeN/Claude-Code-Work/projects/agentops-harness/.agentops/issues/django-modern-rest-1325 && UV_CACH"],[129,353.3,"O","observation: terminal / editor output returned"],[130,355.7,"T","cd /Volumes/VeN/Claude-Code-Work/projects/agentops-harness/.agentops/issues/django-modern-rest-1325 && uv run "],[131,356.4,"O","observation: terminal / editor output returned"],[132,358.3,"T","cd /Volumes/VeN/Claude-Code-Work/projects/agentops-harness/.agentops/issues/django-modern-rest-1325 && uv run "],[133,359.1,"O","observation: terminal / editor output returned"],[134,361.1,"F","str_replace"],[135,361.1,"O","observation: terminal / editor output returned"],[136,363.8,"T","cd /Volumes/VeN/Claude-Code-Work/projects/agentops-harness/.agentops/issues/django-modern-rest-1325 && uv run "],[137,364.5,"O","observation: terminal / editor output returned"],[138,366.8,"T","cd /Volumes/VeN/Claude-Code-Work/projects/agentops-harness/.agentops/issues/django-modern-rest-1325 && UV_CACH"],[139,368.0,"O","observation: terminal / editor output returned"],[140,370.0,"T","rm -f /tmp/repro_test.py /tmp/repro.py"],[141,370.2,"O","observation: terminal / editor output returned"],[142,371.6,"T","cd /Volumes/VeN/Claude-Code-Work/projects/agentops-harness/.agentops/issues/django-modern-rest-1325 && git sta"],[143,372.4,"O","observation: terminal / editor output returned"],[144,374.0,"T","cd /Volumes/VeN/Claude-Code-Work/projects/agentops-harness/.agentops/issues/django-modern-rest-1325 && git dif"],[145,374.7,"O","observation: terminal / editor output returned"],[146,377.3,"T","cd /Volumes/VeN/Claude-Code-Work/projects/agentops-harness/.agentops/issues/django-modern-rest-1325 && UV_CACH"],[147,378.5,"O","observation: terminal / editor output returned"],[148,383.7,"A",""],[149,383.8,"O","observation: terminal / editor output returned"]];
+<script>
+/* ── replay scrubber over the real event stream ───────────────────── */
+(function () {
+  var rows = EV_RAW || [];
+  var log = document.getElementById('evLog');
+  var range = document.getElementById('replayRange');
+  var now = document.getElementById('replayNow');
+  var tlabel = document.getElementById('replayTime');
+  var playBtn = document.getElementById('replayPlay');
+  var KIND = { T: 'terminal', O: 'observe', F: 'file-editor', K: 'think', E: 'agent-error', C: 'condense', M: 'packet', S: 'system' };
+
+  function line(i) {
+    var r = rows[i];
+    var el = document.createElement('div');
+    el.className = 'ev';
+    el.innerHTML = '<span class="t">' + (r[1] >= 0 ? '+' + r[1] : r[1]) + 's</span>' +
+      '<span class="k k-' + r[2] + '">' + r[2] + '</span>' +
+      '<span class="x">' + (escapeHtml(r[3]) || KIND[r[2]] || '') + '</span>';
+    return el;
+  }
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; });
+  }
+  function render(upto) {
+    log.textContent = '';
+    var frag = document.createDocumentFragment();
+    var start = Math.max(0, upto - 40);
+    for (var i = start; i <= upto; i++) log.appendChild(line(i));
+    var r = rows[upto];
+    now.textContent = (KIND[r[2]] || r[2]) + ' · ' + (r[3] || '');
+    tlabel.textContent = 't+' + Math.round(r[1]) + 's';
+    log.scrollTop = log.scrollHeight;
+  }
+  range.max = rows.length - 1;
+  range.addEventListener('input', function () { render(+this.value); stopPlay(); });
+  render(rows.length - 1);
+
+  var timer = null;
+  function stopPlay() { if (timer) { clearInterval(timer); timer = null; playBtn.textContent = '▶ play'; } }
+  playBtn.addEventListener('click', function () {
+    if (timer) { stopPlay(); return; }
+    playBtn.textContent = '⏸ pause';
+    var i = 0;
+    range.value = 0; render(0);
+    timer = setInterval(function () {
+      i++;
+      if (i >= rows.length) { stopPlay(); return; }
+      range.value = i; render(i);
+    }, 120);
+  });
+
+  /* ── showcase mode: a view, not a separate app ───────────────────── */
+  var toggle = document.getElementById('showcaseToggle');
+  var KEY = 'od-agentops-showcase';
+  function apply(on) {
+    document.body.classList.toggle('showcase', on);
+    toggle.setAttribute('aria-pressed', String(on));
+    try { localStorage.setItem(KEY, on ? '1' : '0'); } catch (e) {}
+  }
+  toggle.addEventListener('click', function () { apply(!document.body.classList.contains('showcase')); });
+  var saved = null;
+  try { saved = localStorage.getItem(KEY); } catch (e) {}
+  if (saved === '1') apply(true);
+
+  /* persist scroll/position for long reading sessions */
+  try {
+    var y = +localStorage.getItem('od-agentops-detail-y') || 0;
+    if (y > 0) window.scrollTo(0, y);
+    window.addEventListener('beforeunload', function () { localStorage.setItem('od-agentops-detail-y', String(window.scrollY)); });
+  } catch (e) {}
+})();
+</script>
+</body>
+</html>
