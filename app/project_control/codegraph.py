@@ -35,6 +35,12 @@ _FILE_ONLY_SUFFIXES = {
 }
 _EXCLUDED_PARTS = RepoGraphBuilder.IGNORED_PARTS | {".cache", ".next", "coverage", "vendor"}
 
+# macOS Finder metadata: rewritten non-deterministically (window geometry,
+# icon positions). If digested, a manifest computed locally is stale by
+# commit time on any mac — CI then fails on every push. Finder state, not
+# source; excluded even when accidentally tracked.
+_EXCLUDED_NAMES = {".DS_Store"}
+
 
 def _generated_paths(root: Path, config: ProjectConfig | None) -> GeneratedPaths:
     if config is not None:
@@ -76,6 +82,7 @@ def _is_excluded(relative: Path, generated: GeneratedPaths) -> bool:
     codegraph = Path(generated.codegraph)
     return (
         relative.as_posix() in {generated.board, generated.current}
+        or relative.name in _EXCLUDED_NAMES
         or parts[:2] == ("coordination", "artifacts")
         or parts[: len(codegraph.parts)] == codegraph.parts
         or bool(set(parts).intersection(_EXCLUDED_PARTS))

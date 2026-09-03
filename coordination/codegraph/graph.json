@@ -20763,6 +20763,12 @@
     {
       "metadata": {},
       "source": "file:tests/unit/test_project_control_codegraph.py",
+      "target": "function:python:tests.unit.test_project_control_codegraph.test_tracked_graph_inputs_exclude_macos_finder_metadata",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/unit/test_project_control_codegraph.py",
       "target": "function:python:tests.unit.test_project_control_codegraph.test_tracked_graph_inputs_include_staged_file",
       "type": "defines"
     },
@@ -22551,12 +22557,6 @@
     {
       "metadata": {},
       "source": "folder:.",
-      "target": "file:.DS_Store",
-      "type": "contains"
-    },
-    {
-      "metadata": {},
-      "source": "folder:.",
       "target": "file:.env.example",
       "type": "contains"
     },
@@ -23716,6 +23716,12 @@
       "metadata": {},
       "source": "folder:docs/design/opendesign-console-v1",
       "target": "file:docs/design/opendesign-console-v1/DESIGN.md",
+      "type": "contains"
+    },
+    {
+      "metadata": {},
+      "source": "folder:docs/design/opendesign-console-v1",
+      "target": "file:docs/design/opendesign-console-v1/console-data.js",
       "type": "contains"
     },
     {
@@ -27599,14 +27605,6 @@
       "type": "dependency"
     },
     {
-      "id": "file:.DS_Store",
-      "language": null,
-      "metadata": {},
-      "name": ".DS_Store",
-      "path": ".DS_Store",
-      "type": "file"
-    },
-    {
       "id": "file:.env.example",
       "language": null,
       "metadata": {},
@@ -28948,6 +28946,14 @@
       "metadata": {},
       "name": "DESIGN.md",
       "path": "docs/design/opendesign-console-v1/DESIGN.md",
+      "type": "file"
+    },
+    {
+      "id": "file:docs/design/opendesign-console-v1/console-data.js",
+      "language": "javascript",
+      "metadata": {},
+      "name": "console-data.js",
+      "path": "docs/design/opendesign-console-v1/console-data.js",
       "type": "file"
     },
     {
@@ -35826,7 +35832,7 @@
       "id": "function:python:app.project_control.codegraph._annotate_file_only_languages",
       "language": "python",
       "metadata": {
-        "line": 138,
+        "line": 145,
         "qualified_name": "app.project_control.codegraph._annotate_file_only_languages"
       },
       "name": "_annotate_file_only_languages",
@@ -35837,7 +35843,7 @@
       "id": "function:python:app.project_control.codegraph._copy_tracked_inputs",
       "language": "python",
       "metadata": {
-        "line": 119,
+        "line": 126,
         "qualified_name": "app.project_control.codegraph._copy_tracked_inputs"
       },
       "name": "_copy_tracked_inputs",
@@ -35848,7 +35854,7 @@
       "id": "function:python:app.project_control.codegraph._exclusions",
       "language": "python",
       "metadata": {
-        "line": 48,
+        "line": 54,
         "qualified_name": "app.project_control.codegraph._exclusions"
       },
       "name": "_exclusions",
@@ -35859,7 +35865,7 @@
       "id": "function:python:app.project_control.codegraph._generated_paths",
       "language": "python",
       "metadata": {
-        "line": 39,
+        "line": 45,
         "qualified_name": "app.project_control.codegraph._generated_paths"
       },
       "name": "_generated_paths",
@@ -35870,7 +35876,7 @@
       "id": "function:python:app.project_control.codegraph._graph_counts",
       "language": "python",
       "metadata": {
-        "line": 201,
+        "line": 208,
         "qualified_name": "app.project_control.codegraph._graph_counts"
       },
       "name": "_graph_counts",
@@ -35881,7 +35887,7 @@
       "id": "function:python:app.project_control.codegraph._is_excluded",
       "language": "python",
       "metadata": {
-        "line": 74,
+        "line": 80,
         "qualified_name": "app.project_control.codegraph._is_excluded"
       },
       "name": "_is_excluded",
@@ -35892,7 +35898,7 @@
       "id": "function:python:app.project_control.codegraph._is_file_only_test",
       "language": "python",
       "metadata": {
-        "line": 127,
+        "line": 134,
         "qualified_name": "app.project_control.codegraph._is_file_only_test"
       },
       "name": "_is_file_only_test",
@@ -35903,7 +35909,7 @@
       "id": "function:python:app.project_control.codegraph._language_coverage",
       "language": "python",
       "metadata": {
-        "line": 184,
+        "line": 191,
         "qualified_name": "app.project_control.codegraph._language_coverage"
       },
       "name": "_language_coverage",
@@ -35914,7 +35920,7 @@
       "id": "function:python:app.project_control.codegraph._source_commit",
       "language": "python",
       "metadata": {
-        "line": 171,
+        "line": 178,
         "qualified_name": "app.project_control.codegraph._source_commit"
       },
       "name": "_source_commit",
@@ -35925,7 +35931,7 @@
       "id": "function:python:app.project_control.codegraph._summary",
       "language": "python",
       "metadata": {
-        "line": 211,
+        "line": 218,
         "qualified_name": "app.project_control.codegraph._summary"
       },
       "name": "_summary",
@@ -35936,7 +35942,7 @@
       "id": "function:python:app.project_control.codegraph._timestamp",
       "language": "python",
       "metadata": {
-        "line": 178,
+        "line": 185,
         "qualified_name": "app.project_control.codegraph._timestamp"
       },
       "name": "_timestamp",
@@ -35947,7 +35953,7 @@
       "id": "function:python:app.project_control.codegraph._validated_relative_file",
       "language": "python",
       "metadata": {
-        "line": 65,
+        "line": 71,
         "qualified_name": "app.project_control.codegraph._validated_relative_file"
       },
       "name": "_validated_relative_file",
@@ -35958,7 +35964,7 @@
       "id": "function:python:app.project_control.codegraph.build_codegraph",
       "language": "python",
       "metadata": {
-        "line": 243,
+        "line": 250,
         "qualified_name": "app.project_control.codegraph.build_codegraph"
       },
       "name": "build_codegraph",
@@ -35969,7 +35975,7 @@
       "id": "function:python:app.project_control.codegraph.build_export_graph",
       "language": "python",
       "metadata": {
-        "line": 158,
+        "line": 165,
         "qualified_name": "app.project_control.codegraph.build_export_graph"
       },
       "name": "build_export_graph",
@@ -35980,7 +35986,7 @@
       "id": "function:python:app.project_control.codegraph.file_only_language",
       "language": "python",
       "metadata": {
-        "line": 60,
+        "line": 66,
         "qualified_name": "app.project_control.codegraph.file_only_language"
       },
       "name": "file_only_language",
@@ -35991,7 +35997,7 @@
       "id": "function:python:app.project_control.codegraph.source_tree_digest",
       "language": "python",
       "metadata": {
-        "line": 106,
+        "line": 113,
         "qualified_name": "app.project_control.codegraph.source_tree_digest"
       },
       "name": "source_tree_digest",
@@ -36002,7 +36008,7 @@
       "id": "function:python:app.project_control.codegraph.tracked_graph_inputs",
       "language": "python",
       "metadata": {
-        "line": 85,
+        "line": 92,
         "qualified_name": "app.project_control.codegraph.tracked_graph_inputs"
       },
       "name": "tracked_graph_inputs",
@@ -36013,7 +36019,7 @@
       "id": "function:python:app.project_control.codegraph.validate_codegraph_freshness",
       "language": "python",
       "metadata": {
-        "line": 273,
+        "line": 280,
         "qualified_name": "app.project_control.codegraph.validate_codegraph_freshness"
       },
       "name": "validate_codegraph_freshness",
@@ -44065,7 +44071,7 @@
       "id": "function:python:tests.unit.test_project_control_codegraph.test_codegraph_build_and_freshness_use_configured_directory",
       "language": "python",
       "metadata": {
-        "line": 182,
+        "line": 203,
         "qualified_name": "tests.unit.test_project_control_codegraph.test_codegraph_build_and_freshness_use_configured_directory"
       },
       "name": "test_codegraph_build_and_freshness_use_configured_directory",
@@ -44076,7 +44082,7 @@
       "id": "function:python:tests.unit.test_project_control_codegraph.test_codegraph_generator_is_stable_for_fixed_time_and_fresh_until_sources_change",
       "language": "python",
       "metadata": {
-        "line": 228,
+        "line": 249,
         "qualified_name": "tests.unit.test_project_control_codegraph.test_codegraph_generator_is_stable_for_fixed_time_and_fresh_until_sources_change"
       },
       "name": "test_codegraph_generator_is_stable_for_fixed_time_and_fresh_until_sources_change",
@@ -44087,7 +44093,7 @@
       "id": "function:python:tests.unit.test_project_control_codegraph.test_configured_generated_outputs_are_excluded_before_file_validation",
       "language": "python",
       "metadata": {
-        "line": 154,
+        "line": 175,
         "qualified_name": "tests.unit.test_project_control_codegraph.test_configured_generated_outputs_are_excluded_before_file_validation"
       },
       "name": "test_configured_generated_outputs_are_excluded_before_file_validation",
@@ -44120,7 +44126,7 @@
       "id": "function:python:tests.unit.test_project_control_codegraph.test_control_room_graph_rejects_directory_input",
       "language": "python",
       "metadata": {
-        "line": 220,
+        "line": 241,
         "qualified_name": "tests.unit.test_project_control_codegraph.test_control_room_graph_rejects_directory_input"
       },
       "name": "test_control_room_graph_rejects_directory_input",
@@ -44131,7 +44137,7 @@
       "id": "function:python:tests.unit.test_project_control_codegraph.test_control_room_graph_rejects_symlink_input",
       "language": "python",
       "metadata": {
-        "line": 198,
+        "line": 219,
         "qualified_name": "tests.unit.test_project_control_codegraph.test_control_room_graph_rejects_symlink_input"
       },
       "name": "test_control_room_graph_rejects_symlink_input",
@@ -44142,7 +44148,7 @@
       "id": "function:python:tests.unit.test_project_control_codegraph.test_control_room_graph_rejects_traversal_input",
       "language": "python",
       "metadata": {
-        "line": 212,
+        "line": 233,
         "qualified_name": "tests.unit.test_project_control_codegraph.test_control_room_graph_rejects_traversal_input"
       },
       "name": "test_control_room_graph_rejects_traversal_input",
@@ -44153,7 +44159,7 @@
       "id": "function:python:tests.unit.test_project_control_codegraph.test_graph_manifest_discloses_evidence_exclusion",
       "language": "python",
       "metadata": {
-        "line": 148,
+        "line": 169,
         "qualified_name": "tests.unit.test_project_control_codegraph.test_graph_manifest_discloses_evidence_exclusion"
       },
       "name": "test_graph_manifest_discloses_evidence_exclusion",
@@ -44164,7 +44170,7 @@
       "id": "function:python:tests.unit.test_project_control_codegraph.test_source_digest_changes_when_a_tracked_file_changes",
       "language": "python",
       "metadata": {
-        "line": 106,
+        "line": 127,
         "qualified_name": "tests.unit.test_project_control_codegraph.test_source_digest_changes_when_a_tracked_file_changes"
       },
       "name": "test_source_digest_changes_when_a_tracked_file_changes",
@@ -44175,7 +44181,7 @@
       "id": "function:python:tests.unit.test_project_control_codegraph.test_source_digest_ignores_coordination_evidence_but_tracks_source_changes",
       "language": "python",
       "metadata": {
-        "line": 128,
+        "line": 149,
         "qualified_name": "tests.unit.test_project_control_codegraph.test_source_digest_ignores_coordination_evidence_but_tracks_source_changes"
       },
       "name": "test_source_digest_ignores_coordination_evidence_but_tracks_source_changes",
@@ -44186,7 +44192,7 @@
       "id": "function:python:tests.unit.test_project_control_codegraph.test_source_digest_ignores_generated_graph_files",
       "language": "python",
       "metadata": {
-        "line": 115,
+        "line": 136,
         "qualified_name": "tests.unit.test_project_control_codegraph.test_source_digest_ignores_generated_graph_files"
       },
       "name": "test_source_digest_ignores_generated_graph_files",
@@ -44205,10 +44211,21 @@
       "type": "function"
     },
     {
-      "id": "function:python:tests.unit.test_project_control_codegraph.test_tracked_graph_inputs_include_staged_file",
+      "id": "function:python:tests.unit.test_project_control_codegraph.test_tracked_graph_inputs_exclude_macos_finder_metadata",
       "language": "python",
       "metadata": {
         "line": 94,
+        "qualified_name": "tests.unit.test_project_control_codegraph.test_tracked_graph_inputs_exclude_macos_finder_metadata"
+      },
+      "name": "test_tracked_graph_inputs_exclude_macos_finder_metadata",
+      "path": "tests/unit/test_project_control_codegraph.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.unit.test_project_control_codegraph.test_tracked_graph_inputs_include_staged_file",
+      "language": "python",
+      "metadata": {
+        "line": 115,
         "qualified_name": "tests.unit.test_project_control_codegraph.test_tracked_graph_inputs_include_staged_file"
       },
       "name": "test_tracked_graph_inputs_include_staged_file",
@@ -54358,7 +54375,7 @@
       "python"
     ],
     "risk_count": 0,
-    "source_file_count": 237,
+    "source_file_count": 238,
     "test_file_count": 100,
     "test_frameworks": [
       "pytest"

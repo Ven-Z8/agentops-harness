@@ -2,7 +2,7 @@
 
 > Generated from validated repository state; do not edit manually.
 
-- Generated at: 2026-09-03T06:42:30Z
+- Generated at: 2026-09-03T07:07:59Z
 
 ## Current phase
 
@@ -74,7 +74,7 @@
 
 ## Code graph freshness
 
-- Graph input provenance: `ac31ed545bc6c8536e439604eaaa3d160021a425`; freshness is inconclusive until validated against the current source tree before relying on it.
+- Graph input provenance: `322c54788d97e0ccad4fff6f6fa4a8058b2d2d9d`; freshness is inconclusive until validated against the current source tree before relying on it.
 - Fresh: the manifest source-tree digest matches tracked inputs.
 
 ## Onboarding commands

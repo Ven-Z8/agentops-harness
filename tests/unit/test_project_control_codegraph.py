@@ -91,6 +91,27 @@ def test_tracked_graph_inputs_exclude_dirty_untracked_and_generated_paths(tmp_pa
     assert [path.as_posix() for path in paths] == ["app/kept.py"]
 
 
+def test_tracked_graph_inputs_exclude_macos_finder_metadata(tmp_path: Path) -> None:
+    """A tracked .DS_Store must not enter digest inputs.
+
+    macOS Finder rewrites .DS_Store non-deterministically (window geometry,
+    icon positions). A manifest computed locally can therefore be stale by
+    the time the commit lands, failing CI on every push from a mac. The
+    file is Finder state, not source.
+    """
+    root = _tracked_repo(
+        tmp_path,
+        {
+            "app/kept.py": "VALUE = 1\n",
+            ".DS_Store": "\x00\x00\x01finder-junk\x00",
+        },
+    )
+
+    paths = tracked_graph_inputs(root)
+
+    assert [path.as_posix() for path in paths] == ["app/kept.py"]
+
+
 def test_tracked_graph_inputs_include_staged_file(tmp_path: Path) -> None:
     root = _tracked_repo(tmp_path, {"app/kept.py": "VALUE = 1\n"})
     staged = root / "app/staged.py"

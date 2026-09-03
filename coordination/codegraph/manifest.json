@@ -1,9 +1,9 @@
 {
   "counts": {
-    "edges": 4163,
+    "edges": 4164,
     "included_files": 335,
-    "nodes": 2812,
-    "source_files": 237,
+    "nodes": 2813,
+    "source_files": 238,
     "test_files": 100
   },
   "exclusions": [
@@ -27,10 +27,9 @@
     "target/",
     "vendor/"
   ],
-  "generated_at": "2026-09-03T06:42:29Z",
+  "generated_at": "2026-09-03T07:07:59Z",
   "generator_version": "1",
   "included_paths": [
-    ".DS_Store",
     ".env.example",
     ".gitattributes",
     ".github/workflows/ci.yml",
@@ -199,6 +198,7 @@
     "docs/design/opendesign-console-v1/.od-skills/web-prototype-4ab6e4cb5f/references/checklist.md",
     "docs/design/opendesign-console-v1/.od-skills/web-prototype-4ab6e4cb5f/references/layouts.md",
     "docs/design/opendesign-console-v1/DESIGN.md",
+    "docs/design/opendesign-console-v1/console-data.js",
     "docs/design/opendesign-console-v1/ev_dmr.js",
     "docs/design/opendesign-console-v1/ev_pisek.js",
     "docs/design/opendesign-console-v1/index.html",
@@ -390,6 +390,6 @@
     ]
   },
   "schema_version": 1,
-  "source_commit": "ac31ed545bc6c8536e439604eaaa3d160021a425",
-  "source_tree_digest": "256739399906c0344f75edaed37e15eabdbd8beb7f9f03ab403c31de9e71aaa3"
+  "source_commit": "322c54788d97e0ccad4fff6f6fa4a8058b2d2d9d",
+  "source_tree_digest": "1539b50e766b06e2908eaef5fd9e629327e365c544be5453d8c7a90afa7bf770"
 }
