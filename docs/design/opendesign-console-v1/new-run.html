@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>New governed run · AgentOps Console</title>
+<style>
+:root {
+  --bg:      oklch(20% 0.02 260);
+  --surface: oklch(24.5% 0.021 260);
+  --surface-2: oklch(28% 0.021 260);
+  --fg:      oklch(93% 0.005 250);
+  --muted:   oklch(66% 0.014 255);
+  --border:  oklch(32% 0.018 260);
+  --border-strong: oklch(40% 0.02 260);
+  --accent:  oklch(80% 0.19 150);
+  --ok:      oklch(78% 0.17 150);
+  --fail:    oklch(67% 0.20 25);
+  --warn:    oklch(80% 0.15 85);
+  --info:    oklch(75% 0.12 240);
+  --font-display: 'Space Grotesk', system-ui, sans-serif;
+  --font-body: 'Inter', -apple-system, 'Segoe UI', system-ui, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, monospace;
+  --accent-soft: color-mix(in oklch, var(--accent) 14%, transparent);
+  --ok-soft: color-mix(in oklch, var(--ok) 14%, transparent);
+  --fail-soft: color-mix(in oklch, var(--fail) 13%, transparent);
+  --warn-soft: color-mix(in oklch, var(--warn) 13%, transparent);
+  --info-soft: color-mix(in oklch, var(--info) 14%, transparent);
+  --radius: 8px;
+  --sidebar-w: 240px;
+}
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 13px; line-height: 1.5; -webkit-font-smoothing: antialiased; min-width: 1280px; }
+img, svg { display: block; }
+a { color: var(--info); text-decoration: none; }
+a:hover { text-decoration: underline; }
+button { font: inherit; cursor: pointer; }
+h1, h2, h3 { margin: 0; font-weight: 600; }
+.mono, code { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.meta { font-size: 11.5px; color: var(--muted); }
+.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+
+.shell { display: grid; grid-template-columns: var(--sidebar-w) 1fr; min-height: 100vh; }
+.sidebar { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; background: oklch(18% 0.02 260); border-right: 1px solid var(--border); padding: 20px 14px; gap: 26px; }
+.brand { display: flex; align-items: center; gap: 10px; padding: 2px 8px; }
+.brand-mark { width: 26px; height: 26px; flex: 0 0 26px; }
+.brand-name { font-family: var(--font-display); font-size: 15px; letter-spacing: 0.02em; }
+.brand-sub { display: block; font-size: 10.5px; color: var(--muted); font-family: var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; margin-top: 1px; }
+.nav { display: flex; flex-direction: column; gap: 2px; }
+.nav a { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: var(--radius); color: var(--muted); font-size: 13px; font-weight: 500; }
+.nav a svg { width: 16px; height: 16px; flex: 0 0 16px; }
+.nav a:hover { color: var(--fg); background: var(--surface); text-decoration: none; }
+.nav a.active { color: var(--fg); background: var(--surface-2); box-shadow: inset 2px 0 0 var(--accent); }
+.sidebar-foot { margin-top: auto; display: flex; flex-direction: column; gap: 10px; padding: 0 8px; }
+.worker-status { display: flex; flex-direction: column; gap: 6px; }
+.worker-row { display: flex; align-items: center; justify-content: space-between; font-size: 11.5px; color: var(--muted); }
+.worker-row .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); }
+.worker-row.online .dot { background: var(--ok); }
+.worker-row.online { color: var(--fg); }
+.harness-id { font-family: var(--font-mono); font-size: 10.5px; color: var(--muted); line-height: 1.6; }
+
+.main { display: flex; flex-direction: column; min-width: 0; }
+.topbar { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 20px; padding: 10px 24px; background: color-mix(in oklch, var(--bg) 88%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); }
+.crumb { font-size: 12.5px; color: var(--muted); white-space: nowrap; }
+.crumb b { color: var(--fg); font-weight: 600; }
+.topbar-spacer { flex: 1; }
+.btn { display: inline-flex; align-items: center; gap: 7px; padding: 7px 14px; min-height: 32px; border-radius: var(--radius); border: 1px solid transparent; font-size: 13px; font-weight: 500; transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease; text-decoration: none; }
+.btn:hover { text-decoration: none; }
+.btn svg { width: 14px; height: 14px; }
+.btn-primary { background: var(--accent); color: oklch(20% 0.02 260); font-weight: 600; }
+.btn-primary:hover { background: color-mix(in oklch, var(--accent) 86%, white); }
+.btn-primary:disabled { background: var(--border-strong); color: var(--muted); cursor: not-allowed; }
+.btn-secondary { background: transparent; color: var(--fg); border-color: var(--border-strong); }
+.btn-secondary:hover { border-color: var(--fg); background: var(--surface); }
+.btn-ghost { background: transparent; color: var(--muted); border-color: transparent; }
+.btn-ghost:hover { color: var(--fg); background: var(--surface); }
+
+.content { padding: 24px; display: flex; flex-direction: column; gap: 20px; max-width: 1160px; }
+.page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; }
+.page-title { font-family: var(--font-display); font-size: 22px; letter-spacing: -0.01em; }
+.page-sub { color: var(--muted); font-size: 12.5px; margin-top: 3px; max-width: 68ch; }
+
+.composer { display: grid; grid-template-columns: 1.35fr 1fr; gap: 20px; align-items: start; }
+.panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--border); }
+.panel-title { font-size: 13.5px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+.panel-body { padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field > label { font-size: 11px; font-family: var(--font-mono); letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); }
+.field .hint { font-size: 11.5px; color: var(--muted); }
+.input, .textarea, select.input {
+  width: 100%; padding: 9px 12px; min-height: 36px;
+  border: 1px solid var(--border-strong); border-radius: var(--radius);
+  background: var(--bg); color: var(--fg); font: inherit; font-size: 13px;
+}
+.input.mono { font-family: var(--font-mono); font-size: 12.5px; }
+.input:focus, .textarea:focus { outline: 2px solid var(--accent-soft); border-color: var(--accent); }
+.textarea { min-height: 72px; resize: vertical; }
+.field-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+
+.worker-select { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.worker-opt {
+  display: flex; flex-direction: column; gap: 3px; padding: 10px 12px;
+  border: 1px solid var(--border-strong); border-radius: var(--radius);
+  background: var(--bg); text-align: left; color: var(--fg);
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.worker-opt:hover { border-color: var(--fg); }
+.worker-opt[aria-pressed="true"] { border-color: var(--accent); background: color-mix(in oklch, var(--accent) 7%, var(--bg)); }
+.worker-opt .w-name { font-family: var(--font-mono); font-size: 12.5px; font-weight: 700; }
+.worker-opt .w-note { font-size: 11px; color: var(--muted); }
+
+/* negative-contract gate */
+.gate { border: 1px solid color-mix(in oklch, var(--warn) 40%, var(--border)); }
+.gate.gate-open { border-color: color-mix(in oklch, var(--ok) 40%, var(--border)); }
+.gate-status { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--border); }
+.gate-status .big { font-family: var(--font-display); font-size: 17px; }
+.gate-probe { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; padding: 10px 16px; border-bottom: 1px solid var(--border); font-family: var(--font-mono); font-size: 12px; align-items: center; }
+.gate-probe:last-of-type { border-bottom: 0; }
+.exit { font-weight: 700; font-size: 12px; padding: 1px 8px; border-radius: 4px; display: inline-block; }
+.exit-0 { color: var(--ok); background: var(--ok-soft); }
+.exit-n { color: var(--fail); background: var(--fail-soft); }
+.exit-q { color: var(--warn); background: var(--warn-soft); }
+.gate-verdict { padding: 12px 16px; font-size: 12.5px; color: var(--muted); }
+.gate-verdict b { color: var(--fg); }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 2px 9px; border-radius: 999px; font-family: var(--font-mono); font-size: 10.5px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; }
+.chip .cdot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.chip-ok { color: var(--ok); background: var(--ok-soft); border: 1px solid color-mix(in oklch, var(--ok) 35%, transparent); }
+.chip-warn { color: var(--warn); background: var(--warn-soft); border: 1px solid color-mix(in oklch, var(--warn) 35%, transparent); }
+.chip-muted { color: var(--muted); background: transparent; border: 1px solid var(--border-strong); }
+
+.spec-summary { display: flex; flex-direction: column; gap: 8px; font-size: 12.5px; }
+.spec-row { display: grid; grid-template-columns: 130px 1fr; gap: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+.spec-row:last-child { border-bottom: 0; padding-bottom: 0; }
+.spec-k { color: var(--muted); font-family: var(--font-mono); font-size: 11px; padding-top: 2px; }
+.spec-v { font-family: var(--font-mono); font-size: 12px; word-break: break-all; }
+
+.launch-row { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-top: 1px solid var(--border); }
+.launch-note { font-size: 12px; color: var(--muted); }
+.state { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 24px; max-width: 60ch; }
+.state .glyph { font-family: var(--font-mono); font-size: 12px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; border: 1px dashed var(--border-strong); padding: 4px 10px; border-radius: 6px; }
+.state h3 { font-size: 14px; }
+.state p { margin: 0; color: var(--muted); font-size: 12.5px; }
+</style>
+</head>
+<body>
+<div class="shell" data-od-id="app-shell">
+  <aside class="sidebar" data-od-id="sidebar" aria-label="Console navigation">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 4v5c0 4.4-3 8-7 9-4-1-7-4.6-7-9V7l7-4z"/><path d="M9.5 12l2 2 3.5-4"/></svg>
+      <div><span class="brand-name">AgentOps</span><span class="brand-sub">Operator Console</span></div>
+    </div>
+    <nav class="nav" aria-label="Primary">
+      <a href="runs-list.html" data-od-id="nav-runs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h14"/></svg>Runs</a>
+      <a href="new-run.html" class="active" data-od-id="nav-new-run" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>New governed run</a>
+      <a href="task-specs.html" data-od-id="nav-task-specs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 5h16v4H4zM4 13h7v6H4z"/><path d="M15 13h5v6h-5z"/></svg>Task-spec library</a>
+    </nav>
+    <div class="sidebar-foot" data-od-id="sidebar-foot">
+      <div class="worker-status" aria-label="Worker availability">
+        <div class="worker-row online"><span style="display:flex;align-items:center;gap:6px;"><span class="dot"></span>openhands</span><span class="mono">sdk 1.28.1</span></div>
+        <div class="worker-row"><span style="display:flex;align-items:center;gap:6px;"><span class="dot"></span>codex</span><span class="mono">opt-in</span></div>
+        <div class="worker-row"><span style="display:flex;align-items:center;gap:6px;"><span class="dot"></span>claude</span><span class="mono">opt-in</span></div>
+      </div>
+      <p class="harness-id">storage <span style="color:var(--fg)">.agentops/runs</span><br/>local-first · no cloud</p>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar" data-od-id="topbar">
+      <span class="crumb">Runs / <b>New governed run</b></span>
+      <span class="topbar-spacer"></span>
+    </header>
+
+    <main class="content" id="content">
+      <div class="page-head" data-od-id="page-head">
+        <div>
+          <h1 class="page-title">New governed run</h1>
+          <p class="page-sub">Pin a real GitHub issue, choose the inner worker, prove the bug exists before dispatch. The negative-contract gate fail-closes: no reproducible failing test, no run.</p>
+        </div>
+      </div>
+
+      <div class="composer">
+        <!-- left: the composer -->
+        <section class="panel" data-od-id="run-composer" aria-label="Run composer">
+          <div class="panel-head"><span class="panel-title">Issue &amp; worker</span><span class="meta">step 1–2 of 4</span></div>
+          <div class="panel-body">
+            <div class="field-row">
+              <div class="field">
+                <label for="owner">Owner</label>
+                <input class="input mono" id="owner" value="piskoviste" />
+              </div>
+              <div class="field">
+                <label for="repo">Repo</label>
+                <input class="input mono" id="repo" value="pisek" />
+              </div>
+              <div class="field">
+                <label for="number">Issue #</label>
+                <input class="input mono" id="number" value="683" />
+              </div>
+            </div>
+            <div class="field">
+              <label for="problem">Problem statement (pre-filled from the issue)</label>
+              <textarea class="textarea mono" id="problem" readonly>Currently, when the judge evaluates a sample as wrong, the failure message shows only "Check tests/_inputs/sample.out" failed … To make it easier to debug the judge, share the contents of `tests/_inputs/sample.judge.log`.</textarea>
+              <span class="hint">Full issue body is composed into the worker packet verbatim — title, body, labels, scope guidance.</span>
+            </div>
+            <div class="field">
+              <label id="worker-label">Worker</label>
+              <div class="worker-select" role="group" aria-labelledby="worker-label">
+                <button class="worker-opt" data-worker="openhands" aria-pressed="true">
+                  <span class="w-name">openhands</span>
+                  <span class="w-note">SDK agent loop · provider-agnostic · default</span>
+                </button>
+                <button class="worker-opt" data-worker="codex" aria-pressed="false">
+                  <span class="w-name">codex</span>
+                  <span class="w-note">opt-in · flags must be current</span>
+                </button>
+                <button class="worker-opt" data-worker="claude" aria-pressed="false">
+                  <span class="w-name">claude</span>
+                  <span class="w-note">opt-in · subscription path</span>
+                </button>
+              </div>
+            </div>
+            <div class="field">
+              <label for="attach">Attach task spec (optional)</label>
+              <select class="input mono" id="attach">
+                <option value="none">— none —</option>
+                <option value="pisek-683">pisek-683 · base b86d1d7 · 1 FAIL_TO_PASS</option>
+                <option value="dmr-1325">django-modern-rest-1325 · base 0cf1aff · 1 FAIL_TO_PASS</option>
+              </select>
+              <span class="hint">Specs pin the commit and test lists — see <a href="task-specs.html">task-spec library</a>.</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- right: gate -->
+        <section class="panel" data-od-id="task-spec-attach" aria-label="Attached spec summary">
+          <div class="panel-head"><span class="panel-title">Task spec · none attached</span><span class="meta mono">SWE-bench contract</span></div>
+          <div class="state" data-od-id="spec-empty-state">
+            <span class="glyph">no spec</span>
+            <h3>Running without a pinned contract</h3>
+            <p>The run will still be governed end-to-end — plan, permissions, validation, evidence — but it will not be reproducible against a pinned commit. Attach a spec to fail-close on missing evidence.</p>
+          </div>
+        </section>
+      </div>
+
+      <!-- negative contract gate -->
+      <section class="panel gate" id="gate" data-od-id="negative-contract-gate" aria-label="Negative-contract gate">
+        <div class="gate-status" data-od-id="gate-status">
+          <span class="chip chip-ok" id="gateChip"><span class="cdot"></span>gate open</span>
+          <span class="big" id="gateBig">Negative contract proven</span>
+          <span class="meta" style="margin-left:auto;">step 3 of 4 · pre-dispatch</span>
+        </div>
+        <div class="gate-probe">
+          <span>tests/test_kasiopea.py::TestBadJudgeFeedbackMessage <span style="color:var(--muted)">(FAIL_TO_PASS)</span></span>
+          <span class="meta mono">0.9s</span>
+          <span class="exit exit-n">exit 1</span>
+        </div>
+        <div class="gate-probe">
+          <span>python -m unittest discover tests/ <span style="color:var(--muted)">(PASS_TO_PASS baseline)</span></span>
+          <span class="meta mono">11.2s</span>
+          <span class="exit exit-n">exit 1</span>
+        </div>
+        <div class="gate-verdict" data-od-id="gate-verdict">
+          <b>The bug exists at base.</b> The FAIL_TO_PASS probe fails at <span class="mono">b86d1d7</span> — the premise holds. The PASS_TO_PASS probe also fails at base (<span class="mono">minibox.c</span> targets Linux; this host is macOS) → recorded <b style="color:var(--warn)">inconclusive</b>, not a pass. The gate stays open because the negative contract itself is proven; the environmental gap is disclosed, not hidden.
+        </div>
+      </section>
+
+      <!-- launch -->
+      <section class="panel" data-od-id="launch-panel" aria-label="Launch">
+        <div class="launch-row">
+          <button class="btn btn-primary" id="launchBtn" data-od-id="launch-cta">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            Dispatch governed run
+          </button>
+          <span class="launch-note">Runs locally · evidence bundle lands in <span class="mono">.agentops/runs/&lt;id&gt;/</span> · you can judge it in under 10 seconds when it finishes.</span>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<script>
+(function () {
+  /* worker selection */
+  var opts = document.querySelectorAll('.worker-opt');
+  opts.forEach(function (o) {
+    o.addEventListener('click', function () {
+      opts.forEach(function (x) { x.setAttribute('aria-pressed', String(x === o)); });
+    });
+  });
+
+  /* attaching a spec switches the empty state to a real summary */
+  var attach = document.getElementById('attach');
+  var specPanel = document.querySelector('section[data-od-id="task-spec-attach"]');
+  var SPECS = {
+    'pisek-683': { repo: 'piskoviste/pisek', base: 'b86d1d7d72f55ef6a4424069bfebdb608e248153', ftp: ['tests/test_kasiopea.py::TestBadJudgeFeedbackMessage'], ptp: ['python -m unittest discover tests/'], env: 'requires-python ≥3.12 · host: macOS (gap: Linux-only minibox.c)' },
+    'dmr-1325': { repo: 'wemake-services/django-modern-rest', base: '0cf1affc7debeaec530a2c41bd2c080462eeb87e', ftp: ['tests/test_unit/test_components/test_query.py::test_cast_bool'], ptp: ['pytest tests/test_unit tests/test_integration/test_openapi/test_views.py'], env: 'requires-python ≥3.11 · scoped suite · redis/allauth environmental' }
+  };
+  attach.addEventListener('change', function () {
+    var v = attach.value;
+    if (v === 'none') return;
+    var s = SPECS[v];
+    specPanel.innerHTML =
+      '<div class="panel-head"><span class="panel-title">Task spec · ' + v + '</span><span class="meta mono">SWE-bench contract</span></div>' +
+      '<div class="panel-body spec-summary">' +
+      '<div class="spec-row"><span class="spec-k">repo</span><span class="spec-v">' + s.repo + '</span></div>' +
+      '<div class="spec-row"><span class="spec-k">base_commit</span><span class="spec-v">' + s.base + '</span></div>' +
+      '<div class="spec-row"><span class="spec-k">FAIL_TO_PASS</span><span class="spec-v" style="color:var(--fail)">' + s.ftp.join('<br/>') + '</span></div>' +
+      '<div class="spec-row"><span class="spec-k">PASS_TO_PASS</span><span class="spec-v">' + s.ptp.join('<br/>') + '</span></div>' +
+      '<div class="spec-row"><span class="spec-k">environment</span><span class="spec-v" style="color:var(--warn)">' + s.env + '</span></div>' +
+      '</div>';
+    /* reflect on the gate: the pisek spec is the one with the proven negative contract */
+    var gate = document.getElementById('gate');
+    if (v === 'pisek-683') {
+      gate.classList.add('gate-open');
+    }
+  });
+})();
+</script>
+</body>
+</html>
