@@ -43,14 +43,16 @@ Phase 2 kernel entry (AO-D03 class): make the flagship issue path deterministic 
 
 ## Remaining work
 
-- Positive-contract enforcement after the run: FAIL_TO_PASS must pass AND PASS_TO_PASS must still pass on the patched tree (currently `--test-commands` covers this manually).
-- `environment` identity (image digest / lockfile digest) is defined but not yet enforced — hermetic Docker testbed wiring is the next slice (`app/core/workspace/docker.py` exists).
-- Benchmark fan-out: same spec → multiple workers → convergence-typed comparison (`app/core/benchmark.py` ready).
+- ~~Positive-contract enforcement after the run~~ — **DONE** (db9869e, 2026-09-04): `evaluate_positive_contract` in `app/core/task_spec_gate.py`; `issue solve --task-spec` folds the verdict into `record.status` (exit 4 on violation, corrected record re-saved); JSONL storage got last-write-wins revision semantics so the corrected verdict is the one read back.
+- ~~`environment` identity enforcement~~ — **DONE** (69e2550, 2026-09-04): `app/core/environment_guard.py` fail-closed verification of pinned image digests against the docker testbed; `issue solve` blocks before clone/dispatch (exit 5) and gained `--workspace local|docker`. Follow-up: enforce lockfile/python pins inside the container (image identity is enforced today; the others are disclosed as declared-but-unverified).
+- ~~Benchmark fan-out~~ — **core DONE** (d6d6b73, 2026-09-04): `app/core/benchmark_fanout.py` — one spec × many workers → convergence-typed comparison with per-arm profiles + agreement metric; dispatch injected (hermetic tests). Follow-up: production `run_arm` wiring (extract the spec-solve pipeline from the CLI so the fan-out can drive real arms).
 - Optional: an `ExperimentSpec` formalization unifying this with the VLM/VLA contract shape.
 
 ## Verification results
 
 All commands + results in frontmatter `verification`. Pre-existing failures excluded (not caused by, and not touched by, this work): stale codegraph digest in `test_project_control_cli` (untracked-file tree drift, known "roadmap fallback" state), and `test_discovery_validates_repository_value_identity` (uncommitted WIP in `app/project_control/github.py` from a prior session — 1 ruff E501 also lives there). Both failures reproduce with this slice stashed.
+
+2026-09-04 update: both pre-existing failures above are resolved on current main; CI is fully green (the recurring red-push root cause was a tracked `.DS_Store` in the digest inputs — fixed in 3bc3762).
 
 ## Known risks or surprises
 
@@ -60,4 +62,4 @@ All commands + results in frontmatter `verification`. Pre-existing failures excl
 
 ## Exact next action
 
-Wire the positive contract: after `run_harness` returns in spec mode, run FAIL_TO_PASS (must exit 0) and PASS_TO_PASS (must still exit 0) against the patched tree, and fold the result into `record.status` (a fix that regresses PASS_TO_PASS must fail the run). First failing test: `tests/test_task_spec_solve.py::test_solve_enforces_positive_contract_after_run` (not yet written).
+Done as written: `tests/test_task_spec_solve.py::test_solve_enforces_positive_contract_after_run` exists and passes (db9869e). The kernel's next open actions: (1) production `run_arm` wiring for the fan-out (extract spec-solve from the CLI into a reusable pipeline), (2) in-container lockfile/python identity enforcement, (3) console live-dispatch slice (`POST /runs/spec/dispatch` + SSE progress) per the 2026-09-04 console critique.
