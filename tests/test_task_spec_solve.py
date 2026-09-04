@@ -371,3 +371,216 @@ def _load_spec(path: Path):
 
     raw = json.loads(path.read_text())
     return SweTaskSpec.from_swebench_instance(raw)
+
+
+# ---------------------------------------------------------------------------
+# Contract preparation: test_patch + environment setup (SWE-bench-shaped
+# instances carry their failing tests as a patch and need env prep).
+# ---------------------------------------------------------------------------
+
+_TESTS_PATCH = """diff --git a/test_widget.py b/test_widget.py
+new file mode 100644
+--- /dev/null
++++ b/test_widget.py
+@@ -0,0 +1,12 @@
++from widget import Widget
++
++
++def test_reset_keeps_name_when_requested():
++    w = Widget(name='primary')
++    w.reset(keep_name=True)
++    assert w.name == 'primary'
++
++
++def test_reset_clears_name_by_default():
++    w = Widget(name='primary')
++    w.reset()
++    assert w.name is None
+"""
+
+
+def _make_remote_bug_untested(tmp_path: Path) -> tuple[Path, str]:
+    """Bare remote with the bug but NO tests at base — the failing test only
+    exists once the spec's test_patch is applied (the real-world case)."""
+    source = tmp_path / "source"
+    source.mkdir()
+    (source / "widget.py").write_text(
+        "class Widget:\n"
+        "    def __init__(self, name=None):\n"
+        "        self.name = name\n\n"
+        "    def reset(self, keep_name=False):\n"
+        "        self.name = None\n"
+    )
+    subprocess.run(["git", "init", "-q", "--bare", str(tmp_path / "remote.git")], check=True)
+    subprocess.run(["git", "init", "-q"], cwd=source, check=True)
+    subprocess.run(["git", "add", "."], cwd=source, check=True)
+    subprocess.run(
+        ["git", "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "init"],
+        cwd=source,
+        check=True,
+    )
+    subprocess.run(
+        ["git", "remote", "add", "origin", str(tmp_path / "remote.git")],
+        cwd=source,
+        check=True,
+    )
+    subprocess.run(["git", "push", "-q", "origin", "HEAD"], cwd=source, check=True)
+    head = subprocess.run(
+        ["git", "rev-parse", "HEAD"], cwd=source, capture_output=True, text=True, check=True
+    )
+    return tmp_path / "remote.git", head.stdout.strip()
+
+
+class TestContractPreparation:
+    def _spec_with_patch(
+        self, base: str, *, test_patch: str, setup: list[str] | None = None
+    ) -> dict:
+        raw = {
+            "repo": "example/widgetlib",
+            "base_commit": base,
+            "problem_statement": "reset(keep_name=True) drops the configured name.",
+            "FAIL_TO_PASS": json.dumps(["test_widget.py::test_reset_keeps_name_when_requested"]),
+            "PASS_TO_PASS": json.dumps(["test_widget.py::test_reset_clears_name_by_default"]),
+            "test_patch": test_patch,
+        }
+        if setup is not None:
+            raw["environment"] = {"setup_commands": setup}
+        return raw
+
+    def test_solve_applies_test_patch_to_prove_bug(self, tmp_path: Path) -> None:
+        """The bug exists at base but the failing test ships in the spec's
+        test_patch: the harness applies it BEFORE the negative gate, proves
+        the bug, dispatches, and the positive contract checks the same tree."""
+        from app.cli import app
+        from app.core import issues as issues_module
+
+        remote, base = _make_remote_bug_untested(tmp_path)
+        spec_file = tmp_path / "spec.json"
+        spec_file.write_text(json.dumps(self._spec_with_patch(base, test_patch=_TESTS_PATCH)))
+
+        def fake_run_harness(**kwargs):
+            # The test file from the patch must be present in the workspace
+            # the worker receives (prep happened before dispatch).
+            assert (Path(kwargs["repo_path"]) / "test_widget.py").exists()
+            (Path(kwargs["repo_path"]) / "widget.py").write_text(
+                "class Widget:\n"
+                "    def __init__(self, name=None):\n"
+                "        self.name = name\n\n"
+                "    def reset(self, keep_name=False):\n"
+                "        self.name = self.name if keep_name else None\n"
+            )
+            record = minimal_run_record()
+            record.changed_files = ["widget.py"]
+            return record
+
+        with (
+            patch.object(issues_module, "fetch_issue", return_value=None),
+            patch("app.cli.run_harness", fake_run_harness),
+            patch.object(issues_module, "export_patch", return_value=tmp_path / "p.patch"),
+            patch.object(issues_module, "commit_workspace_changes", return_value=True),
+        ):
+            result = CliRunner().invoke(
+                app,
+                [
+                    "issue", "solve",
+                    "--task-spec", str(spec_file),
+                    "--owner", "example",
+                    "--repo", "widgetlib",
+                    "--number", "42",
+                    "--worker", "codex",
+                    "--clone-url", str(remote),
+                    "--workspace-root", str(tmp_path / "workspaces"),
+                ],
+            )
+
+        assert result.exit_code == 0, result.output
+        assert "Negative contract holds" in result.output
+        assert "Positive contract holds" in result.output
+
+    def test_solve_blocks_when_test_patch_fails_to_apply(self, tmp_path: Path) -> None:
+        """Fail-closed: a patch that cannot apply means the spec is invalid for
+        this base — block before dispatch (exit 3), never guess."""
+        from app.cli import app
+        from app.core import issues as issues_module
+
+        remote, base = _make_remote_bug_untested(tmp_path)
+        spec_file = tmp_path / "spec.json"
+        spec_file.write_text(
+            json.dumps(self._spec_with_patch(base, test_patch="not a patch at all"))
+        )
+
+        dispatched = []
+
+        def fake_run_harness(**kwargs):
+            dispatched.append(kwargs)
+            return minimal_run_record()
+
+        with (
+            patch.object(issues_module, "fetch_issue", return_value=None),
+            patch("app.cli.run_harness", fake_run_harness),
+        ):
+            result = CliRunner().invoke(
+                app,
+                [
+                    "issue", "solve",
+                    "--task-spec", str(spec_file),
+                    "--owner", "example",
+                    "--repo", "widgetlib",
+                    "--number", "42",
+                    "--worker", "codex",
+                    "--clone-url", str(remote),
+                    "--workspace-root", str(tmp_path / "workspaces"),
+                ],
+            )
+
+        assert result.exit_code == 3, (
+            f"expected patch-failure exit 3, got {result.exit_code}: {result.output}"
+        )
+        assert not dispatched, "worker must not dispatch when the test patch cannot apply"
+
+    def test_solve_blocks_when_environment_setup_fails(self, tmp_path: Path) -> None:
+        """Fail-closed: a declared environment that cannot be prepared is an
+        unverified environment — block before the gate (exit 5)."""
+        from app.cli import app
+        from app.core import issues as issues_module
+
+        remote, base = _make_remote_bug_untested(tmp_path)
+        spec_file = tmp_path / "spec.json"
+        spec_file.write_text(
+            json.dumps(
+                self._spec_with_patch(
+                    base,
+                    test_patch=_TESTS_PATCH,
+                    setup=["python -c \"raise SystemExit(1)\""],
+                )
+            )
+        )
+
+        dispatched = []
+
+        def fake_run_harness(**kwargs):
+            dispatched.append(kwargs)
+            return minimal_run_record()
+
+        with (
+            patch.object(issues_module, "fetch_issue", return_value=None),
+            patch("app.cli.run_harness", fake_run_harness),
+        ):
+            result = CliRunner().invoke(
+                app,
+                [
+                    "issue", "solve",
+                    "--task-spec", str(spec_file),
+                    "--owner", "example",
+                    "--repo", "widgetlib",
+                    "--number", "42",
+                    "--worker", "codex",
+                    "--clone-url", str(remote),
+                    "--workspace-root", str(tmp_path / "workspaces"),
+                ],
+            )
+
+        assert result.exit_code == 5, (
+            f"expected env-setup failure exit 5, got {result.exit_code}: {result.output}"
+        )
+        assert not dispatched, "worker must not dispatch when environment setup fails"

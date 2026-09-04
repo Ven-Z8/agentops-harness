@@ -1419,7 +1419,31 @@
     {
       "metadata": {},
       "source": "file:app/api.py",
+      "target": "import:python:app.core.task_spec_gate.EnvironmentSetupError",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/api.py",
+      "target": "import:python:app.core.task_spec_gate.TestPatchError",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/api.py",
+      "target": "import:python:app.core.task_spec_gate.apply_test_patch",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/api.py",
       "target": "import:python:app.core.task_spec_gate.evaluate_negative_contract",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/api.py",
+      "target": "import:python:app.core.task_spec_gate.run_environment_setup",
       "type": "imports"
     },
     {
@@ -1869,6 +1893,24 @@
     {
       "metadata": {},
       "source": "file:app/cli.py",
+      "target": "import:python:app.core.task_spec_gate.EnvironmentSetupError",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/cli.py",
+      "target": "import:python:app.core.task_spec_gate.TestPatchError",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/cli.py",
+      "target": "import:python:app.core.task_spec_gate.apply_test_patch",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/cli.py",
       "target": "import:python:app.core.task_spec_gate.evaluate_negative_contract",
       "type": "imports"
     },
@@ -1876,6 +1918,12 @@
       "metadata": {},
       "source": "file:app/cli.py",
       "target": "import:python:app.core.task_spec_gate.evaluate_positive_contract",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/cli.py",
+      "target": "import:python:app.core.task_spec_gate.run_environment_setup",
       "type": "imports"
     },
     {
@@ -6735,6 +6783,18 @@
     {
       "metadata": {},
       "source": "file:app/core/task_spec_gate.py",
+      "target": "class:python:app.core.task_spec_gate.EnvironmentSetupError",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/core/task_spec_gate.py",
+      "target": "class:python:app.core.task_spec_gate.EnvironmentSetupResult",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/core/task_spec_gate.py",
       "target": "class:python:app.core.task_spec_gate.NegativeContractCommandResult",
       "type": "defines"
     },
@@ -6759,6 +6819,12 @@
     {
       "metadata": {},
       "source": "file:app/core/task_spec_gate.py",
+      "target": "class:python:app.core.task_spec_gate.TestPatchError",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/core/task_spec_gate.py",
       "target": "function:python:app.core.task_spec_gate._probe",
       "type": "defines"
     },
@@ -6771,6 +6837,12 @@
     {
       "metadata": {},
       "source": "file:app/core/task_spec_gate.py",
+      "target": "function:python:app.core.task_spec_gate.apply_test_patch",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/core/task_spec_gate.py",
       "target": "function:python:app.core.task_spec_gate.evaluate_negative_contract",
       "type": "defines"
     },
@@ -6778,6 +6850,12 @@
       "metadata": {},
       "source": "file:app/core/task_spec_gate.py",
       "target": "function:python:app.core.task_spec_gate.evaluate_positive_contract",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/core/task_spec_gate.py",
+      "target": "function:python:app.core.task_spec_gate.run_environment_setup",
       "type": "defines"
     },
     {
@@ -6820,6 +6898,12 @@
       "metadata": {},
       "source": "file:app/core/task_spec_gate.py",
       "target": "import:python:shlex",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/core/task_spec_gate.py",
+      "target": "import:python:subprocess",
       "type": "imports"
     },
     {
@@ -15537,6 +15621,12 @@
     {
       "metadata": {},
       "source": "file:tests/test_console_api.py",
+      "target": "function:python:tests.test_console_api.test_pre_dispatch_applies_test_patch_before_gate",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_console_api.py",
       "target": "function:python:tests.test_console_api.test_pre_dispatch_blocks_pinned_environment_without_docker",
       "type": "defines"
     },
@@ -15651,6 +15741,12 @@
     {
       "metadata": {},
       "source": "file:tests/test_console_api.py",
+      "target": "method:python:tests.test_console_api.TestSpecPreDispatch.test_pre_dispatch_applies_test_patch_before_gate",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_console_api.py",
       "target": "method:python:tests.test_console_api.TestSpecPreDispatch.test_pre_dispatch_blocks_pinned_environment_without_docker",
       "type": "defines"
     },
@@ -15706,6 +15802,12 @@
       "metadata": {},
       "source": "file:tests/test_console_api.py",
       "target": "import:python:pathlib.Path",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_console_api.py",
+      "target": "import:python:tests.test_task_spec_solve._make_remote_bug_untested",
       "type": "imports"
     },
     {
@@ -21152,6 +21254,222 @@
     },
     {
       "metadata": {},
+      "source": "file:tests/test_task_spec_contract_prep.py",
+      "target": "class:python:tests.test_task_spec_contract_prep.TestApplyTestPatch",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_contract_prep.py",
+      "target": "class:python:tests.test_task_spec_contract_prep.TestEnvironmentSetup",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_contract_prep.py",
+      "target": "class:python:tests.test_task_spec_contract_prep.TestProbeIsolation",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_contract_prep.py",
+      "target": "class:python:tests.test_task_spec_contract_prep.TestSchema",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_contract_prep.py",
+      "target": "function:python:tests.test_task_spec_contract_prep._git_repo",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_contract_prep.py",
+      "target": "function:python:tests.test_task_spec_contract_prep.test_applies_unified_diff",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_contract_prep.py",
+      "target": "function:python:tests.test_task_spec_contract_prep.test_bad_patch_raises",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_contract_prep.py",
+      "target": "function:python:tests.test_task_spec_contract_prep.test_empty_patch_is_noop",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_contract_prep.py",
+      "target": "function:python:tests.test_task_spec_contract_prep.test_failure_raises_with_command",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_contract_prep.py",
+      "target": "function:python:tests.test_task_spec_contract_prep.test_from_swebench_parses_test_patch_and_setup_commands",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_contract_prep.py",
+      "target": "function:python:tests.test_task_spec_contract_prep.test_no_commands_is_noop",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_contract_prep.py",
+      "target": "function:python:tests.test_task_spec_contract_prep.test_probe_prefers_repo_local_venv",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_contract_prep.py",
+      "target": "function:python:tests.test_task_spec_contract_prep.test_probe_uses_harness_python_without_repo_venv",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_contract_prep.py",
+      "target": "function:python:tests.test_task_spec_contract_prep.test_runs_commands_in_the_repo",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_contract_prep.py",
+      "target": "function:python:tests.test_task_spec_contract_prep.test_test_patch_defaults_empty",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_contract_prep.py",
+      "target": "method:python:tests.test_task_spec_contract_prep.TestApplyTestPatch.test_applies_unified_diff",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_contract_prep.py",
+      "target": "method:python:tests.test_task_spec_contract_prep.TestApplyTestPatch.test_bad_patch_raises",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_contract_prep.py",
+      "target": "method:python:tests.test_task_spec_contract_prep.TestApplyTestPatch.test_empty_patch_is_noop",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_contract_prep.py",
+      "target": "method:python:tests.test_task_spec_contract_prep.TestEnvironmentSetup.test_failure_raises_with_command",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_contract_prep.py",
+      "target": "method:python:tests.test_task_spec_contract_prep.TestEnvironmentSetup.test_no_commands_is_noop",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_contract_prep.py",
+      "target": "method:python:tests.test_task_spec_contract_prep.TestEnvironmentSetup.test_runs_commands_in_the_repo",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_contract_prep.py",
+      "target": "method:python:tests.test_task_spec_contract_prep.TestProbeIsolation.test_probe_prefers_repo_local_venv",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_contract_prep.py",
+      "target": "method:python:tests.test_task_spec_contract_prep.TestProbeIsolation.test_probe_uses_harness_python_without_repo_venv",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_contract_prep.py",
+      "target": "method:python:tests.test_task_spec_contract_prep.TestSchema.test_from_swebench_parses_test_patch_and_setup_commands",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_contract_prep.py",
+      "target": "method:python:tests.test_task_spec_contract_prep.TestSchema.test_test_patch_defaults_empty",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_contract_prep.py",
+      "target": "import:python:__future__.annotations",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_contract_prep.py",
+      "target": "import:python:app.core.task_spec_gate.EnvironmentSetupError",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_contract_prep.py",
+      "target": "import:python:app.core.task_spec_gate.TestPatchError",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_contract_prep.py",
+      "target": "import:python:app.core.task_spec_gate._pytest_command_for",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_contract_prep.py",
+      "target": "import:python:app.core.task_spec_gate.apply_test_patch",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_contract_prep.py",
+      "target": "import:python:app.core.task_spec_gate.run_environment_setup",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_contract_prep.py",
+      "target": "import:python:app.schemas.task_spec.SweTaskSpec",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_contract_prep.py",
+      "target": "import:python:json",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_contract_prep.py",
+      "target": "import:python:pathlib.Path",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_contract_prep.py",
+      "target": "import:python:subprocess",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_solve.py",
+      "target": "class:python:tests.test_task_spec_solve.TestContractPreparation",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
       "source": "file:tests/test_task_spec_solve.py",
       "target": "class:python:tests.test_task_spec_solve.TestPositiveContractEnforcement",
       "type": "defines"
@@ -21171,6 +21489,12 @@
     {
       "metadata": {},
       "source": "file:tests/test_task_spec_solve.py",
+      "target": "function:python:tests.test_task_spec_solve._make_remote_bug_untested",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_solve.py",
       "target": "function:python:tests.test_task_spec_solve._make_remote_with_bug",
       "type": "defines"
     },
@@ -21178,6 +21502,12 @@
       "metadata": {},
       "source": "file:tests/test_task_spec_solve.py",
       "target": "function:python:tests.test_task_spec_solve._spec_json",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_solve.py",
+      "target": "function:python:tests.test_task_spec_solve._spec_with_patch",
       "type": "defines"
     },
     {
@@ -21195,6 +21525,18 @@
     {
       "metadata": {},
       "source": "file:tests/test_task_spec_solve.py",
+      "target": "function:python:tests.test_task_spec_solve.test_solve_applies_test_patch_to_prove_bug",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_solve.py",
+      "target": "function:python:tests.test_task_spec_solve.test_solve_blocks_when_environment_setup_fails",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_solve.py",
       "target": "function:python:tests.test_task_spec_solve.test_solve_blocks_when_negative_contract_fails",
       "type": "defines"
     },
@@ -21202,6 +21544,12 @@
       "metadata": {},
       "source": "file:tests/test_task_spec_solve.py",
       "target": "function:python:tests.test_task_spec_solve.test_solve_blocks_when_pinned_environment_unverifiable",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_solve.py",
+      "target": "function:python:tests.test_task_spec_solve.test_solve_blocks_when_test_patch_fails_to_apply",
       "type": "defines"
     },
     {
@@ -21220,6 +21568,30 @@
       "metadata": {},
       "source": "file:tests/test_task_spec_solve.py",
       "target": "function:python:tests.test_task_spec_solve.test_solve_with_task_spec_pins_commit_and_composes_task",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_solve.py",
+      "target": "method:python:tests.test_task_spec_solve.TestContractPreparation._spec_with_patch",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_solve.py",
+      "target": "method:python:tests.test_task_spec_solve.TestContractPreparation.test_solve_applies_test_patch_to_prove_bug",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_solve.py",
+      "target": "method:python:tests.test_task_spec_solve.TestContractPreparation.test_solve_blocks_when_environment_setup_fails",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_solve.py",
+      "target": "method:python:tests.test_task_spec_solve.TestContractPreparation.test_solve_blocks_when_test_patch_fails_to_apply",
       "type": "defines"
     },
     {
@@ -25857,6 +26229,12 @@
     {
       "metadata": {},
       "source": "folder:tests",
+      "target": "file:tests/test_task_spec_contract_prep.py",
+      "type": "contains"
+    },
+    {
+      "metadata": {},
+      "source": "folder:tests",
       "target": "file:tests/test_task_spec_solve.py",
       "type": "contains"
     },
@@ -26959,10 +27337,32 @@
       "type": "class"
     },
     {
+      "id": "class:python:app.core.task_spec_gate.EnvironmentSetupError",
+      "language": "python",
+      "metadata": {
+        "line": 48,
+        "qualified_name": "app.core.task_spec_gate.EnvironmentSetupError"
+      },
+      "name": "EnvironmentSetupError",
+      "path": "app/core/task_spec_gate.py",
+      "type": "class"
+    },
+    {
+      "id": "class:python:app.core.task_spec_gate.EnvironmentSetupResult",
+      "language": "python",
+      "metadata": {
+        "line": 57,
+        "qualified_name": "app.core.task_spec_gate.EnvironmentSetupResult"
+      },
+      "name": "EnvironmentSetupResult",
+      "path": "app/core/task_spec_gate.py",
+      "type": "class"
+    },
+    {
       "id": "class:python:app.core.task_spec_gate.NegativeContractCommandResult",
       "language": "python",
       "metadata": {
-        "line": 38,
+        "line": 123,
         "qualified_name": "app.core.task_spec_gate.NegativeContractCommandResult"
       },
       "name": "NegativeContractCommandResult",
@@ -26973,7 +27373,7 @@
       "id": "class:python:app.core.task_spec_gate.NegativeContractGateResult",
       "language": "python",
       "metadata": {
-        "line": 47,
+        "line": 132,
         "qualified_name": "app.core.task_spec_gate.NegativeContractGateResult"
       },
       "name": "NegativeContractGateResult",
@@ -26984,7 +27384,7 @@
       "id": "class:python:app.core.task_spec_gate.PositiveContractCommandResult",
       "language": "python",
       "metadata": {
-        "line": 122,
+        "line": 215,
         "qualified_name": "app.core.task_spec_gate.PositiveContractCommandResult"
       },
       "name": "PositiveContractCommandResult",
@@ -26995,10 +27395,21 @@
       "id": "class:python:app.core.task_spec_gate.PositiveContractGateResult",
       "language": "python",
       "metadata": {
-        "line": 131,
+        "line": 224,
         "qualified_name": "app.core.task_spec_gate.PositiveContractGateResult"
       },
       "name": "PositiveContractGateResult",
+      "path": "app/core/task_spec_gate.py",
+      "type": "class"
+    },
+    {
+      "id": "class:python:app.core.task_spec_gate.TestPatchError",
+      "language": "python",
+      "metadata": {
+        "line": 39,
+        "qualified_name": "app.core.task_spec_gate.TestPatchError"
+      },
+      "name": "TestPatchError",
       "path": "app/core/task_spec_gate.py",
       "type": "class"
     },
@@ -28282,7 +28693,7 @@
       "id": "class:python:app.schemas.task_spec.SweTaskSpec",
       "language": "python",
       "metadata": {
-        "line": 53,
+        "line": 62,
         "qualified_name": "app.schemas.task_spec.SweTaskSpec"
       },
       "name": "SweTaskSpec",
@@ -28749,6 +29160,61 @@
       },
       "name": "TestSweTaskSpecSchema",
       "path": "tests/test_task_spec.py",
+      "type": "class"
+    },
+    {
+      "id": "class:python:tests.test_task_spec_contract_prep.TestApplyTestPatch",
+      "language": "python",
+      "metadata": {
+        "line": 82,
+        "qualified_name": "tests.test_task_spec_contract_prep.TestApplyTestPatch"
+      },
+      "name": "TestApplyTestPatch",
+      "path": "tests/test_task_spec_contract_prep.py",
+      "type": "class"
+    },
+    {
+      "id": "class:python:tests.test_task_spec_contract_prep.TestEnvironmentSetup",
+      "language": "python",
+      "metadata": {
+        "line": 104,
+        "qualified_name": "tests.test_task_spec_contract_prep.TestEnvironmentSetup"
+      },
+      "name": "TestEnvironmentSetup",
+      "path": "tests/test_task_spec_contract_prep.py",
+      "type": "class"
+    },
+    {
+      "id": "class:python:tests.test_task_spec_contract_prep.TestProbeIsolation",
+      "language": "python",
+      "metadata": {
+        "line": 128,
+        "qualified_name": "tests.test_task_spec_contract_prep.TestProbeIsolation"
+      },
+      "name": "TestProbeIsolation",
+      "path": "tests/test_task_spec_contract_prep.py",
+      "type": "class"
+    },
+    {
+      "id": "class:python:tests.test_task_spec_contract_prep.TestSchema",
+      "language": "python",
+      "metadata": {
+        "line": 56,
+        "qualified_name": "tests.test_task_spec_contract_prep.TestSchema"
+      },
+      "name": "TestSchema",
+      "path": "tests/test_task_spec_contract_prep.py",
+      "type": "class"
+    },
+    {
+      "id": "class:python:tests.test_task_spec_solve.TestContractPreparation",
+      "language": "python",
+      "metadata": {
+        "line": 434,
+        "qualified_name": "tests.test_task_spec_solve.TestContractPreparation"
+      },
+      "name": "TestContractPreparation",
+      "path": "tests/test_task_spec_solve.py",
       "type": "class"
     },
     {
@@ -31459,6 +31925,14 @@
       "type": "test"
     },
     {
+      "id": "file:tests/test_task_spec_contract_prep.py",
+      "language": "python",
+      "metadata": {},
+      "name": "test_task_spec_contract_prep.py",
+      "path": "tests/test_task_spec_contract_prep.py",
+      "type": "test"
+    },
+    {
       "id": "file:tests/test_task_spec_solve.py",
       "language": "python",
       "metadata": {},
@@ -32968,7 +33442,7 @@
       "id": "function:python:app.api._mount_console",
       "language": "python",
       "metadata": {
-        "line": 547,
+        "line": 568,
         "qualified_name": "app.api._mount_console"
       },
       "name": "_mount_console",
@@ -36224,7 +36698,7 @@
       "id": "function:python:app.core.task_spec_gate._probe",
       "language": "python",
       "metadata": {
-        "line": 160,
+        "line": 253,
         "qualified_name": "app.core.task_spec_gate._probe"
       },
       "name": "_probe",
@@ -36235,7 +36709,7 @@
       "id": "function:python:app.core.task_spec_gate._pytest_command_for",
       "language": "python",
       "metadata": {
-        "line": 53,
+        "line": 138,
         "qualified_name": "app.core.task_spec_gate._pytest_command_for"
       },
       "name": "_pytest_command_for",
@@ -36243,10 +36717,21 @@
       "type": "function"
     },
     {
+      "id": "function:python:app.core.task_spec_gate.apply_test_patch",
+      "language": "python",
+      "metadata": {
+        "line": 63,
+        "qualified_name": "app.core.task_spec_gate.apply_test_patch"
+      },
+      "name": "apply_test_patch",
+      "path": "app/core/task_spec_gate.py",
+      "type": "function"
+    },
+    {
       "id": "function:python:app.core.task_spec_gate.evaluate_negative_contract",
       "language": "python",
       "metadata": {
-        "line": 61,
+        "line": 154,
         "qualified_name": "app.core.task_spec_gate.evaluate_negative_contract"
       },
       "name": "evaluate_negative_contract",
@@ -36257,10 +36742,21 @@
       "id": "function:python:app.core.task_spec_gate.evaluate_positive_contract",
       "language": "python",
       "metadata": {
-        "line": 137,
+        "line": 230,
         "qualified_name": "app.core.task_spec_gate.evaluate_positive_contract"
       },
       "name": "evaluate_positive_contract",
+      "path": "app/core/task_spec_gate.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.core.task_spec_gate.run_environment_setup",
+      "language": "python",
+      "metadata": {
+        "line": 87,
+        "qualified_name": "app.core.task_spec_gate.run_environment_setup"
+      },
+      "name": "run_environment_setup",
       "path": "app/core/task_spec_gate.py",
       "type": "function"
     },
@@ -39447,7 +39943,7 @@
       "id": "function:python:app.schemas.task_spec._parse_environment",
       "language": "python",
       "metadata": {
-        "line": 107,
+        "line": 124,
         "qualified_name": "app.schemas.task_spec._parse_environment"
       },
       "name": "_parse_environment",
@@ -39458,7 +39954,7 @@
       "id": "function:python:app.schemas.task_spec._parse_tests",
       "language": "python",
       "metadata": {
-        "line": 93,
+        "line": 110,
         "qualified_name": "app.schemas.task_spec._parse_tests"
       },
       "name": "_parse_tests",
@@ -39469,7 +39965,7 @@
       "id": "function:python:app.schemas.task_spec._reject_head_ref",
       "language": "python",
       "metadata": {
-        "line": 66,
+        "line": 83,
         "qualified_name": "app.schemas.task_spec._reject_head_ref"
       },
       "name": "_reject_head_ref",
@@ -39480,7 +39976,7 @@
       "id": "function:python:app.schemas.task_spec._require_negative_contract",
       "language": "python",
       "metadata": {
-        "line": 76,
+        "line": 93,
         "qualified_name": "app.schemas.task_spec._require_negative_contract"
       },
       "name": "_require_negative_contract",
@@ -39491,7 +39987,7 @@
       "id": "function:python:app.schemas.task_spec.from_swebench_instance",
       "language": "python",
       "metadata": {
-        "line": 86,
+        "line": 103,
         "qualified_name": "app.schemas.task_spec.from_swebench_instance"
       },
       "name": "from_swebench_instance",
@@ -41453,6 +41949,17 @@
         "qualified_name": "tests.test_console_api.test_list_orders_runs_most_recent_first_across_sources"
       },
       "name": "test_list_orders_runs_most_recent_first_across_sources",
+      "path": "tests/test_console_api.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_console_api.test_pre_dispatch_applies_test_patch_before_gate",
+      "language": "python",
+      "metadata": {
+        "line": 396,
+        "qualified_name": "tests.test_console_api.test_pre_dispatch_applies_test_patch_before_gate"
+      },
+      "name": "test_pre_dispatch_applies_test_patch_before_gate",
       "path": "tests/test_console_api.py",
       "type": "function"
     },
@@ -45725,6 +46232,127 @@
       "type": "function"
     },
     {
+      "id": "function:python:tests.test_task_spec_contract_prep._git_repo",
+      "language": "python",
+      "metadata": {
+        "line": 42,
+        "qualified_name": "tests.test_task_spec_contract_prep._git_repo"
+      },
+      "name": "_git_repo",
+      "path": "tests/test_task_spec_contract_prep.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_task_spec_contract_prep.test_applies_unified_diff",
+      "language": "python",
+      "metadata": {
+        "line": 88,
+        "qualified_name": "tests.test_task_spec_contract_prep.test_applies_unified_diff"
+      },
+      "name": "test_applies_unified_diff",
+      "path": "tests/test_task_spec_contract_prep.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_task_spec_contract_prep.test_bad_patch_raises",
+      "language": "python",
+      "metadata": {
+        "line": 94,
+        "qualified_name": "tests.test_task_spec_contract_prep.test_bad_patch_raises"
+      },
+      "name": "test_bad_patch_raises",
+      "path": "tests/test_task_spec_contract_prep.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_task_spec_contract_prep.test_empty_patch_is_noop",
+      "language": "python",
+      "metadata": {
+        "line": 83,
+        "qualified_name": "tests.test_task_spec_contract_prep.test_empty_patch_is_noop"
+      },
+      "name": "test_empty_patch_is_noop",
+      "path": "tests/test_task_spec_contract_prep.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_task_spec_contract_prep.test_failure_raises_with_command",
+      "language": "python",
+      "metadata": {
+        "line": 118,
+        "qualified_name": "tests.test_task_spec_contract_prep.test_failure_raises_with_command"
+      },
+      "name": "test_failure_raises_with_command",
+      "path": "tests/test_task_spec_contract_prep.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_task_spec_contract_prep.test_from_swebench_parses_test_patch_and_setup_commands",
+      "language": "python",
+      "metadata": {
+        "line": 67,
+        "qualified_name": "tests.test_task_spec_contract_prep.test_from_swebench_parses_test_patch_and_setup_commands"
+      },
+      "name": "test_from_swebench_parses_test_patch_and_setup_commands",
+      "path": "tests/test_task_spec_contract_prep.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_task_spec_contract_prep.test_no_commands_is_noop",
+      "language": "python",
+      "metadata": {
+        "line": 105,
+        "qualified_name": "tests.test_task_spec_contract_prep.test_no_commands_is_noop"
+      },
+      "name": "test_no_commands_is_noop",
+      "path": "tests/test_task_spec_contract_prep.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_task_spec_contract_prep.test_probe_prefers_repo_local_venv",
+      "language": "python",
+      "metadata": {
+        "line": 135,
+        "qualified_name": "tests.test_task_spec_contract_prep.test_probe_prefers_repo_local_venv"
+      },
+      "name": "test_probe_prefers_repo_local_venv",
+      "path": "tests/test_task_spec_contract_prep.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_task_spec_contract_prep.test_probe_uses_harness_python_without_repo_venv",
+      "language": "python",
+      "metadata": {
+        "line": 129,
+        "qualified_name": "tests.test_task_spec_contract_prep.test_probe_uses_harness_python_without_repo_venv"
+      },
+      "name": "test_probe_uses_harness_python_without_repo_venv",
+      "path": "tests/test_task_spec_contract_prep.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_task_spec_contract_prep.test_runs_commands_in_the_repo",
+      "language": "python",
+      "metadata": {
+        "line": 109,
+        "qualified_name": "tests.test_task_spec_contract_prep.test_runs_commands_in_the_repo"
+      },
+      "name": "test_runs_commands_in_the_repo",
+      "path": "tests/test_task_spec_contract_prep.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_task_spec_contract_prep.test_test_patch_defaults_empty",
+      "language": "python",
+      "metadata": {
+        "line": 57,
+        "qualified_name": "tests.test_task_spec_contract_prep.test_test_patch_defaults_empty"
+      },
+      "name": "test_test_patch_defaults_empty",
+      "path": "tests/test_task_spec_contract_prep.py",
+      "type": "function"
+    },
+    {
       "id": "function:python:tests.test_task_spec_solve._load_spec",
       "language": "python",
       "metadata": {
@@ -45732,6 +46360,17 @@
         "qualified_name": "tests.test_task_spec_solve._load_spec"
       },
       "name": "_load_spec",
+      "path": "tests/test_task_spec_solve.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_task_spec_solve._make_remote_bug_untested",
+      "language": "python",
+      "metadata": {
+        "line": 402,
+        "qualified_name": "tests.test_task_spec_solve._make_remote_bug_untested"
+      },
+      "name": "_make_remote_bug_untested",
       "path": "tests/test_task_spec_solve.py",
       "type": "function"
     },
@@ -45758,6 +46397,17 @@
       "type": "function"
     },
     {
+      "id": "function:python:tests.test_task_spec_solve._spec_with_patch",
+      "language": "python",
+      "metadata": {
+        "line": 435,
+        "qualified_name": "tests.test_task_spec_solve._spec_with_patch"
+      },
+      "name": "_spec_with_patch",
+      "path": "tests/test_task_spec_solve.py",
+      "type": "function"
+    },
+    {
       "id": "function:python:tests.test_task_spec_solve.fail_run_harness",
       "language": "python",
       "metadata": {
@@ -45780,6 +46430,28 @@
       "type": "function"
     },
     {
+      "id": "function:python:tests.test_task_spec_solve.test_solve_applies_test_patch_to_prove_bug",
+      "language": "python",
+      "metadata": {
+        "line": 450,
+        "qualified_name": "tests.test_task_spec_solve.test_solve_applies_test_patch_to_prove_bug"
+      },
+      "name": "test_solve_applies_test_patch_to_prove_bug",
+      "path": "tests/test_task_spec_solve.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_task_spec_solve.test_solve_blocks_when_environment_setup_fails",
+      "language": "python",
+      "metadata": {
+        "line": 541,
+        "qualified_name": "tests.test_task_spec_solve.test_solve_blocks_when_environment_setup_fails"
+      },
+      "name": "test_solve_blocks_when_environment_setup_fails",
+      "path": "tests/test_task_spec_solve.py",
+      "type": "function"
+    },
+    {
       "id": "function:python:tests.test_task_spec_solve.test_solve_blocks_when_negative_contract_fails",
       "language": "python",
       "metadata": {
@@ -45798,6 +46470,17 @@
         "qualified_name": "tests.test_task_spec_solve.test_solve_blocks_when_pinned_environment_unverifiable"
       },
       "name": "test_solve_blocks_when_pinned_environment_unverifiable",
+      "path": "tests/test_task_spec_solve.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_task_spec_solve.test_solve_blocks_when_test_patch_fails_to_apply",
+      "language": "python",
+      "metadata": {
+        "line": 500,
+        "qualified_name": "tests.test_task_spec_solve.test_solve_blocks_when_test_patch_fails_to_apply"
+      },
+      "name": "test_solve_blocks_when_test_patch_fails_to_apply",
       "path": "tests/test_task_spec_solve.py",
       "type": "function"
     },
@@ -49513,6 +50196,46 @@
       "type": "import"
     },
     {
+      "id": "import:python:app.core.task_spec_gate.EnvironmentSetupError",
+      "language": "python",
+      "metadata": {
+        "imported_from": "app.core.task_spec_gate"
+      },
+      "name": "app.core.task_spec_gate.EnvironmentSetupError",
+      "path": null,
+      "type": "import"
+    },
+    {
+      "id": "import:python:app.core.task_spec_gate.TestPatchError",
+      "language": "python",
+      "metadata": {
+        "imported_from": "app.core.task_spec_gate"
+      },
+      "name": "app.core.task_spec_gate.TestPatchError",
+      "path": null,
+      "type": "import"
+    },
+    {
+      "id": "import:python:app.core.task_spec_gate._pytest_command_for",
+      "language": "python",
+      "metadata": {
+        "imported_from": "app.core.task_spec_gate"
+      },
+      "name": "app.core.task_spec_gate._pytest_command_for",
+      "path": null,
+      "type": "import"
+    },
+    {
+      "id": "import:python:app.core.task_spec_gate.apply_test_patch",
+      "language": "python",
+      "metadata": {
+        "imported_from": "app.core.task_spec_gate"
+      },
+      "name": "app.core.task_spec_gate.apply_test_patch",
+      "path": null,
+      "type": "import"
+    },
+    {
       "id": "import:python:app.core.task_spec_gate.evaluate_negative_contract",
       "language": "python",
       "metadata": {
@@ -49529,6 +50252,16 @@
         "imported_from": "app.core.task_spec_gate"
       },
       "name": "app.core.task_spec_gate.evaluate_positive_contract",
+      "path": null,
+      "type": "import"
+    },
+    {
+      "id": "import:python:app.core.task_spec_gate.run_environment_setup",
+      "language": "python",
+      "metadata": {
+        "imported_from": "app.core.task_spec_gate"
+      },
+      "name": "app.core.task_spec_gate.run_environment_setup",
       "path": null,
       "type": "import"
     },
@@ -52199,6 +52932,16 @@
         "imported_from": "tests.helpers_runrecord"
       },
       "name": "tests.helpers_runrecord.minimal_run_record",
+      "path": null,
+      "type": "import"
+    },
+    {
+      "id": "import:python:tests.test_task_spec_solve._make_remote_bug_untested",
+      "language": "python",
+      "metadata": {
+        "imported_from": "tests.test_task_spec_solve"
+      },
+      "name": "tests.test_task_spec_solve._make_remote_bug_untested",
       "path": null,
       "type": "import"
     },
@@ -55949,7 +56692,7 @@
       "id": "method:python:app.schemas.task_spec.SweTaskSpec._reject_head_ref",
       "language": "python",
       "metadata": {
-        "line": 66,
+        "line": 83,
         "qualified_name": "app.schemas.task_spec.SweTaskSpec._reject_head_ref"
       },
       "name": "_reject_head_ref",
@@ -55960,7 +56703,7 @@
       "id": "method:python:app.schemas.task_spec.SweTaskSpec._require_negative_contract",
       "language": "python",
       "metadata": {
-        "line": 76,
+        "line": 93,
         "qualified_name": "app.schemas.task_spec.SweTaskSpec._require_negative_contract"
       },
       "name": "_require_negative_contract",
@@ -55971,7 +56714,7 @@
       "id": "method:python:app.schemas.task_spec.SweTaskSpec.from_swebench_instance",
       "language": "python",
       "metadata": {
-        "line": 86,
+        "line": 103,
         "qualified_name": "app.schemas.task_spec.SweTaskSpec.from_swebench_instance"
       },
       "name": "from_swebench_instance",
@@ -56316,6 +57059,17 @@
         "qualified_name": "tests.test_console_api.TestSpecPreDispatch._buggy_spec"
       },
       "name": "_buggy_spec",
+      "path": "tests/test_console_api.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_console_api.TestSpecPreDispatch.test_pre_dispatch_applies_test_patch_before_gate",
+      "language": "python",
+      "metadata": {
+        "line": 396,
+        "qualified_name": "tests.test_console_api.TestSpecPreDispatch.test_pre_dispatch_applies_test_patch_before_gate"
+      },
+      "name": "test_pre_dispatch_applies_test_patch_before_gate",
       "path": "tests/test_console_api.py",
       "type": "method"
     },
@@ -56914,6 +57668,160 @@
       "type": "method"
     },
     {
+      "id": "method:python:tests.test_task_spec_contract_prep.TestApplyTestPatch.test_applies_unified_diff",
+      "language": "python",
+      "metadata": {
+        "line": 88,
+        "qualified_name": "tests.test_task_spec_contract_prep.TestApplyTestPatch.test_applies_unified_diff"
+      },
+      "name": "test_applies_unified_diff",
+      "path": "tests/test_task_spec_contract_prep.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_task_spec_contract_prep.TestApplyTestPatch.test_bad_patch_raises",
+      "language": "python",
+      "metadata": {
+        "line": 94,
+        "qualified_name": "tests.test_task_spec_contract_prep.TestApplyTestPatch.test_bad_patch_raises"
+      },
+      "name": "test_bad_patch_raises",
+      "path": "tests/test_task_spec_contract_prep.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_task_spec_contract_prep.TestApplyTestPatch.test_empty_patch_is_noop",
+      "language": "python",
+      "metadata": {
+        "line": 83,
+        "qualified_name": "tests.test_task_spec_contract_prep.TestApplyTestPatch.test_empty_patch_is_noop"
+      },
+      "name": "test_empty_patch_is_noop",
+      "path": "tests/test_task_spec_contract_prep.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_task_spec_contract_prep.TestEnvironmentSetup.test_failure_raises_with_command",
+      "language": "python",
+      "metadata": {
+        "line": 118,
+        "qualified_name": "tests.test_task_spec_contract_prep.TestEnvironmentSetup.test_failure_raises_with_command"
+      },
+      "name": "test_failure_raises_with_command",
+      "path": "tests/test_task_spec_contract_prep.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_task_spec_contract_prep.TestEnvironmentSetup.test_no_commands_is_noop",
+      "language": "python",
+      "metadata": {
+        "line": 105,
+        "qualified_name": "tests.test_task_spec_contract_prep.TestEnvironmentSetup.test_no_commands_is_noop"
+      },
+      "name": "test_no_commands_is_noop",
+      "path": "tests/test_task_spec_contract_prep.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_task_spec_contract_prep.TestEnvironmentSetup.test_runs_commands_in_the_repo",
+      "language": "python",
+      "metadata": {
+        "line": 109,
+        "qualified_name": "tests.test_task_spec_contract_prep.TestEnvironmentSetup.test_runs_commands_in_the_repo"
+      },
+      "name": "test_runs_commands_in_the_repo",
+      "path": "tests/test_task_spec_contract_prep.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_task_spec_contract_prep.TestProbeIsolation.test_probe_prefers_repo_local_venv",
+      "language": "python",
+      "metadata": {
+        "line": 135,
+        "qualified_name": "tests.test_task_spec_contract_prep.TestProbeIsolation.test_probe_prefers_repo_local_venv"
+      },
+      "name": "test_probe_prefers_repo_local_venv",
+      "path": "tests/test_task_spec_contract_prep.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_task_spec_contract_prep.TestProbeIsolation.test_probe_uses_harness_python_without_repo_venv",
+      "language": "python",
+      "metadata": {
+        "line": 129,
+        "qualified_name": "tests.test_task_spec_contract_prep.TestProbeIsolation.test_probe_uses_harness_python_without_repo_venv"
+      },
+      "name": "test_probe_uses_harness_python_without_repo_venv",
+      "path": "tests/test_task_spec_contract_prep.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_task_spec_contract_prep.TestSchema.test_from_swebench_parses_test_patch_and_setup_commands",
+      "language": "python",
+      "metadata": {
+        "line": 67,
+        "qualified_name": "tests.test_task_spec_contract_prep.TestSchema.test_from_swebench_parses_test_patch_and_setup_commands"
+      },
+      "name": "test_from_swebench_parses_test_patch_and_setup_commands",
+      "path": "tests/test_task_spec_contract_prep.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_task_spec_contract_prep.TestSchema.test_test_patch_defaults_empty",
+      "language": "python",
+      "metadata": {
+        "line": 57,
+        "qualified_name": "tests.test_task_spec_contract_prep.TestSchema.test_test_patch_defaults_empty"
+      },
+      "name": "test_test_patch_defaults_empty",
+      "path": "tests/test_task_spec_contract_prep.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_task_spec_solve.TestContractPreparation._spec_with_patch",
+      "language": "python",
+      "metadata": {
+        "line": 435,
+        "qualified_name": "tests.test_task_spec_solve.TestContractPreparation._spec_with_patch"
+      },
+      "name": "_spec_with_patch",
+      "path": "tests/test_task_spec_solve.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_task_spec_solve.TestContractPreparation.test_solve_applies_test_patch_to_prove_bug",
+      "language": "python",
+      "metadata": {
+        "line": 450,
+        "qualified_name": "tests.test_task_spec_solve.TestContractPreparation.test_solve_applies_test_patch_to_prove_bug"
+      },
+      "name": "test_solve_applies_test_patch_to_prove_bug",
+      "path": "tests/test_task_spec_solve.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_task_spec_solve.TestContractPreparation.test_solve_blocks_when_environment_setup_fails",
+      "language": "python",
+      "metadata": {
+        "line": 541,
+        "qualified_name": "tests.test_task_spec_solve.TestContractPreparation.test_solve_blocks_when_environment_setup_fails"
+      },
+      "name": "test_solve_blocks_when_environment_setup_fails",
+      "path": "tests/test_task_spec_solve.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_task_spec_solve.TestContractPreparation.test_solve_blocks_when_test_patch_fails_to_apply",
+      "language": "python",
+      "metadata": {
+        "line": 500,
+        "qualified_name": "tests.test_task_spec_solve.TestContractPreparation.test_solve_blocks_when_test_patch_fails_to_apply"
+      },
+      "name": "test_solve_blocks_when_test_patch_fails_to_apply",
+      "path": "tests/test_task_spec_solve.py",
+      "type": "method"
+    },
+    {
       "id": "method:python:tests.test_task_spec_solve.TestPositiveContractEnforcement.test_solve_enforces_positive_contract_after_run",
       "language": "python",
       "metadata": {
@@ -57284,8 +58192,8 @@
       "python"
     ],
     "risk_count": 0,
-    "source_file_count": 243,
-    "test_file_count": 103,
+    "source_file_count": 244,
+    "test_file_count": 104,
     "test_frameworks": [
       "pytest"
     ]

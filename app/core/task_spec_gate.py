@@ -27,11 +27,96 @@ replayability is the point (§5.2.1).
 
 from __future__ import annotations
 
+import shlex
+import subprocess
 from dataclasses import dataclass, field
 from pathlib import Path
 
 from app.core.test_runner import TestRunner
 from app.schemas.task_spec import SweTaskSpec
+
+
+class TestPatchError(RuntimeError):
+    """The spec's test patch could not be applied to the base tree.
+
+    Fail-closed: a patch that does not apply means the spec is invalid for
+    this base_commit — the contract tests cannot even exist, so no gate can
+    run and no worker may dispatch.
+    """
+
+
+class EnvironmentSetupError(RuntimeError):
+    """A declared environment setup command failed.
+
+    Fail-closed: an environment that cannot be prepared is an unverified
+    environment (AO-D03-02 class) — probes in it would prove nothing.
+    """
+
+
+@dataclass(frozen=True)
+class EnvironmentSetupResult:
+    command: str
+    exit_code: int
+    output_tail: str = ""
+
+
+def apply_test_patch(repo_path: Path, test_patch: str) -> None:
+    """Apply the spec's unified diff to the cloned base tree (before gating).
+
+    SWE-bench-shaped instances carry their failing tests as a patch; the
+    tests often do not exist at base_commit. Empty patch = no-op. Failure
+    raises TestPatchError with git's stderr so the reason lands in evidence.
+    """
+    if not test_patch.strip():
+        return
+    completed = subprocess.run(
+        ["git", "apply", "--whitespace=nowarn", "-"],
+        input=test_patch,
+        cwd=repo_path,
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
+    if completed.returncode != 0:
+        raise TestPatchError(
+            f"test_patch does not apply to the base tree (git apply exit "
+            f"{completed.returncode}): {(completed.stderr or '').strip()[:500]}"
+        )
+
+
+def run_environment_setup(
+    repo_path: Path,
+    setup_commands: list[str],
+    timeout_seconds: int = 900,
+) -> list[EnvironmentSetupResult]:
+    """Run the spec's declared environment-prep commands inside the clone.
+
+    Commands run sequentially, cwd=repo, no shell (shlex-split) — they are
+    operator-authored environment identity, e.g. 'uv sync --extra allauth'.
+    Any non-zero exit raises EnvironmentSetupError (fail-closed).
+    """
+    results: list[EnvironmentSetupResult] = []
+    for command in setup_commands:
+        argv = shlex.split(command)
+        completed = subprocess.run(
+            argv,
+            cwd=repo_path,
+            capture_output=True,
+            text=True,
+            timeout=timeout_seconds,
+        )
+        output_tail = ((completed.stdout or "") + "\n" + (completed.stderr or ""))[-2000:]
+        results.append(
+            EnvironmentSetupResult(
+                command=command, exit_code=completed.returncode, output_tail=output_tail
+            )
+        )
+        if completed.returncode != 0:
+            raise EnvironmentSetupError(
+                f"Environment setup failed: {command!r} exited "
+                f"{completed.returncode}. Tail: {output_tail[-400:]}"
+            )
+    return results
 
 
 @dataclass(frozen=True)
@@ -50,12 +135,20 @@ class NegativeContractGateResult:
     command_results: list[NegativeContractCommandResult] = field(default_factory=list)
 
 
-def _pytest_command_for(test_id: str) -> str:
+def _pytest_command_for(test_id: str, repo_path: Path) -> str:
     # test ids are pytest node ids (file::test); shell-quote the id so
     # ids containing '[]' or '::' survive the command line intact.
-    import shlex
-
-    return f"python -m pytest {shlex.quote(test_id)} -q"
+    #
+    # Probe isolation: `-o addopts=` clears the repo's global pytest add-ons
+    # (coverage floors and the like) so they cannot turn a passing test into
+    # a failing command — dmr's own test-command uses the same trick. When
+    # the clone carries a repo-local .venv, probes use it: the target's
+    # dependencies are the target's business, not the harness's.
+    python = "python"
+    venv_python = Path(repo_path) / ".venv" / "bin" / "python"
+    if venv_python.exists():
+        python = str(venv_python)
+    return f"{python} -m pytest {shlex.quote(test_id)} -q -o addopts="
 
 
 def evaluate_negative_contract(
@@ -71,7 +164,7 @@ def evaluate_negative_contract(
     results: list[NegativeContractCommandResult] = []
 
     for test_id in spec.fail_to_pass:
-        command = _pytest_command_for(test_id)
+        command = _pytest_command_for(test_id, repo_path)
         summary = runner.run(Path(repo_path), commands=[command], timeout_seconds=timeout_seconds)
         # TestRunner runs exactly the one command we passed.
         result = summary.commands[0]
@@ -158,7 +251,7 @@ def evaluate_positive_contract(
     error_exits = {2, 4, 5}
 
     def _probe(test_id: str, *, kind: str) -> None:
-        command = _pytest_command_for(test_id)
+        command = _pytest_command_for(test_id, repo_path)
         summary = runner.run(
             Path(repo_path), commands=[command], timeout_seconds=timeout_seconds
         )

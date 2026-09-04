@@ -48,6 +48,15 @@ class EnvironmentIdentity(BaseModel):
     python_version: str | None = None
     lockfile_digest: str | None = None
     notes: list[str] = Field(default_factory=list)
+    setup_commands: list[str] = Field(
+        default_factory=list,
+        description=(
+            "Operator-declared commands that prepare the cloned environment "
+            "before contract probes run (e.g. 'uv sync --extra allauth'). "
+            "They are part of the environment identity: a setup that fails "
+            "means the environment is unverified — never silently skipped."
+        ),
+    )
 
 
 class SweTaskSpec(BaseModel):
@@ -58,6 +67,14 @@ class SweTaskSpec(BaseModel):
     problem_statement: str = Field(min_length=1)
     fail_to_pass: list[str] = Field(min_length=1)
     pass_to_pass: list[str] = Field(default_factory=list)
+    test_patch: str = Field(
+        default="",
+        description=(
+            "Unified diff applied to the base tree BEFORE the negative gate. "
+            "SWE-bench instances carry their failing tests this way: the "
+            "tests often do not exist at base_commit. Empty = no patch."
+        ),
+    )
     environment: EnvironmentIdentity = Field(default_factory=EnvironmentIdentity)
     source: Literal["swebench_verified", "github_issue", "manual"] = "manual"
 
@@ -113,11 +130,24 @@ class SweTaskSpec(BaseModel):
             notes = value.get("notes") or []
             if not isinstance(notes, list):
                 notes = [str(notes)]
+            setup_commands = value.get("setup_commands") or []
+            if not isinstance(setup_commands, list):
+                raise ValueError(
+                    f"environment.setup_commands must be a list of command strings, "
+                    f"got: {type(setup_commands).__name__}"
+                )
             return EnvironmentIdentity(
                 image_digest=value.get("image_digest"),
                 python_version=value.get("python_version"),
                 lockfile_digest=value.get("lockfile_digest"),
                 notes=[str(note) for note in notes],
+                setup_commands=[str(cmd) for cmd in setup_commands],
+            )
+
+        test_patch = raw.get("test_patch") or ""
+        if not isinstance(test_patch, str):
+            raise ValueError(
+                f"test_patch must be a unified-diff string, got: {type(test_patch).__name__}"
             )
 
         return cls(
@@ -126,6 +156,7 @@ class SweTaskSpec(BaseModel):
             problem_statement=str(raw.get("problem_statement") or raw.get("issue_body") or ""),
             fail_to_pass=_parse_tests(raw.get("FAIL_TO_PASS") or []),
             pass_to_pass=_parse_tests(raw.get("PASS_TO_PASS") or []),
+            test_patch=test_patch,
             environment=_parse_environment(raw.get("environment")),
             source="swebench_verified",
         )

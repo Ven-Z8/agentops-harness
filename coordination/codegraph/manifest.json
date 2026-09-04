@@ -1,10 +1,10 @@
 {
   "counts": {
-    "edges": 4368,
-    "included_files": 341,
-    "nodes": 2969,
-    "source_files": 243,
-    "test_files": 103
+    "edges": 4431,
+    "included_files": 342,
+    "nodes": 3018,
+    "source_files": 244,
+    "test_files": 104
   },
   "exclusions": [
     ".cache/",
@@ -27,7 +27,7 @@
     "target/",
     "vendor/"
   ],
-  "generated_at": "2026-09-04T17:20:34Z",
+  "generated_at": "2026-09-04T18:26:32Z",
   "generator_version": "1",
   "included_paths": [
     ".env.example",
@@ -334,6 +334,7 @@
     "tests/test_showcase_workload.py",
     "tests/test_sqlite_storage.py",
     "tests/test_task_spec.py",
+    "tests/test_task_spec_contract_prep.py",
     "tests/test_task_spec_solve.py",
     "tests/test_test_runner.py",
     "tests/test_test_runner_timeout.py",
@@ -396,6 +397,6 @@
     ]
   },
   "schema_version": 1,
-  "source_commit": "29200718ae596214e2fda256a165c37f62c1aec1",
-  "source_tree_digest": "db7f24854848844374376169bbe42361d9ad709665ff0e6155081639ca3eaf6c"
+  "source_commit": "c9c30b60f071d3826d49b77b7f0ef62b6a26ee60",
+  "source_tree_digest": "ae9fbebb795253a37aa87ce19e537027e4f10cb28edabe8847d2b113b5e8a613"
 }

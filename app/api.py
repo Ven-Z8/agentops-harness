@@ -493,7 +493,13 @@ def create_api(storage_path: Path | None = None, llm_client: LLMClient | None = 
             return payload
 
         from app.core.issues import prepare_issue_workspace, spec_issue_stub
-        from app.core.task_spec_gate import evaluate_negative_contract
+        from app.core.task_spec_gate import (
+            EnvironmentSetupError,
+            TestPatchError,
+            apply_test_patch,
+            evaluate_negative_contract,
+            run_environment_setup,
+        )
 
         workspace_root = request.workspace_root or Path(".agentops/issues")
         try:
@@ -503,7 +509,22 @@ def create_api(storage_path: Path | None = None, llm_client: LLMClient | None = 
                 ref=task_spec.base_commit,
                 clone_url=request.clone_url,
             )
+            # Contract preparation mirrors the CLI: declared environment
+            # setup, then the test patch, then the negative gate — the same
+            # fail-closed order, so the console never proves a weaker claim.
+            if task_spec.environment.setup_commands:
+                run_environment_setup(repo_path, task_spec.environment.setup_commands)
+            if task_spec.test_patch:
+                apply_test_patch(repo_path, task_spec.test_patch)
             gate = evaluate_negative_contract(task_spec, repo_path)
+        except EnvironmentSetupError as exc:
+            payload["stage"] = "environment_blocked"
+            payload["errors"] = [str(exc)]
+            return payload
+        except TestPatchError as exc:
+            payload["stage"] = "gate_blocked"
+            payload["errors"] = [str(exc)]
+            return payload
         except Exception as exc:  # noqa: BLE001 — infra failure is inconclusive, never a pass
             payload["stage"] = "error"
             payload["errors"] = [f"Pre-dispatch could not complete: {exc}"]

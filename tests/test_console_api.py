@@ -392,3 +392,49 @@ class TestSpecPreDispatch:
         assert payload["stage"] == "environment_blocked"
         assert payload["environment"]["pinned"] is True
         assert payload["environment"]["reasons"]
+
+    def test_pre_dispatch_applies_test_patch_before_gate(
+        self, tmp_path: Path, monkeypatch
+    ) -> None:
+        """SWE-bench-shaped specs carry the failing test as a patch: the
+        endpoint applies it to the clone before proving the negative
+        contract — a test that only exists via the patch must still prove
+        the bug."""
+        from tests.test_task_spec_solve import _make_remote_bug_untested
+
+        tests_patch = (
+            "diff --git a/test_bug.py b/test_bug.py\n"
+            "new file mode 100644\n"
+            "--- /dev/null\n"
+            "+++ b/test_bug.py\n"
+            "@@ -0,0 +1,6 @@\n"
+            "+from widget import Widget\n"
+            "+\n"
+            "+def test_reset_keeps_name_when_requested():\n"
+            "+    w = Widget(name='p')\n"
+            "+    w.reset(keep_name=True)\n"
+            "+    assert w.name == 'p'\n"
+        )
+        client = _client(tmp_path, monkeypatch)
+        remote, base = _make_remote_bug_untested(tmp_path)
+        spec = {
+            "repo": "example/widgetlib",
+            "base_commit": base,
+            "problem_statement": "reset drops the name",
+            "FAIL_TO_PASS": json.dumps(["test_bug.py::test_reset_keeps_name_when_requested"]),
+            "PASS_TO_PASS": json.dumps([]),
+            "test_patch": tests_patch,
+        }
+        response = client.post(
+            "/runs/spec/pre-dispatch",
+            json={
+                "spec": spec,
+                "run_gate": True,
+                "clone_url": str(remote),
+                "workspace_root": str(tmp_path / "workspaces"),
+            },
+        )
+        assert response.status_code == 200
+        payload = response.json()
+        assert payload["stage"] == "gate_passed", payload
+        assert payload["gate"]["passed"] is True

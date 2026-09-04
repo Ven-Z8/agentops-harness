@@ -669,7 +669,50 @@ def issue_solve(
         )
         console.print(f"Workspace: {repo_path} (branch {branch})")
 
-        from app.core.task_spec_gate import evaluate_negative_contract
+        from app.core.task_spec_gate import (
+            EnvironmentSetupError,
+            TestPatchError,
+            apply_test_patch,
+            evaluate_negative_contract,
+            run_environment_setup,
+        )
+
+        # Contract preparation (SWE-bench-shaped specs): the environment
+        # setup commands and the test patch are part of the deterministic
+        # spec. They run after the clone at base_commit and BEFORE the
+        # negative gate — fail-closed, in dependency order: an environment
+        # that cannot be prepared is unverified (exit 5, AO-D03-02 class);
+        # a patch that cannot apply means the spec is invalid for this base
+        # (exit 3 — the contract tests cannot even exist).
+        if task_spec.environment.setup_commands:
+            console.print(
+                f"[dim]Preparing the declared environment "
+                f"({len(task_spec.environment.setup_commands)} command(s))…[/dim]"
+            )
+            try:
+                setup_results = run_environment_setup(
+                    repo_path, task_spec.environment.setup_commands
+                )
+            except EnvironmentSetupError as exc:
+                console.print(f"[red]{exc}[/red]")
+                console.print(
+                    "[red]Environment setup failed — the environment is unverified; "
+                    "run blocked before the gate (fail-closed).[/red]"
+                )
+                raise typer.Exit(code=5) from None
+            for setup_result in setup_results:
+                console.print(f"  [dim]setup ok: {setup_result.command}[/dim]")
+        if task_spec.test_patch:
+            console.print("[dim]Applying the spec's test_patch to the base tree…[/dim]")
+            try:
+                apply_test_patch(repo_path, task_spec.test_patch)
+            except TestPatchError as exc:
+                console.print(f"[red]{exc}[/red]")
+                console.print(
+                    "[red]test_patch is invalid for this base_commit — run blocked "
+                    "before the gate (the contract tests cannot exist).[/red]"
+                )
+                raise typer.Exit(code=3) from None
 
         console.print("[dim]Negative-contract gate: proving the bug at base_commit…[/dim]")
         gate = evaluate_negative_contract(task_spec, repo_path)
