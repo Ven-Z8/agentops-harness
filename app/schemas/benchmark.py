@@ -77,3 +77,67 @@ class BenchmarkReport(BaseModel):
         if not self.profiles:
             return 0.0
         return self.type_counts["correctness"] / self.total
+
+
+class FanoutArm(BaseModel):
+    """One worker's result on the shared spec: its run + convergence profile."""
+
+    worker: str
+    run_id: str
+    status: str
+    profile: ConvergenceProfile
+
+
+class FanoutReport(BaseModel):
+    """One task-spec × many workers → a convergence-typed comparison.
+
+    Every arm ran the SAME pinned spec (same repo + base_commit), so the
+    profiles are directly comparable: the report shows which workers reached
+    real correctness convergence and which stopped implicitly, instead of a
+    single aggregate that would hide per-worker behavior.
+    """
+
+    repo: str
+    base_commit: str
+    arms: list[FanoutArm] = Field(default_factory=list)
+
+    @property
+    def total(self) -> int:
+        return len(self.arms)
+
+    @property
+    def correctness_count(self) -> int:
+        return sum(1 for arm in self.arms if "correctness" in arm.profile.achieved)
+
+    @property
+    def implicit_count(self) -> int:
+        return sum(1 for arm in self.arms if arm.profile.is_implicit)
+
+    @property
+    def correctness_rate(self) -> float:
+        if not self.arms:
+            return 0.0
+        return self.correctness_count / self.total
+
+    @property
+    def implicit_rate(self) -> float:
+        if not self.arms:
+            return 0.0
+        return self.implicit_count / self.total
+
+    @property
+    def workers_reaching_correctness(self) -> list[str]:
+        return [arm.worker for arm in self.arms if "correctness" in arm.profile.achieved]
+
+    @property
+    def implicit_workers(self) -> list[str]:
+        return [arm.worker for arm in self.arms if arm.profile.is_implicit]
+
+    @property
+    def agreement(self) -> bool:
+        """True when every arm agrees on reaching correctness (all or none).
+        Mixed outcomes — some workers verifying, some not — are the signal
+        the fan-out exists to surface, so agreement is False there."""
+        if not self.arms:
+            return False
+        return self.correctness_count in (0, self.total)

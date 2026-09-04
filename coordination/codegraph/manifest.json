@@ -1,10 +1,10 @@
 {
   "counts": {
-    "edges": 4200,
-    "included_files": 336,
-    "nodes": 2842,
-    "source_files": 239,
-    "test_files": 101
+    "edges": 4276,
+    "included_files": 338,
+    "nodes": 2897,
+    "source_files": 241,
+    "test_files": 102
   },
   "exclusions": [
     ".cache/",
@@ -27,7 +27,7 @@
     "target/",
     "vendor/"
   ],
-  "generated_at": "2026-09-04T02:59:57Z",
+  "generated_at": "2026-09-04T03:17:52Z",
   "generator_version": "1",
   "included_paths": [
     ".env.example",
@@ -61,6 +61,7 @@
     "app/cockpit/mount.py",
     "app/core/__init__.py",
     "app/core/benchmark.py",
+    "app/core/benchmark_fanout.py",
     "app/core/codecs/__init__.py",
     "app/core/codecs/vault_codec.py",
     "app/core/config.py",
@@ -265,6 +266,7 @@
     "tests/integration/test_project_control_cli.py",
     "tests/test_api.py",
     "tests/test_benchmark.py",
+    "tests/test_benchmark_fanout.py",
     "tests/test_capability_pack.py",
     "tests/test_claude_worker.py",
     "tests/test_cli.py",
@@ -391,6 +393,6 @@
     ]
   },
   "schema_version": 1,
-  "source_commit": "3bc3762c999dcc3ffb80617f1f6b65fbec984d60",
-  "source_tree_digest": "257a02c1dfb3a970365d7ceaecf25e7a83f788332f78808e5dbdb2738f09d301"
+  "source_commit": "db9869e03576024553fd6551f4dbf747c7dd2f5c",
+  "source_tree_digest": "1b739f480dae5419a29a7f266ba0f9d903a67450ac5c51f7680b6a59d106b61c"
 }

@@ -2450,6 +2450,102 @@
     },
     {
       "metadata": {},
+      "source": "file:app/core/benchmark_fanout.py",
+      "target": "class:python:app.core.benchmark_fanout.BenchmarkFanout",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/core/benchmark_fanout.py",
+      "target": "function:python:app.core.benchmark_fanout.__init__",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/core/benchmark_fanout.py",
+      "target": "function:python:app.core.benchmark_fanout.compare",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/core/benchmark_fanout.py",
+      "target": "function:python:app.core.benchmark_fanout.render_fanout_markdown",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/core/benchmark_fanout.py",
+      "target": "function:python:app.core.benchmark_fanout.run",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/core/benchmark_fanout.py",
+      "target": "method:python:app.core.benchmark_fanout.BenchmarkFanout.__init__",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/core/benchmark_fanout.py",
+      "target": "method:python:app.core.benchmark_fanout.BenchmarkFanout.compare",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/core/benchmark_fanout.py",
+      "target": "method:python:app.core.benchmark_fanout.BenchmarkFanout.run",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/core/benchmark_fanout.py",
+      "target": "import:python:__future__.annotations",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/core/benchmark_fanout.py",
+      "target": "import:python:app.core.benchmark.ConvergenceClassifier",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/core/benchmark_fanout.py",
+      "target": "import:python:app.schemas.benchmark.FanoutArm",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/core/benchmark_fanout.py",
+      "target": "import:python:app.schemas.benchmark.FanoutReport",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/core/benchmark_fanout.py",
+      "target": "import:python:app.schemas.run.RunRecord",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/core/benchmark_fanout.py",
+      "target": "import:python:app.schemas.task_spec.SweTaskSpec",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/core/benchmark_fanout.py",
+      "target": "import:python:collections.abc.Callable",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/core/benchmark_fanout.py",
+      "target": "import:python:collections.abc.Iterable",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
       "source": "file:app/core/codecs/__init__.py",
       "target": "import:python:app.core.codecs.vault_codec.VaultCodec",
       "type": "imports"
@@ -11427,6 +11523,30 @@
     {
       "metadata": {},
       "source": "file:app/schemas/benchmark.py",
+      "target": "class:python:app.schemas.benchmark.FanoutArm",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/schemas/benchmark.py",
+      "target": "class:python:app.schemas.benchmark.FanoutReport",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/schemas/benchmark.py",
+      "target": "function:python:app.schemas.benchmark.agreement",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/schemas/benchmark.py",
+      "target": "function:python:app.schemas.benchmark.correctness_count",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/schemas/benchmark.py",
       "target": "function:python:app.schemas.benchmark.correctness_rate",
       "type": "defines"
     },
@@ -11445,6 +11565,12 @@
     {
       "metadata": {},
       "source": "file:app/schemas/benchmark.py",
+      "target": "function:python:app.schemas.benchmark.implicit_workers",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/schemas/benchmark.py",
       "target": "function:python:app.schemas.benchmark.total",
       "type": "defines"
     },
@@ -11452,6 +11578,12 @@
       "metadata": {},
       "source": "file:app/schemas/benchmark.py",
       "target": "function:python:app.schemas.benchmark.type_counts",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/schemas/benchmark.py",
+      "target": "function:python:app.schemas.benchmark.workers_reaching_correctness",
       "type": "defines"
     },
     {
@@ -11482,6 +11614,54 @@
       "metadata": {},
       "source": "file:app/schemas/benchmark.py",
       "target": "method:python:app.schemas.benchmark.BenchmarkReport.type_counts",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/schemas/benchmark.py",
+      "target": "method:python:app.schemas.benchmark.FanoutReport.agreement",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/schemas/benchmark.py",
+      "target": "method:python:app.schemas.benchmark.FanoutReport.correctness_count",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/schemas/benchmark.py",
+      "target": "method:python:app.schemas.benchmark.FanoutReport.correctness_rate",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/schemas/benchmark.py",
+      "target": "method:python:app.schemas.benchmark.FanoutReport.implicit_count",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/schemas/benchmark.py",
+      "target": "method:python:app.schemas.benchmark.FanoutReport.implicit_rate",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/schemas/benchmark.py",
+      "target": "method:python:app.schemas.benchmark.FanoutReport.implicit_workers",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/schemas/benchmark.py",
+      "target": "method:python:app.schemas.benchmark.FanoutReport.total",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/schemas/benchmark.py",
+      "target": "method:python:app.schemas.benchmark.FanoutReport.workers_reaching_correctness",
       "type": "defines"
     },
     {
@@ -14164,6 +14344,270 @@
       "metadata": {},
       "source": "file:tests/test_benchmark.py",
       "target": "file:scripts/benchmark.py",
+      "type": "likely_tests"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_benchmark_fanout.py",
+      "target": "class:python:tests.test_benchmark_fanout.TestFanoutComparison",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_benchmark_fanout.py",
+      "target": "class:python:tests.test_benchmark_fanout.TestFanoutDispatch",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_benchmark_fanout.py",
+      "target": "class:python:tests.test_benchmark_fanout.TestFanoutRendering",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_benchmark_fanout.py",
+      "target": "function:python:tests.test_benchmark_fanout._record",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_benchmark_fanout.py",
+      "target": "function:python:tests.test_benchmark_fanout._spec",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_benchmark_fanout.py",
+      "target": "function:python:tests.test_benchmark_fanout.dispatch",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_benchmark_fanout.py",
+      "target": "function:python:tests.test_benchmark_fanout.test_agreement_false_on_mixed_outcome",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_benchmark_fanout.py",
+      "target": "function:python:tests.test_benchmark_fanout.test_agreement_true_when_all_reach_correctness",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_benchmark_fanout.py",
+      "target": "function:python:tests.test_benchmark_fanout.test_agreement_true_when_none_reaches_correctness",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_benchmark_fanout.py",
+      "target": "function:python:tests.test_benchmark_fanout.test_compare_attaches_profile_per_arm",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_benchmark_fanout.py",
+      "target": "function:python:tests.test_benchmark_fanout.test_correctness_and_implicit_rates",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_benchmark_fanout.py",
+      "target": "function:python:tests.test_benchmark_fanout.test_failed_status_is_not_implicit",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_benchmark_fanout.py",
+      "target": "function:python:tests.test_benchmark_fanout.test_render_empty_report_has_no_rates_or_verdict",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_benchmark_fanout.py",
+      "target": "function:python:tests.test_benchmark_fanout.test_render_surfaces_mixed_verdict_and_implicit_arms",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_benchmark_fanout.py",
+      "target": "function:python:tests.test_benchmark_fanout.test_run_dispatches_every_arm_once_in_order",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_benchmark_fanout.py",
+      "target": "function:python:tests.test_benchmark_fanout.test_run_requires_at_least_one_arm",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_benchmark_fanout.py",
+      "target": "method:python:tests.test_benchmark_fanout.TestFanoutComparison.test_agreement_false_on_mixed_outcome",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_benchmark_fanout.py",
+      "target": "method:python:tests.test_benchmark_fanout.TestFanoutComparison.test_agreement_true_when_all_reach_correctness",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_benchmark_fanout.py",
+      "target": "method:python:tests.test_benchmark_fanout.TestFanoutComparison.test_agreement_true_when_none_reaches_correctness",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_benchmark_fanout.py",
+      "target": "method:python:tests.test_benchmark_fanout.TestFanoutComparison.test_compare_attaches_profile_per_arm",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_benchmark_fanout.py",
+      "target": "method:python:tests.test_benchmark_fanout.TestFanoutComparison.test_correctness_and_implicit_rates",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_benchmark_fanout.py",
+      "target": "method:python:tests.test_benchmark_fanout.TestFanoutComparison.test_failed_status_is_not_implicit",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_benchmark_fanout.py",
+      "target": "method:python:tests.test_benchmark_fanout.TestFanoutDispatch.test_run_dispatches_every_arm_once_in_order",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_benchmark_fanout.py",
+      "target": "method:python:tests.test_benchmark_fanout.TestFanoutDispatch.test_run_requires_at_least_one_arm",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_benchmark_fanout.py",
+      "target": "method:python:tests.test_benchmark_fanout.TestFanoutRendering.test_render_empty_report_has_no_rates_or_verdict",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_benchmark_fanout.py",
+      "target": "method:python:tests.test_benchmark_fanout.TestFanoutRendering.test_render_surfaces_mixed_verdict_and_implicit_arms",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_benchmark_fanout.py",
+      "target": "import:python:__future__.annotations",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_benchmark_fanout.py",
+      "target": "import:python:app.core.benchmark_fanout.BenchmarkFanout",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_benchmark_fanout.py",
+      "target": "import:python:app.core.benchmark_fanout.render_fanout_markdown",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_benchmark_fanout.py",
+      "target": "import:python:app.schemas.benchmark.FanoutReport",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_benchmark_fanout.py",
+      "target": "import:python:app.schemas.evidence.EvidenceReport",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_benchmark_fanout.py",
+      "target": "import:python:app.schemas.permission.PermissionReport",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_benchmark_fanout.py",
+      "target": "import:python:app.schemas.plan.ImplementationPlan",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_benchmark_fanout.py",
+      "target": "import:python:app.schemas.quality.ReportQualityReport",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_benchmark_fanout.py",
+      "target": "import:python:app.schemas.repo.RepoProfile",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_benchmark_fanout.py",
+      "target": "import:python:app.schemas.report.FinalReport",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_benchmark_fanout.py",
+      "target": "import:python:app.schemas.review.ReviewReport",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_benchmark_fanout.py",
+      "target": "import:python:app.schemas.risk.RiskReport",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_benchmark_fanout.py",
+      "target": "import:python:app.schemas.run.RunRecord",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_benchmark_fanout.py",
+      "target": "import:python:app.schemas.task_spec.SweTaskSpec",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_benchmark_fanout.py",
+      "target": "import:python:app.schemas.test.CommandResult",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_benchmark_fanout.py",
+      "target": "import:python:app.schemas.test.TestRunSummary",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_benchmark_fanout.py",
+      "target": "import:python:pytest",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_benchmark_fanout.py",
+      "target": "file:app/core/benchmark_fanout.py",
       "type": "likely_tests"
     },
     {
@@ -23079,6 +23523,12 @@
     {
       "metadata": {},
       "source": "folder:app/core",
+      "target": "file:app/core/benchmark_fanout.py",
+      "type": "contains"
+    },
+    {
+      "metadata": {},
+      "source": "folder:app/core",
       "target": "file:app/core/config.py",
       "type": "contains"
     },
@@ -24471,6 +24921,12 @@
     {
       "metadata": {},
       "source": "folder:tests",
+      "target": "file:tests/test_benchmark_fanout.py",
+      "type": "contains"
+    },
+    {
+      "metadata": {},
+      "source": "folder:tests",
       "target": "file:tests/test_capability_pack.py",
       "type": "contains"
     },
@@ -25343,6 +25799,17 @@
       },
       "name": "ConvergenceClassifier",
       "path": "app/core/benchmark.py",
+      "type": "class"
+    },
+    {
+      "id": "class:python:app.core.benchmark_fanout.BenchmarkFanout",
+      "language": "python",
+      "metadata": {
+        "line": 35,
+        "qualified_name": "app.core.benchmark_fanout.BenchmarkFanout"
+      },
+      "name": "BenchmarkFanout",
+      "path": "app/core/benchmark_fanout.py",
       "type": "class"
     },
     {
@@ -26831,6 +27298,28 @@
       "type": "class"
     },
     {
+      "id": "class:python:app.schemas.benchmark.FanoutArm",
+      "language": "python",
+      "metadata": {
+        "line": 82,
+        "qualified_name": "app.schemas.benchmark.FanoutArm"
+      },
+      "name": "FanoutArm",
+      "path": "app/schemas/benchmark.py",
+      "type": "class"
+    },
+    {
+      "id": "class:python:app.schemas.benchmark.FanoutReport",
+      "language": "python",
+      "metadata": {
+        "line": 91,
+        "qualified_name": "app.schemas.benchmark.FanoutReport"
+      },
+      "name": "FanoutReport",
+      "path": "app/schemas/benchmark.py",
+      "type": "class"
+    },
+    {
       "id": "class:python:app.schemas.conflict.Conflict",
       "language": "python",
       "metadata": {
@@ -27400,6 +27889,39 @@
       },
       "name": "FakeLLMClient",
       "path": "tests/test_api.py",
+      "type": "class"
+    },
+    {
+      "id": "class:python:tests.test_benchmark_fanout.TestFanoutComparison",
+      "language": "python",
+      "metadata": {
+        "line": 65,
+        "qualified_name": "tests.test_benchmark_fanout.TestFanoutComparison"
+      },
+      "name": "TestFanoutComparison",
+      "path": "tests/test_benchmark_fanout.py",
+      "type": "class"
+    },
+    {
+      "id": "class:python:tests.test_benchmark_fanout.TestFanoutDispatch",
+      "language": "python",
+      "metadata": {
+        "line": 135,
+        "qualified_name": "tests.test_benchmark_fanout.TestFanoutDispatch"
+      },
+      "name": "TestFanoutDispatch",
+      "path": "tests/test_benchmark_fanout.py",
+      "type": "class"
+    },
+    {
+      "id": "class:python:tests.test_benchmark_fanout.TestFanoutRendering",
+      "language": "python",
+      "metadata": {
+        "line": 153,
+        "qualified_name": "tests.test_benchmark_fanout.TestFanoutRendering"
+      },
+      "name": "TestFanoutRendering",
+      "path": "tests/test_benchmark_fanout.py",
       "type": "class"
     },
     {
@@ -28121,6 +28643,14 @@
       "metadata": {},
       "name": "benchmark.py",
       "path": "app/core/benchmark.py",
+      "type": "file"
+    },
+    {
+      "id": "file:app/core/benchmark_fanout.py",
+      "language": "python",
+      "metadata": {},
+      "name": "benchmark_fanout.py",
+      "path": "app/core/benchmark_fanout.py",
       "type": "file"
     },
     {
@@ -29753,6 +30283,14 @@
       "metadata": {},
       "name": "test_benchmark.py",
       "path": "tests/test_benchmark.py",
+      "type": "test"
+    },
+    {
+      "id": "file:tests/test_benchmark_fanout.py",
+      "language": "python",
+      "metadata": {},
+      "name": "test_benchmark_fanout.py",
+      "path": "tests/test_benchmark_fanout.py",
       "type": "test"
     },
     {
@@ -32574,6 +33112,50 @@
       },
       "name": "summarize_benchmark",
       "path": "app/core/benchmark.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.core.benchmark_fanout.__init__",
+      "language": "python",
+      "metadata": {
+        "line": 38,
+        "qualified_name": "app.core.benchmark_fanout.__init__"
+      },
+      "name": "__init__",
+      "path": "app/core/benchmark_fanout.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.core.benchmark_fanout.compare",
+      "language": "python",
+      "metadata": {
+        "line": 41,
+        "qualified_name": "app.core.benchmark_fanout.compare"
+      },
+      "name": "compare",
+      "path": "app/core/benchmark_fanout.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.core.benchmark_fanout.render_fanout_markdown",
+      "language": "python",
+      "metadata": {
+        "line": 87,
+        "qualified_name": "app.core.benchmark_fanout.render_fanout_markdown"
+      },
+      "name": "render_fanout_markdown",
+      "path": "app/core/benchmark_fanout.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.core.benchmark_fanout.run",
+      "language": "python",
+      "metadata": {
+        "line": 68,
+        "qualified_name": "app.core.benchmark_fanout.run"
+      },
+      "name": "run",
+      "path": "app/core/benchmark_fanout.py",
       "type": "function"
     },
     {
@@ -37923,6 +38505,28 @@
       "type": "function"
     },
     {
+      "id": "function:python:app.schemas.benchmark.agreement",
+      "language": "python",
+      "metadata": {
+        "line": 137,
+        "qualified_name": "app.schemas.benchmark.agreement"
+      },
+      "name": "agreement",
+      "path": "app/schemas/benchmark.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.schemas.benchmark.correctness_count",
+      "language": "python",
+      "metadata": {
+        "line": 109,
+        "qualified_name": "app.schemas.benchmark.correctness_count"
+      },
+      "name": "correctness_count",
+      "path": "app/schemas/benchmark.py",
+      "type": "function"
+    },
+    {
       "id": "function:python:app.schemas.benchmark.correctness_rate",
       "language": "python",
       "metadata": {
@@ -37956,6 +38560,17 @@
       "type": "function"
     },
     {
+      "id": "function:python:app.schemas.benchmark.implicit_workers",
+      "language": "python",
+      "metadata": {
+        "line": 133,
+        "qualified_name": "app.schemas.benchmark.implicit_workers"
+      },
+      "name": "implicit_workers",
+      "path": "app/schemas/benchmark.py",
+      "type": "function"
+    },
+    {
       "id": "function:python:app.schemas.benchmark.total",
       "language": "python",
       "metadata": {
@@ -37974,6 +38589,17 @@
         "qualified_name": "app.schemas.benchmark.type_counts"
       },
       "name": "type_counts",
+      "path": "app/schemas/benchmark.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.schemas.benchmark.workers_reaching_correctness",
+      "language": "python",
+      "metadata": {
+        "line": 129,
+        "qualified_name": "app.schemas.benchmark.workers_reaching_correctness"
+      },
+      "name": "workers_reaching_correctness",
       "path": "app/schemas/benchmark.py",
       "type": "function"
     },
@@ -39196,6 +39822,149 @@
       },
       "name": "test_unsupported_claims_block_correctness",
       "path": "tests/test_benchmark.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_benchmark_fanout._record",
+      "language": "python",
+      "metadata": {
+        "line": 38,
+        "qualified_name": "tests.test_benchmark_fanout._record"
+      },
+      "name": "_record",
+      "path": "tests/test_benchmark_fanout.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_benchmark_fanout._spec",
+      "language": "python",
+      "metadata": {
+        "line": 28,
+        "qualified_name": "tests.test_benchmark_fanout._spec"
+      },
+      "name": "_spec",
+      "path": "tests/test_benchmark_fanout.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_benchmark_fanout.dispatch",
+      "language": "python",
+      "metadata": {
+        "line": 139,
+        "qualified_name": "tests.test_benchmark_fanout.dispatch"
+      },
+      "name": "dispatch",
+      "path": "tests/test_benchmark_fanout.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_benchmark_fanout.test_agreement_false_on_mixed_outcome",
+      "language": "python",
+      "metadata": {
+        "line": 117,
+        "qualified_name": "tests.test_benchmark_fanout.test_agreement_false_on_mixed_outcome"
+      },
+      "name": "test_agreement_false_on_mixed_outcome",
+      "path": "tests/test_benchmark_fanout.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_benchmark_fanout.test_agreement_true_when_all_reach_correctness",
+      "language": "python",
+      "metadata": {
+        "line": 100,
+        "qualified_name": "tests.test_benchmark_fanout.test_agreement_true_when_all_reach_correctness"
+      },
+      "name": "test_agreement_true_when_all_reach_correctness",
+      "path": "tests/test_benchmark_fanout.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_benchmark_fanout.test_agreement_true_when_none_reaches_correctness",
+      "language": "python",
+      "metadata": {
+        "line": 106,
+        "qualified_name": "tests.test_benchmark_fanout.test_agreement_true_when_none_reaches_correctness"
+      },
+      "name": "test_agreement_true_when_none_reaches_correctness",
+      "path": "tests/test_benchmark_fanout.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_benchmark_fanout.test_compare_attaches_profile_per_arm",
+      "language": "python",
+      "metadata": {
+        "line": 66,
+        "qualified_name": "tests.test_benchmark_fanout.test_compare_attaches_profile_per_arm"
+      },
+      "name": "test_compare_attaches_profile_per_arm",
+      "path": "tests/test_benchmark_fanout.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_benchmark_fanout.test_correctness_and_implicit_rates",
+      "language": "python",
+      "metadata": {
+        "line": 82,
+        "qualified_name": "tests.test_benchmark_fanout.test_correctness_and_implicit_rates"
+      },
+      "name": "test_correctness_and_implicit_rates",
+      "path": "tests/test_benchmark_fanout.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_benchmark_fanout.test_failed_status_is_not_implicit",
+      "language": "python",
+      "metadata": {
+        "line": 125,
+        "qualified_name": "tests.test_benchmark_fanout.test_failed_status_is_not_implicit"
+      },
+      "name": "test_failed_status_is_not_implicit",
+      "path": "tests/test_benchmark_fanout.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_benchmark_fanout.test_render_empty_report_has_no_rates_or_verdict",
+      "language": "python",
+      "metadata": {
+        "line": 171,
+        "qualified_name": "tests.test_benchmark_fanout.test_render_empty_report_has_no_rates_or_verdict"
+      },
+      "name": "test_render_empty_report_has_no_rates_or_verdict",
+      "path": "tests/test_benchmark_fanout.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_benchmark_fanout.test_render_surfaces_mixed_verdict_and_implicit_arms",
+      "language": "python",
+      "metadata": {
+        "line": 154,
+        "qualified_name": "tests.test_benchmark_fanout.test_render_surfaces_mixed_verdict_and_implicit_arms"
+      },
+      "name": "test_render_surfaces_mixed_verdict_and_implicit_arms",
+      "path": "tests/test_benchmark_fanout.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_benchmark_fanout.test_run_dispatches_every_arm_once_in_order",
+      "language": "python",
+      "metadata": {
+        "line": 136,
+        "qualified_name": "tests.test_benchmark_fanout.test_run_dispatches_every_arm_once_in_order"
+      },
+      "name": "test_run_dispatches_every_arm_once_in_order",
+      "path": "tests/test_benchmark_fanout.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_benchmark_fanout.test_run_requires_at_least_one_arm",
+      "language": "python",
+      "metadata": {
+        "line": 148,
+        "qualified_name": "tests.test_benchmark_fanout.test_run_requires_at_least_one_arm"
+      },
+      "name": "test_run_requires_at_least_one_arm",
+      "path": "tests/test_benchmark_fanout.py",
       "type": "function"
     },
     {
@@ -46671,6 +47440,26 @@
       "type": "import"
     },
     {
+      "id": "import:python:app.core.benchmark_fanout.BenchmarkFanout",
+      "language": "python",
+      "metadata": {
+        "imported_from": "app.core.benchmark_fanout"
+      },
+      "name": "app.core.benchmark_fanout.BenchmarkFanout",
+      "path": null,
+      "type": "import"
+    },
+    {
+      "id": "import:python:app.core.benchmark_fanout.render_fanout_markdown",
+      "language": "python",
+      "metadata": {
+        "imported_from": "app.core.benchmark_fanout"
+      },
+      "name": "app.core.benchmark_fanout.render_fanout_markdown",
+      "path": null,
+      "type": "import"
+    },
+    {
       "id": "import:python:app.core.codecs.vault_codec.VaultCodec",
       "language": "python",
       "metadata": {
@@ -48951,6 +49740,26 @@
       "type": "import"
     },
     {
+      "id": "import:python:app.schemas.benchmark.FanoutArm",
+      "language": "python",
+      "metadata": {
+        "imported_from": "app.schemas.benchmark"
+      },
+      "name": "app.schemas.benchmark.FanoutArm",
+      "path": null,
+      "type": "import"
+    },
+    {
+      "id": "import:python:app.schemas.benchmark.FanoutReport",
+      "language": "python",
+      "metadata": {
+        "imported_from": "app.schemas.benchmark"
+      },
+      "name": "app.schemas.benchmark.FanoutReport",
+      "path": null,
+      "type": "import"
+    },
+    {
       "id": "import:python:app.schemas.conflict.Conflict",
       "language": "python",
       "metadata": {
@@ -49487,6 +50296,16 @@
         "imported_from": "collections.abc"
       },
       "name": "collections.abc.Callable",
+      "path": null,
+      "type": "import"
+    },
+    {
+      "id": "import:python:collections.abc.Iterable",
+      "language": "python",
+      "metadata": {
+        "imported_from": "collections.abc"
+      },
+      "name": "collections.abc.Iterable",
       "path": null,
       "type": "import"
     },
@@ -51520,6 +52339,39 @@
       },
       "name": "render_markdown",
       "path": "app/core/benchmark.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:app.core.benchmark_fanout.BenchmarkFanout.__init__",
+      "language": "python",
+      "metadata": {
+        "line": 38,
+        "qualified_name": "app.core.benchmark_fanout.BenchmarkFanout.__init__"
+      },
+      "name": "__init__",
+      "path": "app/core/benchmark_fanout.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:app.core.benchmark_fanout.BenchmarkFanout.compare",
+      "language": "python",
+      "metadata": {
+        "line": 41,
+        "qualified_name": "app.core.benchmark_fanout.BenchmarkFanout.compare"
+      },
+      "name": "compare",
+      "path": "app/core/benchmark_fanout.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:app.core.benchmark_fanout.BenchmarkFanout.run",
+      "language": "python",
+      "metadata": {
+        "line": 68,
+        "qualified_name": "app.core.benchmark_fanout.BenchmarkFanout.run"
+      },
+      "name": "run",
+      "path": "app/core/benchmark_fanout.py",
       "type": "method"
     },
     {
@@ -53811,6 +54663,94 @@
       "type": "method"
     },
     {
+      "id": "method:python:app.schemas.benchmark.FanoutReport.agreement",
+      "language": "python",
+      "metadata": {
+        "line": 137,
+        "qualified_name": "app.schemas.benchmark.FanoutReport.agreement"
+      },
+      "name": "agreement",
+      "path": "app/schemas/benchmark.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:app.schemas.benchmark.FanoutReport.correctness_count",
+      "language": "python",
+      "metadata": {
+        "line": 109,
+        "qualified_name": "app.schemas.benchmark.FanoutReport.correctness_count"
+      },
+      "name": "correctness_count",
+      "path": "app/schemas/benchmark.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:app.schemas.benchmark.FanoutReport.correctness_rate",
+      "language": "python",
+      "metadata": {
+        "line": 117,
+        "qualified_name": "app.schemas.benchmark.FanoutReport.correctness_rate"
+      },
+      "name": "correctness_rate",
+      "path": "app/schemas/benchmark.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:app.schemas.benchmark.FanoutReport.implicit_count",
+      "language": "python",
+      "metadata": {
+        "line": 113,
+        "qualified_name": "app.schemas.benchmark.FanoutReport.implicit_count"
+      },
+      "name": "implicit_count",
+      "path": "app/schemas/benchmark.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:app.schemas.benchmark.FanoutReport.implicit_rate",
+      "language": "python",
+      "metadata": {
+        "line": 123,
+        "qualified_name": "app.schemas.benchmark.FanoutReport.implicit_rate"
+      },
+      "name": "implicit_rate",
+      "path": "app/schemas/benchmark.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:app.schemas.benchmark.FanoutReport.implicit_workers",
+      "language": "python",
+      "metadata": {
+        "line": 133,
+        "qualified_name": "app.schemas.benchmark.FanoutReport.implicit_workers"
+      },
+      "name": "implicit_workers",
+      "path": "app/schemas/benchmark.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:app.schemas.benchmark.FanoutReport.total",
+      "language": "python",
+      "metadata": {
+        "line": 105,
+        "qualified_name": "app.schemas.benchmark.FanoutReport.total"
+      },
+      "name": "total",
+      "path": "app/schemas/benchmark.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:app.schemas.benchmark.FanoutReport.workers_reaching_correctness",
+      "language": "python",
+      "metadata": {
+        "line": 129,
+        "qualified_name": "app.schemas.benchmark.FanoutReport.workers_reaching_correctness"
+      },
+      "name": "workers_reaching_correctness",
+      "path": "app/schemas/benchmark.py",
+      "type": "method"
+    },
+    {
       "id": "method:python:app.schemas.conflict.ConflictReport.has_conflicts",
       "language": "python",
       "metadata": {
@@ -54061,6 +55001,116 @@
       },
       "name": "generate_text",
       "path": "tests/test_api.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_benchmark_fanout.TestFanoutComparison.test_agreement_false_on_mixed_outcome",
+      "language": "python",
+      "metadata": {
+        "line": 117,
+        "qualified_name": "tests.test_benchmark_fanout.TestFanoutComparison.test_agreement_false_on_mixed_outcome"
+      },
+      "name": "test_agreement_false_on_mixed_outcome",
+      "path": "tests/test_benchmark_fanout.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_benchmark_fanout.TestFanoutComparison.test_agreement_true_when_all_reach_correctness",
+      "language": "python",
+      "metadata": {
+        "line": 100,
+        "qualified_name": "tests.test_benchmark_fanout.TestFanoutComparison.test_agreement_true_when_all_reach_correctness"
+      },
+      "name": "test_agreement_true_when_all_reach_correctness",
+      "path": "tests/test_benchmark_fanout.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_benchmark_fanout.TestFanoutComparison.test_agreement_true_when_none_reaches_correctness",
+      "language": "python",
+      "metadata": {
+        "line": 106,
+        "qualified_name": "tests.test_benchmark_fanout.TestFanoutComparison.test_agreement_true_when_none_reaches_correctness"
+      },
+      "name": "test_agreement_true_when_none_reaches_correctness",
+      "path": "tests/test_benchmark_fanout.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_benchmark_fanout.TestFanoutComparison.test_compare_attaches_profile_per_arm",
+      "language": "python",
+      "metadata": {
+        "line": 66,
+        "qualified_name": "tests.test_benchmark_fanout.TestFanoutComparison.test_compare_attaches_profile_per_arm"
+      },
+      "name": "test_compare_attaches_profile_per_arm",
+      "path": "tests/test_benchmark_fanout.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_benchmark_fanout.TestFanoutComparison.test_correctness_and_implicit_rates",
+      "language": "python",
+      "metadata": {
+        "line": 82,
+        "qualified_name": "tests.test_benchmark_fanout.TestFanoutComparison.test_correctness_and_implicit_rates"
+      },
+      "name": "test_correctness_and_implicit_rates",
+      "path": "tests/test_benchmark_fanout.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_benchmark_fanout.TestFanoutComparison.test_failed_status_is_not_implicit",
+      "language": "python",
+      "metadata": {
+        "line": 125,
+        "qualified_name": "tests.test_benchmark_fanout.TestFanoutComparison.test_failed_status_is_not_implicit"
+      },
+      "name": "test_failed_status_is_not_implicit",
+      "path": "tests/test_benchmark_fanout.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_benchmark_fanout.TestFanoutDispatch.test_run_dispatches_every_arm_once_in_order",
+      "language": "python",
+      "metadata": {
+        "line": 136,
+        "qualified_name": "tests.test_benchmark_fanout.TestFanoutDispatch.test_run_dispatches_every_arm_once_in_order"
+      },
+      "name": "test_run_dispatches_every_arm_once_in_order",
+      "path": "tests/test_benchmark_fanout.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_benchmark_fanout.TestFanoutDispatch.test_run_requires_at_least_one_arm",
+      "language": "python",
+      "metadata": {
+        "line": 148,
+        "qualified_name": "tests.test_benchmark_fanout.TestFanoutDispatch.test_run_requires_at_least_one_arm"
+      },
+      "name": "test_run_requires_at_least_one_arm",
+      "path": "tests/test_benchmark_fanout.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_benchmark_fanout.TestFanoutRendering.test_render_empty_report_has_no_rates_or_verdict",
+      "language": "python",
+      "metadata": {
+        "line": 171,
+        "qualified_name": "tests.test_benchmark_fanout.TestFanoutRendering.test_render_empty_report_has_no_rates_or_verdict"
+      },
+      "name": "test_render_empty_report_has_no_rates_or_verdict",
+      "path": "tests/test_benchmark_fanout.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_benchmark_fanout.TestFanoutRendering.test_render_surfaces_mixed_verdict_and_implicit_arms",
+      "language": "python",
+      "metadata": {
+        "line": 154,
+        "qualified_name": "tests.test_benchmark_fanout.TestFanoutRendering.test_render_surfaces_mixed_verdict_and_implicit_arms"
+      },
+      "name": "test_render_surfaces_mixed_verdict_and_implicit_arms",
+      "path": "tests/test_benchmark_fanout.py",
       "type": "method"
     },
     {
@@ -54906,8 +55956,8 @@
       "python"
     ],
     "risk_count": 0,
-    "source_file_count": 239,
-    "test_file_count": 101,
+    "source_file_count": 241,
+    "test_file_count": 102,
     "test_frameworks": [
       "pytest"
     ]
