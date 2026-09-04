@@ -1,10 +1,10 @@
 {
   "counts": {
-    "edges": 4164,
-    "included_files": 335,
-    "nodes": 2813,
-    "source_files": 238,
-    "test_files": 100
+    "edges": 4200,
+    "included_files": 336,
+    "nodes": 2842,
+    "source_files": 239,
+    "test_files": 101
   },
   "exclusions": [
     ".cache/",
@@ -27,7 +27,7 @@
     "target/",
     "vendor/"
   ],
-  "generated_at": "2026-09-03T07:07:59Z",
+  "generated_at": "2026-09-04T02:59:57Z",
   "generator_version": "1",
   "included_paths": [
     ".env.example",
@@ -287,6 +287,7 @@
     "tests/test_handoff.py",
     "tests/test_integrations.py",
     "tests/test_issues.py",
+    "tests/test_jsonl_storage.py",
     "tests/test_langgraph_workflow.py",
     "tests/test_llm_agents.py",
     "tests/test_llm_provider.py",
@@ -390,6 +391,6 @@
     ]
   },
   "schema_version": 1,
-  "source_commit": "322c54788d97e0ccad4fff6f6fa4a8058b2d2d9d",
-  "source_tree_digest": "1539b50e766b06e2908eaef5fd9e629327e365c544be5453d8c7a90afa7bf770"
+  "source_commit": "3bc3762c999dcc3ffb80617f1f6b65fbec984d60",
+  "source_tree_digest": "257a02c1dfb3a970365d7ceaecf25e7a83f788332f78808e5dbdb2738f09d301"
 }

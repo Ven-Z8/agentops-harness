@@ -1803,6 +1803,12 @@
     {
       "metadata": {},
       "source": "file:app/cli.py",
+      "target": "import:python:app.core.task_spec_gate.evaluate_positive_contract",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/cli.py",
       "target": "import:python:app.core.workload.evaluate_workload_gates",
       "type": "imports"
     },
@@ -6489,6 +6495,24 @@
     {
       "metadata": {},
       "source": "file:app/core/task_spec_gate.py",
+      "target": "class:python:app.core.task_spec_gate.PositiveContractCommandResult",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/core/task_spec_gate.py",
+      "target": "class:python:app.core.task_spec_gate.PositiveContractGateResult",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/core/task_spec_gate.py",
+      "target": "function:python:app.core.task_spec_gate._probe",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/core/task_spec_gate.py",
       "target": "function:python:app.core.task_spec_gate._pytest_command_for",
       "type": "defines"
     },
@@ -6496,6 +6520,12 @@
       "metadata": {},
       "source": "file:app/core/task_spec_gate.py",
       "target": "function:python:app.core.task_spec_gate.evaluate_negative_contract",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/core/task_spec_gate.py",
+      "target": "function:python:app.core.task_spec_gate.evaluate_positive_contract",
       "type": "defines"
     },
     {
@@ -16298,6 +16328,72 @@
     },
     {
       "metadata": {},
+      "source": "file:tests/test_jsonl_storage.py",
+      "target": "class:python:tests.test_jsonl_storage.TestJsonlRevisionSemantics",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_jsonl_storage.py",
+      "target": "function:python:tests.test_jsonl_storage.test_get_returns_latest_write_after_resave",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_jsonl_storage.py",
+      "target": "function:python:tests.test_jsonl_storage.test_list_dedupes_revisions_keeping_latest",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_jsonl_storage.py",
+      "target": "function:python:tests.test_jsonl_storage.test_list_preserves_latest_first_order",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_jsonl_storage.py",
+      "target": "method:python:tests.test_jsonl_storage.TestJsonlRevisionSemantics.test_get_returns_latest_write_after_resave",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_jsonl_storage.py",
+      "target": "method:python:tests.test_jsonl_storage.TestJsonlRevisionSemantics.test_list_dedupes_revisions_keeping_latest",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_jsonl_storage.py",
+      "target": "method:python:tests.test_jsonl_storage.TestJsonlRevisionSemantics.test_list_preserves_latest_first_order",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_jsonl_storage.py",
+      "target": "import:python:__future__.annotations",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_jsonl_storage.py",
+      "target": "import:python:app.core.storage.RunStorage",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_jsonl_storage.py",
+      "target": "import:python:pathlib.Path",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_jsonl_storage.py",
+      "target": "import:python:tests.helpers_runrecord.minimal_run_record",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
       "source": "file:tests/test_langgraph_workflow.py",
       "target": "function:python:tests.test_langgraph_workflow.test_build_workflow_graph_returns_compiled_langgraph",
       "type": "defines"
@@ -19851,6 +19947,12 @@
     {
       "metadata": {},
       "source": "file:tests/test_task_spec.py",
+      "target": "class:python:tests.test_task_spec.TestPositiveContractGate",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec.py",
       "target": "class:python:tests.test_task_spec.TestSweTaskSpecSchema",
       "type": "defines"
     },
@@ -19875,6 +19977,24 @@
     {
       "metadata": {},
       "source": "file:tests/test_task_spec.py",
+      "target": "function:python:tests.test_task_spec._two_test_repo",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec.py",
+      "target": "function:python:tests.test_task_spec._two_test_spec",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec.py",
+      "target": "function:python:tests.test_task_spec.test_gate_blocks_inconclusive_tests",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec.py",
       "target": "function:python:tests.test_task_spec.test_gate_blocks_when_fail_to_pass_passes_at_base",
       "type": "defines"
     },
@@ -19887,7 +20007,25 @@
     {
       "metadata": {},
       "source": "file:tests/test_task_spec.py",
+      "target": "function:python:tests.test_task_spec.test_gate_fails_when_fail_to_pass_still_fails",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec.py",
+      "target": "function:python:tests.test_task_spec.test_gate_fails_when_pass_to_pass_regresses",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec.py",
       "target": "function:python:tests.test_task_spec.test_gate_passes_when_bug_reproduces",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec.py",
+      "target": "function:python:tests.test_task_spec.test_gate_passes_when_fix_holds_and_no_regression",
       "type": "defines"
     },
     {
@@ -19947,6 +20085,30 @@
     {
       "metadata": {},
       "source": "file:tests/test_task_spec.py",
+      "target": "method:python:tests.test_task_spec.TestPositiveContractGate.test_gate_blocks_inconclusive_tests",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec.py",
+      "target": "method:python:tests.test_task_spec.TestPositiveContractGate.test_gate_fails_when_fail_to_pass_still_fails",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec.py",
+      "target": "method:python:tests.test_task_spec.TestPositiveContractGate.test_gate_fails_when_pass_to_pass_regresses",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec.py",
+      "target": "method:python:tests.test_task_spec.TestPositiveContractGate.test_gate_passes_when_fix_holds_and_no_regression",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec.py",
       "target": "method:python:tests.test_task_spec.TestSweTaskSpecSchema.test_spec_from_swebench_json_tuple",
       "type": "defines"
     },
@@ -19978,6 +20140,12 @@
       "metadata": {},
       "source": "file:tests/test_task_spec.py",
       "target": "import:python:app.core.task_spec_gate.evaluate_negative_contract",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec.py",
+      "target": "import:python:app.core.task_spec_gate.evaluate_positive_contract",
       "type": "imports"
     },
     {
@@ -20025,6 +20193,12 @@
     {
       "metadata": {},
       "source": "file:tests/test_task_spec_solve.py",
+      "target": "class:python:tests.test_task_spec_solve.TestPositiveContractEnforcement",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_solve.py",
       "target": "class:python:tests.test_task_spec_solve.TestTaskSpecCLIWiring",
       "type": "defines"
     },
@@ -20067,7 +20241,31 @@
     {
       "metadata": {},
       "source": "file:tests/test_task_spec_solve.py",
+      "target": "function:python:tests.test_task_spec_solve.test_solve_enforces_positive_contract_after_run",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_solve.py",
+      "target": "function:python:tests.test_task_spec_solve.test_solve_keeps_completed_when_positive_contract_holds",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_solve.py",
       "target": "function:python:tests.test_task_spec_solve.test_solve_with_task_spec_pins_commit_and_composes_task",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_solve.py",
+      "target": "method:python:tests.test_task_spec_solve.TestPositiveContractEnforcement.test_solve_enforces_positive_contract_after_run",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_solve.py",
+      "target": "method:python:tests.test_task_spec_solve.TestPositiveContractEnforcement.test_solve_keeps_completed_when_positive_contract_holds",
       "type": "defines"
     },
     {
@@ -20103,6 +20301,12 @@
     {
       "metadata": {},
       "source": "file:tests/test_task_spec_solve.py",
+      "target": "import:python:app.core.storage.RunStorage",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_solve.py",
       "target": "import:python:app.schemas.task_spec.SweTaskSpec",
       "type": "imports"
     },
@@ -20122,6 +20326,12 @@
       "metadata": {},
       "source": "file:tests/test_task_spec_solve.py",
       "target": "import:python:subprocess",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_solve.py",
+      "target": "import:python:tests.helpers_runrecord.minimal_run_record",
       "type": "imports"
     },
     {
@@ -24393,6 +24603,12 @@
     {
       "metadata": {},
       "source": "folder:tests",
+      "target": "file:tests/test_jsonl_storage.py",
+      "type": "contains"
+    },
+    {
+      "metadata": {},
+      "source": "folder:tests",
       "target": "file:tests/test_langgraph_workflow.py",
       "type": "contains"
     },
@@ -25694,7 +25910,7 @@
       "id": "class:python:app.core.storage.SQLiteRunStorage",
       "language": "python",
       "metadata": {
-        "line": 52,
+        "line": 71,
         "qualified_name": "app.core.storage.SQLiteRunStorage"
       },
       "name": "SQLiteRunStorage",
@@ -25705,7 +25921,7 @@
       "id": "class:python:app.core.task_spec_gate.NegativeContractCommandResult",
       "language": "python",
       "metadata": {
-        "line": 32,
+        "line": 38,
         "qualified_name": "app.core.task_spec_gate.NegativeContractCommandResult"
       },
       "name": "NegativeContractCommandResult",
@@ -25716,10 +25932,32 @@
       "id": "class:python:app.core.task_spec_gate.NegativeContractGateResult",
       "language": "python",
       "metadata": {
-        "line": 41,
+        "line": 47,
         "qualified_name": "app.core.task_spec_gate.NegativeContractGateResult"
       },
       "name": "NegativeContractGateResult",
+      "path": "app/core/task_spec_gate.py",
+      "type": "class"
+    },
+    {
+      "id": "class:python:app.core.task_spec_gate.PositiveContractCommandResult",
+      "language": "python",
+      "metadata": {
+        "line": 122,
+        "qualified_name": "app.core.task_spec_gate.PositiveContractCommandResult"
+      },
+      "name": "PositiveContractCommandResult",
+      "path": "app/core/task_spec_gate.py",
+      "type": "class"
+    },
+    {
+      "id": "class:python:app.core.task_spec_gate.PositiveContractGateResult",
+      "language": "python",
+      "metadata": {
+        "line": 131,
+        "qualified_name": "app.core.task_spec_gate.PositiveContractGateResult"
+      },
+      "name": "PositiveContractGateResult",
       "path": "app/core/task_spec_gate.py",
       "type": "class"
     },
@@ -27220,6 +27458,17 @@
       "type": "class"
     },
     {
+      "id": "class:python:tests.test_jsonl_storage.TestJsonlRevisionSemantics",
+      "language": "python",
+      "metadata": {
+        "line": 19,
+        "qualified_name": "tests.test_jsonl_storage.TestJsonlRevisionSemantics"
+      },
+      "name": "TestJsonlRevisionSemantics",
+      "path": "tests/test_jsonl_storage.py",
+      "type": "class"
+    },
+    {
       "id": "class:python:tests.test_llm_agents.FakeLLMClient",
       "language": "python",
       "metadata": {
@@ -27330,6 +27579,17 @@
       "type": "class"
     },
     {
+      "id": "class:python:tests.test_task_spec.TestPositiveContractGate",
+      "language": "python",
+      "metadata": {
+        "line": 132,
+        "qualified_name": "tests.test_task_spec.TestPositiveContractGate"
+      },
+      "name": "TestPositiveContractGate",
+      "path": "tests/test_task_spec.py",
+      "type": "class"
+    },
+    {
       "id": "class:python:tests.test_task_spec.TestSweTaskSpecSchema",
       "language": "python",
       "metadata": {
@@ -27341,10 +27601,21 @@
       "type": "class"
     },
     {
+      "id": "class:python:tests.test_task_spec_solve.TestPositiveContractEnforcement",
+      "language": "python",
+      "metadata": {
+        "line": 198,
+        "qualified_name": "tests.test_task_spec_solve.TestPositiveContractEnforcement"
+      },
+      "name": "TestPositiveContractEnforcement",
+      "path": "tests/test_task_spec_solve.py",
+      "type": "class"
+    },
+    {
       "id": "class:python:tests.test_task_spec_solve.TestTaskSpecCLIWiring",
       "language": "python",
       "metadata": {
-        "line": 71,
+        "line": 73,
         "qualified_name": "tests.test_task_spec_solve.TestTaskSpecCLIWiring"
       },
       "name": "TestTaskSpecCLIWiring",
@@ -29661,6 +29932,14 @@
       "type": "test"
     },
     {
+      "id": "file:tests/test_jsonl_storage.py",
+      "language": "python",
+      "metadata": {},
+      "name": "test_jsonl_storage.py",
+      "path": "tests/test_jsonl_storage.py",
+      "type": "test"
+    },
+    {
       "id": "file:tests/test_langgraph_workflow.py",
       "language": "python",
       "metadata": {},
@@ -31630,7 +31909,7 @@
       "id": "function:python:app.cli._spec_issue_stub",
       "language": "python",
       "metadata": {
-        "line": 478,
+        "line": 482,
         "qualified_name": "app.cli._spec_issue_stub"
       },
       "name": "_spec_issue_stub",
@@ -31718,7 +31997,7 @@
       "id": "function:python:app.cli.issue_solve",
       "language": "python",
       "metadata": {
-        "line": 527,
+        "line": 531,
         "qualified_name": "app.cli.issue_solve"
       },
       "name": "issue_solve",
@@ -31729,7 +32008,7 @@
       "id": "function:python:app.cli.issue_view",
       "language": "python",
       "metadata": {
-        "line": 508,
+        "line": 512,
         "qualified_name": "app.cli.issue_view"
       },
       "name": "issue_view",
@@ -34589,7 +34868,7 @@
       "id": "function:python:app.core.storage._connect",
       "language": "python",
       "metadata": {
-        "line": 101,
+        "line": 120,
         "qualified_name": "app.core.storage._connect"
       },
       "name": "_connect",
@@ -34600,7 +34879,7 @@
       "id": "function:python:app.core.storage._ensure_schema",
       "language": "python",
       "metadata": {
-        "line": 107,
+        "line": 126,
         "qualified_name": "app.core.storage._ensure_schema"
       },
       "name": "_ensure_schema",
@@ -34622,7 +34901,7 @@
       "id": "function:python:app.core.storage.list",
       "language": "python",
       "metadata": {
-        "line": 37,
+        "line": 46,
         "qualified_name": "app.core.storage.list"
       },
       "name": "list",
@@ -34641,10 +34920,21 @@
       "type": "function"
     },
     {
+      "id": "function:python:app.core.task_spec_gate._probe",
+      "language": "python",
+      "metadata": {
+        "line": 160,
+        "qualified_name": "app.core.task_spec_gate._probe"
+      },
+      "name": "_probe",
+      "path": "app/core/task_spec_gate.py",
+      "type": "function"
+    },
+    {
       "id": "function:python:app.core.task_spec_gate._pytest_command_for",
       "language": "python",
       "metadata": {
-        "line": 47,
+        "line": 53,
         "qualified_name": "app.core.task_spec_gate._pytest_command_for"
       },
       "name": "_pytest_command_for",
@@ -34655,10 +34945,21 @@
       "id": "function:python:app.core.task_spec_gate.evaluate_negative_contract",
       "language": "python",
       "metadata": {
-        "line": 55,
+        "line": 61,
         "qualified_name": "app.core.task_spec_gate.evaluate_negative_contract"
       },
       "name": "evaluate_negative_contract",
+      "path": "app/core/task_spec_gate.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.core.task_spec_gate.evaluate_positive_contract",
+      "language": "python",
+      "metadata": {
+        "line": 137,
+        "qualified_name": "app.core.task_spec_gate.evaluate_positive_contract"
+      },
+      "name": "evaluate_positive_contract",
       "path": "app/core/task_spec_gate.py",
       "type": "function"
     },
@@ -40658,6 +40959,39 @@
       "type": "function"
     },
     {
+      "id": "function:python:tests.test_jsonl_storage.test_get_returns_latest_write_after_resave",
+      "language": "python",
+      "metadata": {
+        "line": 20,
+        "qualified_name": "tests.test_jsonl_storage.test_get_returns_latest_write_after_resave"
+      },
+      "name": "test_get_returns_latest_write_after_resave",
+      "path": "tests/test_jsonl_storage.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_jsonl_storage.test_list_dedupes_revisions_keeping_latest",
+      "language": "python",
+      "metadata": {
+        "line": 32,
+        "qualified_name": "tests.test_jsonl_storage.test_list_dedupes_revisions_keeping_latest"
+      },
+      "name": "test_list_dedupes_revisions_keeping_latest",
+      "path": "tests/test_jsonl_storage.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_jsonl_storage.test_list_preserves_latest_first_order",
+      "language": "python",
+      "metadata": {
+        "line": 51,
+        "qualified_name": "tests.test_jsonl_storage.test_list_preserves_latest_first_order"
+      },
+      "name": "test_list_preserves_latest_first_order",
+      "path": "tests/test_jsonl_storage.py",
+      "type": "function"
+    },
+    {
       "id": "function:python:tests.test_langgraph_workflow.test_build_workflow_graph_returns_compiled_langgraph",
       "language": "python",
       "metadata": {
@@ -43466,7 +43800,7 @@
       "id": "function:python:tests.test_task_spec._fixture_repo",
       "language": "python",
       "metadata": {
-        "line": 137,
+        "line": 201,
         "qualified_name": "tests.test_task_spec._fixture_repo"
       },
       "name": "_fixture_repo",
@@ -43477,7 +43811,7 @@
       "id": "function:python:tests.test_task_spec._fixture_spec",
       "language": "python",
       "metadata": {
-        "line": 190,
+        "line": 254,
         "qualified_name": "tests.test_task_spec._fixture_spec"
       },
       "name": "_fixture_spec",
@@ -43488,10 +43822,43 @@
       "id": "function:python:tests.test_task_spec._spec_for",
       "language": "python",
       "metadata": {
-        "line": 180,
+        "line": 244,
         "qualified_name": "tests.test_task_spec._spec_for"
       },
       "name": "_spec_for",
+      "path": "tests/test_task_spec.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_task_spec._two_test_repo",
+      "language": "python",
+      "metadata": {
+        "line": 299,
+        "qualified_name": "tests.test_task_spec._two_test_repo"
+      },
+      "name": "_two_test_repo",
+      "path": "tests/test_task_spec.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_task_spec._two_test_spec",
+      "language": "python",
+      "metadata": {
+        "line": 320,
+        "qualified_name": "tests.test_task_spec._two_test_spec"
+      },
+      "name": "_two_test_spec",
+      "path": "tests/test_task_spec.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_task_spec.test_gate_blocks_inconclusive_tests",
+      "language": "python",
+      "metadata": {
+        "line": 177,
+        "qualified_name": "tests.test_task_spec.test_gate_blocks_inconclusive_tests"
+      },
+      "name": "test_gate_blocks_inconclusive_tests",
       "path": "tests/test_task_spec.py",
       "type": "function"
     },
@@ -43518,6 +43885,28 @@
       "type": "function"
     },
     {
+      "id": "function:python:tests.test_task_spec.test_gate_fails_when_fail_to_pass_still_fails",
+      "language": "python",
+      "metadata": {
+        "line": 151,
+        "qualified_name": "tests.test_task_spec.test_gate_fails_when_fail_to_pass_still_fails"
+      },
+      "name": "test_gate_fails_when_fail_to_pass_still_fails",
+      "path": "tests/test_task_spec.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_task_spec.test_gate_fails_when_pass_to_pass_regresses",
+      "language": "python",
+      "metadata": {
+        "line": 165,
+        "qualified_name": "tests.test_task_spec.test_gate_fails_when_pass_to_pass_regresses"
+      },
+      "name": "test_gate_fails_when_pass_to_pass_regresses",
+      "path": "tests/test_task_spec.py",
+      "type": "function"
+    },
+    {
       "id": "function:python:tests.test_task_spec.test_gate_passes_when_bug_reproduces",
       "language": "python",
       "metadata": {
@@ -43525,6 +43914,17 @@
         "qualified_name": "tests.test_task_spec.test_gate_passes_when_bug_reproduces"
       },
       "name": "test_gate_passes_when_bug_reproduces",
+      "path": "tests/test_task_spec.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_task_spec.test_gate_passes_when_fix_holds_and_no_regression",
+      "language": "python",
+      "metadata": {
+        "line": 139,
+        "qualified_name": "tests.test_task_spec.test_gate_passes_when_fix_holds_and_no_regression"
+      },
+      "name": "test_gate_passes_when_fix_holds_and_no_regression",
       "path": "tests/test_task_spec.py",
       "type": "function"
     },
@@ -43587,7 +43987,7 @@
       "id": "function:python:tests.test_task_spec_solve._load_spec",
       "language": "python",
       "metadata": {
-        "line": 190,
+        "line": 320,
         "qualified_name": "tests.test_task_spec_solve._load_spec"
       },
       "name": "_load_spec",
@@ -43598,7 +43998,7 @@
       "id": "function:python:tests.test_task_spec_solve._make_remote_with_bug",
       "language": "python",
       "metadata": {
-        "line": 31,
+        "line": 33,
         "qualified_name": "tests.test_task_spec_solve._make_remote_with_bug"
       },
       "name": "_make_remote_with_bug",
@@ -43609,7 +44009,7 @@
       "id": "function:python:tests.test_task_spec_solve._spec_json",
       "language": "python",
       "metadata": {
-        "line": 21,
+        "line": 23,
         "qualified_name": "tests.test_task_spec_solve._spec_json"
       },
       "name": "_spec_json",
@@ -43620,7 +44020,7 @@
       "id": "function:python:tests.test_task_spec_solve.fail_run_harness",
       "language": "python",
       "metadata": {
-        "line": 93,
+        "line": 95,
         "qualified_name": "tests.test_task_spec_solve.fail_run_harness"
       },
       "name": "fail_run_harness",
@@ -43631,7 +44031,7 @@
       "id": "function:python:tests.test_task_spec_solve.fake_run_harness",
       "language": "python",
       "metadata": {
-        "line": 142,
+        "line": 149,
         "qualified_name": "tests.test_task_spec_solve.fake_run_harness"
       },
       "name": "fake_run_harness",
@@ -43642,7 +44042,7 @@
       "id": "function:python:tests.test_task_spec_solve.test_solve_blocks_when_negative_contract_fails",
       "language": "python",
       "metadata": {
-        "line": 72,
+        "line": 74,
         "qualified_name": "tests.test_task_spec_solve.test_solve_blocks_when_negative_contract_fails"
       },
       "name": "test_solve_blocks_when_negative_contract_fails",
@@ -43650,10 +44050,32 @@
       "type": "function"
     },
     {
+      "id": "function:python:tests.test_task_spec_solve.test_solve_enforces_positive_contract_after_run",
+      "language": "python",
+      "metadata": {
+        "line": 204,
+        "qualified_name": "tests.test_task_spec_solve.test_solve_enforces_positive_contract_after_run"
+      },
+      "name": "test_solve_enforces_positive_contract_after_run",
+      "path": "tests/test_task_spec_solve.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_task_spec_solve.test_solve_keeps_completed_when_positive_contract_holds",
+      "language": "python",
+      "metadata": {
+        "line": 259,
+        "qualified_name": "tests.test_task_spec_solve.test_solve_keeps_completed_when_positive_contract_holds"
+      },
+      "name": "test_solve_keeps_completed_when_positive_contract_holds",
+      "path": "tests/test_task_spec_solve.py",
+      "type": "function"
+    },
+    {
       "id": "function:python:tests.test_task_spec_solve.test_solve_with_task_spec_pins_commit_and_composes_task",
       "language": "python",
       "metadata": {
-        "line": 121,
+        "line": 123,
         "qualified_name": "tests.test_task_spec_solve.test_solve_with_task_spec_pins_commit_and_composes_task"
       },
       "name": "test_solve_with_task_spec_pins_commit_and_composes_task",
@@ -47285,6 +47707,16 @@
         "imported_from": "app.core.task_spec_gate"
       },
       "name": "app.core.task_spec_gate.evaluate_negative_contract",
+      "path": null,
+      "type": "import"
+    },
+    {
+      "id": "import:python:app.core.task_spec_gate.evaluate_positive_contract",
+      "language": "python",
+      "metadata": {
+        "imported_from": "app.core.task_spec_gate"
+      },
+      "name": "app.core.task_spec_gate.evaluate_positive_contract",
       "path": null,
       "type": "import"
     },
@@ -52282,7 +52714,7 @@
       "id": "method:python:app.core.storage.RunStorage.list",
       "language": "python",
       "metadata": {
-        "line": 37,
+        "line": 46,
         "qualified_name": "app.core.storage.RunStorage.list"
       },
       "name": "list",
@@ -52304,7 +52736,7 @@
       "id": "method:python:app.core.storage.SQLiteRunStorage.__init__",
       "language": "python",
       "metadata": {
-        "line": 53,
+        "line": 72,
         "qualified_name": "app.core.storage.SQLiteRunStorage.__init__"
       },
       "name": "__init__",
@@ -52315,7 +52747,7 @@
       "id": "method:python:app.core.storage.SQLiteRunStorage._connect",
       "language": "python",
       "metadata": {
-        "line": 101,
+        "line": 120,
         "qualified_name": "app.core.storage.SQLiteRunStorage._connect"
       },
       "name": "_connect",
@@ -52326,7 +52758,7 @@
       "id": "method:python:app.core.storage.SQLiteRunStorage._ensure_schema",
       "language": "python",
       "metadata": {
-        "line": 107,
+        "line": 126,
         "qualified_name": "app.core.storage.SQLiteRunStorage._ensure_schema"
       },
       "name": "_ensure_schema",
@@ -52337,7 +52769,7 @@
       "id": "method:python:app.core.storage.SQLiteRunStorage.get",
       "language": "python",
       "metadata": {
-        "line": 81,
+        "line": 100,
         "qualified_name": "app.core.storage.SQLiteRunStorage.get"
       },
       "name": "get",
@@ -52348,7 +52780,7 @@
       "id": "method:python:app.core.storage.SQLiteRunStorage.list",
       "language": "python",
       "metadata": {
-        "line": 92,
+        "line": 111,
         "qualified_name": "app.core.storage.SQLiteRunStorage.list"
       },
       "name": "list",
@@ -52359,7 +52791,7 @@
       "id": "method:python:app.core.storage.SQLiteRunStorage.save",
       "language": "python",
       "metadata": {
-        "line": 56,
+        "line": 75,
         "qualified_name": "app.core.storage.SQLiteRunStorage.save"
       },
       "name": "save",
@@ -53775,6 +54207,39 @@
       "type": "method"
     },
     {
+      "id": "method:python:tests.test_jsonl_storage.TestJsonlRevisionSemantics.test_get_returns_latest_write_after_resave",
+      "language": "python",
+      "metadata": {
+        "line": 20,
+        "qualified_name": "tests.test_jsonl_storage.TestJsonlRevisionSemantics.test_get_returns_latest_write_after_resave"
+      },
+      "name": "test_get_returns_latest_write_after_resave",
+      "path": "tests/test_jsonl_storage.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_jsonl_storage.TestJsonlRevisionSemantics.test_list_dedupes_revisions_keeping_latest",
+      "language": "python",
+      "metadata": {
+        "line": 32,
+        "qualified_name": "tests.test_jsonl_storage.TestJsonlRevisionSemantics.test_list_dedupes_revisions_keeping_latest"
+      },
+      "name": "test_list_dedupes_revisions_keeping_latest",
+      "path": "tests/test_jsonl_storage.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_jsonl_storage.TestJsonlRevisionSemantics.test_list_preserves_latest_first_order",
+      "language": "python",
+      "metadata": {
+        "line": 51,
+        "qualified_name": "tests.test_jsonl_storage.TestJsonlRevisionSemantics.test_list_preserves_latest_first_order"
+      },
+      "name": "test_list_preserves_latest_first_order",
+      "path": "tests/test_jsonl_storage.py",
+      "type": "method"
+    },
+    {
       "id": "method:python:tests.test_llm_agents.FakeLLMClient.__init__",
       "language": "python",
       "metadata": {
@@ -54006,6 +54471,50 @@
       "type": "method"
     },
     {
+      "id": "method:python:tests.test_task_spec.TestPositiveContractGate.test_gate_blocks_inconclusive_tests",
+      "language": "python",
+      "metadata": {
+        "line": 177,
+        "qualified_name": "tests.test_task_spec.TestPositiveContractGate.test_gate_blocks_inconclusive_tests"
+      },
+      "name": "test_gate_blocks_inconclusive_tests",
+      "path": "tests/test_task_spec.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_task_spec.TestPositiveContractGate.test_gate_fails_when_fail_to_pass_still_fails",
+      "language": "python",
+      "metadata": {
+        "line": 151,
+        "qualified_name": "tests.test_task_spec.TestPositiveContractGate.test_gate_fails_when_fail_to_pass_still_fails"
+      },
+      "name": "test_gate_fails_when_fail_to_pass_still_fails",
+      "path": "tests/test_task_spec.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_task_spec.TestPositiveContractGate.test_gate_fails_when_pass_to_pass_regresses",
+      "language": "python",
+      "metadata": {
+        "line": 165,
+        "qualified_name": "tests.test_task_spec.TestPositiveContractGate.test_gate_fails_when_pass_to_pass_regresses"
+      },
+      "name": "test_gate_fails_when_pass_to_pass_regresses",
+      "path": "tests/test_task_spec.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_task_spec.TestPositiveContractGate.test_gate_passes_when_fix_holds_and_no_regression",
+      "language": "python",
+      "metadata": {
+        "line": 139,
+        "qualified_name": "tests.test_task_spec.TestPositiveContractGate.test_gate_passes_when_fix_holds_and_no_regression"
+      },
+      "name": "test_gate_passes_when_fix_holds_and_no_regression",
+      "path": "tests/test_task_spec.py",
+      "type": "method"
+    },
+    {
       "id": "method:python:tests.test_task_spec.TestSweTaskSpecSchema.test_spec_from_swebench_json_tuple",
       "language": "python",
       "metadata": {
@@ -54050,10 +54559,32 @@
       "type": "method"
     },
     {
+      "id": "method:python:tests.test_task_spec_solve.TestPositiveContractEnforcement.test_solve_enforces_positive_contract_after_run",
+      "language": "python",
+      "metadata": {
+        "line": 204,
+        "qualified_name": "tests.test_task_spec_solve.TestPositiveContractEnforcement.test_solve_enforces_positive_contract_after_run"
+      },
+      "name": "test_solve_enforces_positive_contract_after_run",
+      "path": "tests/test_task_spec_solve.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_task_spec_solve.TestPositiveContractEnforcement.test_solve_keeps_completed_when_positive_contract_holds",
+      "language": "python",
+      "metadata": {
+        "line": 259,
+        "qualified_name": "tests.test_task_spec_solve.TestPositiveContractEnforcement.test_solve_keeps_completed_when_positive_contract_holds"
+      },
+      "name": "test_solve_keeps_completed_when_positive_contract_holds",
+      "path": "tests/test_task_spec_solve.py",
+      "type": "method"
+    },
+    {
       "id": "method:python:tests.test_task_spec_solve.TestTaskSpecCLIWiring.test_solve_blocks_when_negative_contract_fails",
       "language": "python",
       "metadata": {
-        "line": 72,
+        "line": 74,
         "qualified_name": "tests.test_task_spec_solve.TestTaskSpecCLIWiring.test_solve_blocks_when_negative_contract_fails"
       },
       "name": "test_solve_blocks_when_negative_contract_fails",
@@ -54064,7 +54595,7 @@
       "id": "method:python:tests.test_task_spec_solve.TestTaskSpecCLIWiring.test_solve_with_task_spec_pins_commit_and_composes_task",
       "language": "python",
       "metadata": {
-        "line": 121,
+        "line": 123,
         "qualified_name": "tests.test_task_spec_solve.TestTaskSpecCLIWiring.test_solve_with_task_spec_pins_commit_and_composes_task"
       },
       "name": "test_solve_with_task_spec_pins_commit_and_composes_task",
@@ -54375,8 +54906,8 @@
       "python"
     ],
     "risk_count": 0,
-    "source_file_count": 238,
-    "test_file_count": 100,
+    "source_file_count": 239,
+    "test_file_count": 101,
     "test_frameworks": [
       "pytest"
     ]

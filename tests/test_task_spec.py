@@ -129,6 +129,70 @@ class TestNegativeContractGate:
             assert result.exit_code != 0  # negative contract: all FAIL_TO_PASS must fail
 
 
+class TestPositiveContractGate:
+    """AO-D03-01: after the run, on the PATCHED tree, every FAIL_TO_PASS test
+    must pass and every PASS_TO_PASS test must STILL pass. A fix that does not
+    resolve the bug — or that regresses existing behavior — violates the
+    contract and must fail the run (honesty: execution success ≠ evaluation
+    success, AO-D01-02)."""
+
+    def test_gate_passes_when_fix_holds_and_no_regression(self, tmp_path: Path) -> None:
+        from app.core.task_spec_gate import evaluate_positive_contract
+
+        repo = _two_test_repo(tmp_path, source=_FIXED_SOURCE)
+        spec = _two_test_spec(repo)
+
+        gate = evaluate_positive_contract(spec, repo.path)
+        assert gate.passed is True
+        assert gate.reasons == []
+        assert len(gate.command_results) == 2  # one FAIL_TO_PASS + one PASS_TO_PASS
+        assert all(r.exit_code == 0 for r in gate.command_results)
+
+    def test_gate_fails_when_fail_to_pass_still_fails(self, tmp_path: Path) -> None:
+        """The worker 'finished' but the bug is still there — the contract
+        must fail the run, never accept an unfixed tree."""
+        from app.core.task_spec_gate import evaluate_positive_contract
+
+        repo = _two_test_repo(tmp_path, source=_BUGGY_SOURCE)
+        spec = _two_test_spec(repo)
+
+        gate = evaluate_positive_contract(spec, repo.path)
+        assert gate.passed is False
+        assert any(
+            "FAIL_TO_PASS" in r and "still fails" in r.lower() for r in gate.reasons
+        ), gate.reasons
+
+    def test_gate_fails_when_pass_to_pass_regresses(self, tmp_path: Path) -> None:
+        """A fix that breaks behavior that must keep working is a regression —
+        it violates the positive contract even though FAIL_TO_PASS passes."""
+        from app.core.task_spec_gate import evaluate_positive_contract
+
+        repo = _two_test_repo(tmp_path, source=_REGRESSED_SOURCE)
+        spec = _two_test_spec(repo)
+
+        gate = evaluate_positive_contract(spec, repo.path)
+        assert gate.passed is False
+        assert any("regress" in r.lower() for r in gate.reasons), gate.reasons
+
+    def test_gate_blocks_inconclusive_tests(self, tmp_path: Path) -> None:
+        """A named test that cannot run (missing node) proves nothing —
+        inconclusive, never an inferred pass."""
+        from app.core.task_spec_gate import evaluate_positive_contract
+
+        repo = _two_test_repo(tmp_path, source=_FIXED_SOURCE)
+        spec = SweTaskSpec(
+            repo="example/widgetlib",
+            base_commit=repo.commit_hash,
+            problem_statement="reset(keep_name=True) drops the name",
+            fail_to_pass=["tests/test_widget.py::test_missing_node"],
+            pass_to_pass=["tests/test_widget.py::test_default_clears"],
+        )
+
+        gate = evaluate_positive_contract(spec, repo.path)
+        assert gate.passed is False
+        assert any("Inconclusive" in r for r in gate.reasons), gate.reasons
+
+
 # ---------------------------------------------------------------------------
 # helpers — tiny hermetic fixture repo with a real bug at a real commit
 # ---------------------------------------------------------------------------
@@ -189,3 +253,75 @@ def _spec_for(repo: FixtureRepo, fail_to_pass: list[str]) -> SweTaskSpec:
 
 def _fixture_spec(repo: FixtureRepo) -> SweTaskSpec:
     return _spec_for(repo, fail_to_pass=["tests/test_widget.py::test_keep_name"])
+
+
+# ---------------------------------------------------------------------------
+# helpers — positive-contract fixture: FAIL_TO_PASS + PASS_TO_PASS in one repo
+# ---------------------------------------------------------------------------
+
+_BUGGY_SOURCE = (
+    "class Widget:\n"
+    "    def __init__(self, name=None):\n"
+    "        self.name = name\n"
+    "    def reset(self, keep_name=False):\n"
+    "        self.name = None  # BUG: drops the name even when keep_name=True\n"
+)
+_FIXED_SOURCE = (
+    "class Widget:\n"
+    "    def __init__(self, name=None):\n"
+    "        self.name = name\n"
+    "    def reset(self, keep_name=False):\n"
+    "        self.name = self.name if keep_name else None\n"
+)
+# F2P passes but PASS_TO_PASS regresses: reset now keeps the name ALWAYS,
+# so the default-clears behavior is broken by the "fix".
+_REGRESSED_SOURCE = (
+    "class Widget:\n"
+    "    def __init__(self, name=None):\n"
+    "        self.name = name\n"
+    "    def reset(self, keep_name=False):\n"
+    "        pass  # 'fix' keeps the name unconditionally — regresses the default\n"
+)
+
+_TWO_TESTS = (
+    "from widgetlib import Widget\n\n"
+    "def test_keep_name():\n"
+    "    w = Widget(name='kettle')\n"
+    "    w.reset(keep_name=True)\n"
+    "    assert w.name == 'kettle'\n\n"
+    "def test_default_clears():\n"
+    "    w = Widget(name='kettle')\n"
+    "    w.reset()\n"
+    "    assert w.name is None\n"
+)
+
+
+def _two_test_repo(tmp_path: Path, source: str) -> FixtureRepo:
+    """Real git repo with one FAIL_TO_PASS test (test_keep_name) and one
+    PASS_TO_PASS test (test_default_clears); `source` controls which state
+    the tree is in (buggy / fixed / regressed)."""
+    repo = tmp_path / "widgetlib-two-tests"
+    (repo / "tests").mkdir(parents=True)
+    (repo / "tests" / "__init__.py").write_text("")
+    (repo / "tests" / "test_widget.py").write_text(_TWO_TESTS)
+    (repo / "widgetlib.py").write_text(source)
+    for cmd in (
+        ["git", "init", "--quiet"],
+        ["git", "add", "-A"],
+        ["git", "-c", "user.email=t@t", "-c", "user.name=t", "commit", "--quiet", "-m", "init"],
+    ):
+        sp.run(cmd, cwd=repo, capture_output=True, check=True)
+    head = sp.run(
+        ["git", "rev-parse", "HEAD"], cwd=repo, capture_output=True, text=True, check=True
+    )
+    return FixtureRepo(path=repo, commit_hash=head.stdout.strip())
+
+
+def _two_test_spec(repo: FixtureRepo) -> SweTaskSpec:
+    return SweTaskSpec(
+        repo="example/widgetlib",
+        base_commit=repo.commit_hash,
+        problem_statement="reset(keep_name=True) drops the name",
+        fail_to_pass=["tests/test_widget.py::test_keep_name"],
+        pass_to_pass=["tests/test_widget.py::test_default_clears"],
+    )

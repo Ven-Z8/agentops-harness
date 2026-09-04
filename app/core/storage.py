@@ -27,12 +27,21 @@ class RunStorage:
         if not self.path.exists():
             raise KeyError(f"Run not found: {run_id}")
 
+        # Append-only log: a re-saved run_id is a REVISION (e.g. the
+        # positive-contract gate folding its verdict into record.status).
+        # Latest write wins — mirroring SQLite's INSERT OR REPLACE. First
+        # match wins would silently keep a stale verdict.
+        latest: dict | None = None
         with self.path.open(encoding="utf-8") as handle:
             for line in handle:
+                if not line.strip():
+                    continue
                 payload = json.loads(line)
                 if payload.get("run_id") == run_id:
-                    return RunRecord.model_validate(payload)
-        raise KeyError(f"Run not found: {run_id}")
+                    latest = payload
+        if latest is None:
+            raise KeyError(f"Run not found: {run_id}")
+        return RunRecord.model_validate(latest)
 
     def list(self, limit: int = 20) -> list[RunRecord]:
         if self.path.suffix in {".db", ".sqlite", ".sqlite3"}:
@@ -41,12 +50,22 @@ class RunStorage:
         if not self.path.exists():
             return []
 
+        # Latest-first, deduped by run_id: a revision supersedes its
+        # earlier lines so a run never appears twice in a list view.
         records: list[RunRecord] = []
+        seen: set[str] = set()
         with self.path.open(encoding="utf-8") as handle:
-            for line in handle:
-                if line.strip():
-                    records.append(RunRecord.model_validate_json(line))
-        return list(reversed(records))[:limit]
+            for line in reversed(handle.readlines()):
+                if not line.strip():
+                    continue
+                record = RunRecord.model_validate_json(line)
+                if record.run_id in seen:
+                    continue
+                seen.add(record.run_id)
+                records.append(record)
+                if len(records) >= limit:
+                    break
+        return records
 
 
 class SQLiteRunStorage:

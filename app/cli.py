@@ -474,6 +474,10 @@ issues_app = typer.Typer(
     help="Governed runs against real GitHub issues (the flagship path).",
 )
 
+# Governed issue runs persist to the workspace-local store. Module-level so
+# the positive-contract gate's re-save (AO-D03-01) targets the same storage.
+ISSUE_STORAGE_PATH = Path(".agentops/runs.jsonl")
+
 
 def _spec_issue_stub(task_spec, workspace_root: Path):
     """A GitHubIssue-shaped identity derived from a task spec (spec mode).
@@ -699,7 +703,7 @@ def issue_solve(
     record = run_harness(
         repo_path=repo_path,
         task=task,
-        storage_path=Path(".agentops/runs.jsonl"),
+        storage_path=ISSUE_STORAGE_PATH,
         worker_command=worker_command,
         worker_type=worker_type,
         worker_timeout_seconds=worker_timeout_seconds,
@@ -708,6 +712,39 @@ def issue_solve(
         target_goal_id=goal,
         allow_dirty=True,  # the issue branch IS the workspace; attribution is per-branch
     )
+
+    if task_spec is not None:
+        from app.core.task_spec_gate import evaluate_positive_contract
+
+        console.print(
+            "[dim]Positive-contract gate: FAIL_TO_PASS must pass and "
+            "PASS_TO_PASS must hold on the patched tree…[/dim]"
+        )
+        positive = evaluate_positive_contract(task_spec, repo_path)
+        for cmd in positive.command_results:
+            record.execution_logs.append(
+                f"positive_contract:{cmd.command} exit={cmd.exit_code}"
+            )
+        if not positive.passed:
+            prior = record.status
+            record.status = "failed"
+            record.execution_logs.append(
+                f"positive_contract:FAILED — verdict folded into record.status "
+                f"(worker reported: {prior})"
+            )
+            for reason in positive.reasons:
+                console.print(f"  [red]- {reason}[/red]")
+            RunStorage(ISSUE_STORAGE_PATH).save(record)
+            console.print(
+                "[red]Positive contract FAILED — run marked failed and the "
+                f"corrected verdict saved. Evidence: .agentops/runs/{record.run_id}/ "
+                "(execution success is not evaluation success, AO-D01-02).[/red]"
+            )
+            raise typer.Exit(code=4)
+        console.print(
+            "[green]Positive contract holds: FAIL_TO_PASS pass and PASS_TO_PASS "
+            "still pass on the patched tree.[/green]"
+        )
 
     console.print(Panel(record.final_report.markdown, title=f"Run {record.run_id}"))
     console.print(f"status={record.status} attempts={record.attempts} converged={record.converged}")
