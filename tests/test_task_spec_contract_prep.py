@@ -141,3 +141,48 @@ class TestProbeIsolation:
         python.chmod(0o755)
         command = _pytest_command_for("tests/test_x.py::test_y", repo)
         assert command.startswith(f"{python} -m pytest")
+
+    def test_probe_venv_path_is_absolute_for_relative_repo(
+        self, tmp_path: Path, monkeypatch
+    ) -> None:
+        """Regression: probes run with cwd=repo_path, so a RELATIVE repo path
+        would make a relative venv reference resolve inside the repo and
+        crash the gate with FileNotFoundError. The venv path must be
+        absolute no matter how repo_path arrives."""
+        repo = _git_repo(tmp_path)
+        venv_bin = repo / ".venv" / "bin"
+        venv_bin.mkdir(parents=True)
+        python = venv_bin / "python"
+        python.write_text("#!/bin/sh\n")
+        python.chmod(0o755)
+        monkeypatch.chdir(tmp_path)
+        command = _pytest_command_for("tests/test_x.py::test_y", Path("repo"))
+        assert command.startswith(f"{python.resolve()} -m pytest")
+
+
+class TestGateInfraFailureIsInconclusive:
+    def test_probe_spawn_failure_is_inconclusive_not_crash(
+        self, tmp_path: Path, monkeypatch
+    ) -> None:
+        """Regression: if the probe interpreter cannot even spawn (missing
+        binary, permission), the gate must record inconclusive and block —
+        never crash with a traceback (which is neither evidence nor a
+        verdict)."""
+        import app.core.task_spec_gate as gate_module
+
+        repo = _git_repo(tmp_path)
+
+        def boom(*args, **kwargs):
+            raise FileNotFoundError(".venv/bin/python does not exist")
+
+        monkeypatch.setattr(gate_module.TestRunner, "run", boom)
+        spec = SweTaskSpec(
+            repo="owner/name",
+            base_commit="c" * 40,
+            problem_statement="p",
+            fail_to_pass=["t.py::t"],
+        )
+        result = gate_module.evaluate_negative_contract(spec, repo)
+        assert result.passed is False
+        assert result.reasons
+        assert "could not run" in result.reasons[0].lower()

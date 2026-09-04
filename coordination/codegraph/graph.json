@@ -21267,6 +21267,12 @@
     {
       "metadata": {},
       "source": "file:tests/test_task_spec_contract_prep.py",
+      "target": "class:python:tests.test_task_spec_contract_prep.TestGateInfraFailureIsInconclusive",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_contract_prep.py",
       "target": "class:python:tests.test_task_spec_contract_prep.TestProbeIsolation",
       "type": "defines"
     },
@@ -21280,6 +21286,12 @@
       "metadata": {},
       "source": "file:tests/test_task_spec_contract_prep.py",
       "target": "function:python:tests.test_task_spec_contract_prep._git_repo",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_contract_prep.py",
+      "target": "function:python:tests.test_task_spec_contract_prep.boom",
       "type": "defines"
     },
     {
@@ -21327,7 +21339,19 @@
     {
       "metadata": {},
       "source": "file:tests/test_task_spec_contract_prep.py",
+      "target": "function:python:tests.test_task_spec_contract_prep.test_probe_spawn_failure_is_inconclusive_not_crash",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_contract_prep.py",
       "target": "function:python:tests.test_task_spec_contract_prep.test_probe_uses_harness_python_without_repo_venv",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_contract_prep.py",
+      "target": "function:python:tests.test_task_spec_contract_prep.test_probe_venv_path_is_absolute_for_relative_repo",
       "type": "defines"
     },
     {
@@ -21381,6 +21405,12 @@
     {
       "metadata": {},
       "source": "file:tests/test_task_spec_contract_prep.py",
+      "target": "method:python:tests.test_task_spec_contract_prep.TestGateInfraFailureIsInconclusive.test_probe_spawn_failure_is_inconclusive_not_crash",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_contract_prep.py",
       "target": "method:python:tests.test_task_spec_contract_prep.TestProbeIsolation.test_probe_prefers_repo_local_venv",
       "type": "defines"
     },
@@ -21388,6 +21418,12 @@
       "metadata": {},
       "source": "file:tests/test_task_spec_contract_prep.py",
       "target": "method:python:tests.test_task_spec_contract_prep.TestProbeIsolation.test_probe_uses_harness_python_without_repo_venv",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_contract_prep.py",
+      "target": "method:python:tests.test_task_spec_contract_prep.TestProbeIsolation.test_probe_venv_path_is_absolute_for_relative_repo",
       "type": "defines"
     },
     {
@@ -21406,6 +21442,12 @@
       "metadata": {},
       "source": "file:tests/test_task_spec_contract_prep.py",
       "target": "import:python:__future__.annotations",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_contract_prep.py",
+      "target": "import:python:app.core.task_spec_gate",
       "type": "imports"
     },
     {
@@ -27384,7 +27426,7 @@
       "id": "class:python:app.core.task_spec_gate.PositiveContractCommandResult",
       "language": "python",
       "metadata": {
-        "line": 215,
+        "line": 234,
         "qualified_name": "app.core.task_spec_gate.PositiveContractCommandResult"
       },
       "name": "PositiveContractCommandResult",
@@ -27395,7 +27437,7 @@
       "id": "class:python:app.core.task_spec_gate.PositiveContractGateResult",
       "language": "python",
       "metadata": {
-        "line": 224,
+        "line": 243,
         "qualified_name": "app.core.task_spec_gate.PositiveContractGateResult"
       },
       "name": "PositiveContractGateResult",
@@ -29181,6 +29223,17 @@
         "qualified_name": "tests.test_task_spec_contract_prep.TestEnvironmentSetup"
       },
       "name": "TestEnvironmentSetup",
+      "path": "tests/test_task_spec_contract_prep.py",
+      "type": "class"
+    },
+    {
+      "id": "class:python:tests.test_task_spec_contract_prep.TestGateInfraFailureIsInconclusive",
+      "language": "python",
+      "metadata": {
+        "line": 163,
+        "qualified_name": "tests.test_task_spec_contract_prep.TestGateInfraFailureIsInconclusive"
+      },
+      "name": "TestGateInfraFailureIsInconclusive",
       "path": "tests/test_task_spec_contract_prep.py",
       "type": "class"
     },
@@ -36698,7 +36751,7 @@
       "id": "function:python:app.core.task_spec_gate._probe",
       "language": "python",
       "metadata": {
-        "line": 253,
+        "line": 272,
         "qualified_name": "app.core.task_spec_gate._probe"
       },
       "name": "_probe",
@@ -36731,7 +36784,7 @@
       "id": "function:python:app.core.task_spec_gate.evaluate_negative_contract",
       "language": "python",
       "metadata": {
-        "line": 154,
+        "line": 156,
         "qualified_name": "app.core.task_spec_gate.evaluate_negative_contract"
       },
       "name": "evaluate_negative_contract",
@@ -36742,7 +36795,7 @@
       "id": "function:python:app.core.task_spec_gate.evaluate_positive_contract",
       "language": "python",
       "metadata": {
-        "line": 230,
+        "line": 249,
         "qualified_name": "app.core.task_spec_gate.evaluate_positive_contract"
       },
       "name": "evaluate_positive_contract",
@@ -46243,6 +46296,17 @@
       "type": "function"
     },
     {
+      "id": "function:python:tests.test_task_spec_contract_prep.boom",
+      "language": "python",
+      "metadata": {
+        "line": 175,
+        "qualified_name": "tests.test_task_spec_contract_prep.boom"
+      },
+      "name": "boom",
+      "path": "tests/test_task_spec_contract_prep.py",
+      "type": "function"
+    },
+    {
       "id": "function:python:tests.test_task_spec_contract_prep.test_applies_unified_diff",
       "language": "python",
       "metadata": {
@@ -46320,6 +46384,17 @@
       "type": "function"
     },
     {
+      "id": "function:python:tests.test_task_spec_contract_prep.test_probe_spawn_failure_is_inconclusive_not_crash",
+      "language": "python",
+      "metadata": {
+        "line": 164,
+        "qualified_name": "tests.test_task_spec_contract_prep.test_probe_spawn_failure_is_inconclusive_not_crash"
+      },
+      "name": "test_probe_spawn_failure_is_inconclusive_not_crash",
+      "path": "tests/test_task_spec_contract_prep.py",
+      "type": "function"
+    },
+    {
       "id": "function:python:tests.test_task_spec_contract_prep.test_probe_uses_harness_python_without_repo_venv",
       "language": "python",
       "metadata": {
@@ -46327,6 +46402,17 @@
         "qualified_name": "tests.test_task_spec_contract_prep.test_probe_uses_harness_python_without_repo_venv"
       },
       "name": "test_probe_uses_harness_python_without_repo_venv",
+      "path": "tests/test_task_spec_contract_prep.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_task_spec_contract_prep.test_probe_venv_path_is_absolute_for_relative_repo",
+      "language": "python",
+      "metadata": {
+        "line": 145,
+        "qualified_name": "tests.test_task_spec_contract_prep.test_probe_venv_path_is_absolute_for_relative_repo"
+      },
+      "name": "test_probe_venv_path_is_absolute_for_relative_repo",
       "path": "tests/test_task_spec_contract_prep.py",
       "type": "function"
     },
@@ -50192,6 +50278,16 @@
         "imported_from": "app.core.storage"
       },
       "name": "app.core.storage.SQLiteRunStorage",
+      "path": null,
+      "type": "import"
+    },
+    {
+      "id": "import:python:app.core.task_spec_gate",
+      "language": "python",
+      "metadata": {
+        "imported_from": null
+      },
+      "name": "app.core.task_spec_gate",
       "path": null,
       "type": "import"
     },
@@ -57734,6 +57830,17 @@
       "type": "method"
     },
     {
+      "id": "method:python:tests.test_task_spec_contract_prep.TestGateInfraFailureIsInconclusive.test_probe_spawn_failure_is_inconclusive_not_crash",
+      "language": "python",
+      "metadata": {
+        "line": 164,
+        "qualified_name": "tests.test_task_spec_contract_prep.TestGateInfraFailureIsInconclusive.test_probe_spawn_failure_is_inconclusive_not_crash"
+      },
+      "name": "test_probe_spawn_failure_is_inconclusive_not_crash",
+      "path": "tests/test_task_spec_contract_prep.py",
+      "type": "method"
+    },
+    {
       "id": "method:python:tests.test_task_spec_contract_prep.TestProbeIsolation.test_probe_prefers_repo_local_venv",
       "language": "python",
       "metadata": {
@@ -57752,6 +57859,17 @@
         "qualified_name": "tests.test_task_spec_contract_prep.TestProbeIsolation.test_probe_uses_harness_python_without_repo_venv"
       },
       "name": "test_probe_uses_harness_python_without_repo_venv",
+      "path": "tests/test_task_spec_contract_prep.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_task_spec_contract_prep.TestProbeIsolation.test_probe_venv_path_is_absolute_for_relative_repo",
+      "language": "python",
+      "metadata": {
+        "line": 145,
+        "qualified_name": "tests.test_task_spec_contract_prep.TestProbeIsolation.test_probe_venv_path_is_absolute_for_relative_repo"
+      },
+      "name": "test_probe_venv_path_is_absolute_for_relative_repo",
       "path": "tests/test_task_spec_contract_prep.py",
       "type": "method"
     },

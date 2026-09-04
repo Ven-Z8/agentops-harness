@@ -147,7 +147,9 @@ def _pytest_command_for(test_id: str, repo_path: Path) -> str:
     python = "python"
     venv_python = Path(repo_path) / ".venv" / "bin" / "python"
     if venv_python.exists():
-        python = str(venv_python)
+        # Absolute: probes run with cwd=repo_path, so a relative repo path
+        # would otherwise resolve the venv reference inside the repo.
+        python = str(venv_python.resolve())
     return f"{python} -m pytest {shlex.quote(test_id)} -q -o addopts="
 
 
@@ -165,7 +167,24 @@ def evaluate_negative_contract(
 
     for test_id in spec.fail_to_pass:
         command = _pytest_command_for(test_id, repo_path)
-        summary = runner.run(Path(repo_path), commands=[command], timeout_seconds=timeout_seconds)
+        try:
+            summary = runner.run(
+                Path(repo_path), commands=[command], timeout_seconds=timeout_seconds
+            )
+        except (OSError, subprocess.SubprocessError) as exc:
+            # The probe could not even run (missing interpreter, spawn
+            # failure). That is evidence of nothing — inconclusive, never a
+            # crash and never an inferred pass.
+            results.append(
+                NegativeContractCommandResult(
+                    command=command, exit_code=-1, output_tail=str(exc)
+                )
+            )
+            reasons.append(
+                f"Inconclusive: {test_id} could not run ({exc}); a test that "
+                f"cannot execute cannot prove the bug exists."
+            )
+            continue
         # TestRunner runs exactly the one command we passed.
         result = summary.commands[0]
         output_tail = ((result.stdout or "") + "\n" + (result.stderr or ""))[-2000:]
@@ -252,9 +271,22 @@ def evaluate_positive_contract(
 
     def _probe(test_id: str, *, kind: str) -> None:
         command = _pytest_command_for(test_id, repo_path)
-        summary = runner.run(
-            Path(repo_path), commands=[command], timeout_seconds=timeout_seconds
-        )
+        try:
+            summary = runner.run(
+                Path(repo_path), commands=[command], timeout_seconds=timeout_seconds
+            )
+        except (OSError, subprocess.SubprocessError) as exc:
+            results.append(
+                PositiveContractCommandResult(
+                    command=command, exit_code=-1, output_tail=str(exc)
+                )
+            )
+            reasons.append(
+                f"Inconclusive: {kind} {test_id} could not run on the patched "
+                f"tree ({exc}); a test that cannot execute proves nothing — "
+                f"never an inferred pass."
+            )
+            return
         result = summary.commands[0]
         output_tail = ((result.stdout or "") + "\n" + (result.stderr or ""))[-2000:]
         results.append(
