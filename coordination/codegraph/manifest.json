@@ -1,8 +1,8 @@
 {
   "counts": {
-    "edges": 4367,
-    "included_files": 340,
-    "nodes": 2968,
+    "edges": 4368,
+    "included_files": 341,
+    "nodes": 2969,
     "source_files": 243,
     "test_files": 103
   },
@@ -27,7 +27,7 @@
     "target/",
     "vendor/"
   ],
-  "generated_at": "2026-09-04T17:12:48Z",
+  "generated_at": "2026-09-04T17:20:34Z",
   "generator_version": "1",
   "included_paths": [
     ".env.example",
@@ -193,6 +193,7 @@
     "docs/assets/three-layer-harness.svg",
     "docs/assets/worker-harness-anatomy.png",
     "docs/design/2026-09-02-opendesign-initial-prompt.md",
+    "docs/design/2026-09-04-opendesign-console-v1-critique.md",
     "docs/design/opendesign-console-v1/.od-skills/web-prototype-4ab6e4cb5f/SKILL.md",
     "docs/design/opendesign-console-v1/.od-skills/web-prototype-4ab6e4cb5f/assets/template.html",
     "docs/design/opendesign-console-v1/.od-skills/web-prototype-4ab6e4cb5f/example.html",
@@ -395,6 +396,6 @@
     ]
   },
   "schema_version": 1,
-  "source_commit": "69e2550b98f13e80caed99fb2ebf29493d5359db",
-  "source_tree_digest": "224ad24ac3ee74018a59b26813f530982296d4eedea04c4607b3551b625110f3"
+  "source_commit": "29200718ae596214e2fda256a165c37f62c1aec1",
+  "source_tree_digest": "db7f24854848844374376169bbe42361d9ad709665ff0e6155081639ca3eaf6c"
 }

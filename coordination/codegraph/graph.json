@@ -24903,6 +24903,12 @@
     {
       "metadata": {},
       "source": "folder:docs/design",
+      "target": "file:docs/design/2026-09-04-opendesign-console-v1-critique.md",
+      "type": "contains"
+    },
+    {
+      "metadata": {},
+      "source": "folder:docs/design",
       "target": "folder:docs/design/opendesign-console-v1",
       "type": "contains"
     },
@@ -30322,6 +30328,14 @@
       "metadata": {},
       "name": "2026-09-02-opendesign-initial-prompt.md",
       "path": "docs/design/2026-09-02-opendesign-initial-prompt.md",
+      "type": "file"
+    },
+    {
+      "id": "file:docs/design/2026-09-04-opendesign-console-v1-critique.md",
+      "language": null,
+      "metadata": {},
+      "name": "2026-09-04-opendesign-console-v1-critique.md",
+      "path": "docs/design/2026-09-04-opendesign-console-v1-critique.md",
       "type": "file"
     },
     {
