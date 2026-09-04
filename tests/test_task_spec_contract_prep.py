@@ -17,6 +17,7 @@ interpreter (the target's dependencies are the target's business).
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 from pathlib import Path
 
@@ -157,7 +158,65 @@ class TestProbeIsolation:
         python.chmod(0o755)
         monkeypatch.chdir(tmp_path)
         command = _pytest_command_for("tests/test_x.py::test_y", Path("repo"))
-        assert command.startswith(f"{python.resolve()} -m pytest")
+        expected = os.path.abspath(Path("repo") / ".venv" / "bin" / "python")
+        assert command.startswith(f"{expected} -m pytest")
+
+    def test_probe_keeps_venv_symlink_unresolved(
+        self, tmp_path: Path, monkeypatch
+    ) -> None:
+        """Regression (seen live on dmr#1325): .venv/bin/python is a symlink;
+        resolving it runs the BARE base interpreter outside the venv, where
+        pytest is missing — and 'No module named pytest' (exit 1) then
+        masquerades as test failures on both gates. The probe must invoke the
+        symlink path itself so the venv activates."""
+        repo = _git_repo(tmp_path)
+        base_python = tmp_path / "base-python"
+        base_python.write_text("#!/bin/sh\n")
+        base_python.chmod(0o755)
+        venv_bin = repo / ".venv" / "bin"
+        venv_bin.mkdir(parents=True)
+        venv_python = venv_bin / "python"
+        os.symlink(base_python, venv_python)
+        command = _pytest_command_for("tests/test_x.py::test_y", repo)
+        assert command.startswith(f"{venv_python} -m pytest")
+        assert str(base_python) not in command
+
+
+class TestGateEnvSniffing:
+    def test_missing_pytest_is_inconclusive_not_a_proven_bug(
+        self, tmp_path: Path, monkeypatch
+    ) -> None:
+        """Regression (seen live on dmr#1325): a probe whose exit 1 is really
+        'python: No module named pytest' proves nothing — the negative gate
+        must record inconclusive, never 'bug proven'."""
+        import app.core.task_spec_gate as gate_module
+        from app.schemas.test import CommandResult, TestRunSummary
+
+        repo = _git_repo(tmp_path)
+
+        def fake_run(self, repo_path, commands=None, timeout_seconds=None):
+            return TestRunSummary(
+                commands=[
+                    CommandResult(
+                        command=commands[0],
+                        exit_code=1,
+                        duration_seconds=0.1,
+                        stderr="python: No module named pytest",
+                    )
+                ]
+            )
+
+        monkeypatch.setattr(gate_module.TestRunner, "run", fake_run)
+        spec = SweTaskSpec(
+            repo="owner/name",
+            base_commit="c" * 40,
+            problem_statement="p",
+            fail_to_pass=["t.py::t"],
+        )
+        result = gate_module.evaluate_negative_contract(spec, repo)
+        assert result.passed is False
+        assert result.reasons
+        assert "pytest is missing" in result.reasons[0]
 
 
 class TestGateInfraFailureIsInconclusive:

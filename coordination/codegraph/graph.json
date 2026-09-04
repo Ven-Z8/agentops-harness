@@ -6891,6 +6891,12 @@
     {
       "metadata": {},
       "source": "file:app/core/task_spec_gate.py",
+      "target": "import:python:os",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/core/task_spec_gate.py",
       "target": "import:python:pathlib.Path",
       "type": "imports"
     },
@@ -21267,6 +21273,12 @@
     {
       "metadata": {},
       "source": "file:tests/test_task_spec_contract_prep.py",
+      "target": "class:python:tests.test_task_spec_contract_prep.TestGateEnvSniffing",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_contract_prep.py",
       "target": "class:python:tests.test_task_spec_contract_prep.TestGateInfraFailureIsInconclusive",
       "type": "defines"
     },
@@ -21292,6 +21304,12 @@
       "metadata": {},
       "source": "file:tests/test_task_spec_contract_prep.py",
       "target": "function:python:tests.test_task_spec_contract_prep.boom",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_contract_prep.py",
+      "target": "function:python:tests.test_task_spec_contract_prep.fake_run",
       "type": "defines"
     },
     {
@@ -21327,7 +21345,19 @@
     {
       "metadata": {},
       "source": "file:tests/test_task_spec_contract_prep.py",
+      "target": "function:python:tests.test_task_spec_contract_prep.test_missing_pytest_is_inconclusive_not_a_proven_bug",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_contract_prep.py",
       "target": "function:python:tests.test_task_spec_contract_prep.test_no_commands_is_noop",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_contract_prep.py",
+      "target": "function:python:tests.test_task_spec_contract_prep.test_probe_keeps_venv_symlink_unresolved",
       "type": "defines"
     },
     {
@@ -21405,7 +21435,19 @@
     {
       "metadata": {},
       "source": "file:tests/test_task_spec_contract_prep.py",
+      "target": "method:python:tests.test_task_spec_contract_prep.TestGateEnvSniffing.test_missing_pytest_is_inconclusive_not_a_proven_bug",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_contract_prep.py",
       "target": "method:python:tests.test_task_spec_contract_prep.TestGateInfraFailureIsInconclusive.test_probe_spawn_failure_is_inconclusive_not_crash",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_contract_prep.py",
+      "target": "method:python:tests.test_task_spec_contract_prep.TestProbeIsolation.test_probe_keeps_venv_symlink_unresolved",
       "type": "defines"
     },
     {
@@ -21489,7 +21531,25 @@
     {
       "metadata": {},
       "source": "file:tests/test_task_spec_contract_prep.py",
+      "target": "import:python:app.schemas.test.CommandResult",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_contract_prep.py",
+      "target": "import:python:app.schemas.test.TestRunSummary",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_contract_prep.py",
       "target": "import:python:json",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_contract_prep.py",
+      "target": "import:python:os",
       "type": "imports"
     },
     {
@@ -27382,7 +27442,7 @@
       "id": "class:python:app.core.task_spec_gate.EnvironmentSetupError",
       "language": "python",
       "metadata": {
-        "line": 48,
+        "line": 49,
         "qualified_name": "app.core.task_spec_gate.EnvironmentSetupError"
       },
       "name": "EnvironmentSetupError",
@@ -27393,7 +27453,7 @@
       "id": "class:python:app.core.task_spec_gate.EnvironmentSetupResult",
       "language": "python",
       "metadata": {
-        "line": 57,
+        "line": 58,
         "qualified_name": "app.core.task_spec_gate.EnvironmentSetupResult"
       },
       "name": "EnvironmentSetupResult",
@@ -27404,7 +27464,7 @@
       "id": "class:python:app.core.task_spec_gate.NegativeContractCommandResult",
       "language": "python",
       "metadata": {
-        "line": 123,
+        "line": 124,
         "qualified_name": "app.core.task_spec_gate.NegativeContractCommandResult"
       },
       "name": "NegativeContractCommandResult",
@@ -27415,7 +27475,7 @@
       "id": "class:python:app.core.task_spec_gate.NegativeContractGateResult",
       "language": "python",
       "metadata": {
-        "line": 132,
+        "line": 133,
         "qualified_name": "app.core.task_spec_gate.NegativeContractGateResult"
       },
       "name": "NegativeContractGateResult",
@@ -27426,7 +27486,7 @@
       "id": "class:python:app.core.task_spec_gate.PositiveContractCommandResult",
       "language": "python",
       "metadata": {
-        "line": 234,
+        "line": 248,
         "qualified_name": "app.core.task_spec_gate.PositiveContractCommandResult"
       },
       "name": "PositiveContractCommandResult",
@@ -27437,7 +27497,7 @@
       "id": "class:python:app.core.task_spec_gate.PositiveContractGateResult",
       "language": "python",
       "metadata": {
-        "line": 243,
+        "line": 257,
         "qualified_name": "app.core.task_spec_gate.PositiveContractGateResult"
       },
       "name": "PositiveContractGateResult",
@@ -27448,7 +27508,7 @@
       "id": "class:python:app.core.task_spec_gate.TestPatchError",
       "language": "python",
       "metadata": {
-        "line": 39,
+        "line": 40,
         "qualified_name": "app.core.task_spec_gate.TestPatchError"
       },
       "name": "TestPatchError",
@@ -29208,7 +29268,7 @@
       "id": "class:python:tests.test_task_spec_contract_prep.TestApplyTestPatch",
       "language": "python",
       "metadata": {
-        "line": 82,
+        "line": 83,
         "qualified_name": "tests.test_task_spec_contract_prep.TestApplyTestPatch"
       },
       "name": "TestApplyTestPatch",
@@ -29219,7 +29279,7 @@
       "id": "class:python:tests.test_task_spec_contract_prep.TestEnvironmentSetup",
       "language": "python",
       "metadata": {
-        "line": 104,
+        "line": 105,
         "qualified_name": "tests.test_task_spec_contract_prep.TestEnvironmentSetup"
       },
       "name": "TestEnvironmentSetup",
@@ -29227,10 +29287,21 @@
       "type": "class"
     },
     {
+      "id": "class:python:tests.test_task_spec_contract_prep.TestGateEnvSniffing",
+      "language": "python",
+      "metadata": {
+        "line": 185,
+        "qualified_name": "tests.test_task_spec_contract_prep.TestGateEnvSniffing"
+      },
+      "name": "TestGateEnvSniffing",
+      "path": "tests/test_task_spec_contract_prep.py",
+      "type": "class"
+    },
+    {
       "id": "class:python:tests.test_task_spec_contract_prep.TestGateInfraFailureIsInconclusive",
       "language": "python",
       "metadata": {
-        "line": 163,
+        "line": 222,
         "qualified_name": "tests.test_task_spec_contract_prep.TestGateInfraFailureIsInconclusive"
       },
       "name": "TestGateInfraFailureIsInconclusive",
@@ -29241,7 +29312,7 @@
       "id": "class:python:tests.test_task_spec_contract_prep.TestProbeIsolation",
       "language": "python",
       "metadata": {
-        "line": 128,
+        "line": 129,
         "qualified_name": "tests.test_task_spec_contract_prep.TestProbeIsolation"
       },
       "name": "TestProbeIsolation",
@@ -29252,7 +29323,7 @@
       "id": "class:python:tests.test_task_spec_contract_prep.TestSchema",
       "language": "python",
       "metadata": {
-        "line": 56,
+        "line": 57,
         "qualified_name": "tests.test_task_spec_contract_prep.TestSchema"
       },
       "name": "TestSchema",
@@ -36751,7 +36822,7 @@
       "id": "function:python:app.core.task_spec_gate._probe",
       "language": "python",
       "metadata": {
-        "line": 272,
+        "line": 286,
         "qualified_name": "app.core.task_spec_gate._probe"
       },
       "name": "_probe",
@@ -36762,7 +36833,7 @@
       "id": "function:python:app.core.task_spec_gate._pytest_command_for",
       "language": "python",
       "metadata": {
-        "line": 138,
+        "line": 139,
         "qualified_name": "app.core.task_spec_gate._pytest_command_for"
       },
       "name": "_pytest_command_for",
@@ -36773,7 +36844,7 @@
       "id": "function:python:app.core.task_spec_gate.apply_test_patch",
       "language": "python",
       "metadata": {
-        "line": 63,
+        "line": 64,
         "qualified_name": "app.core.task_spec_gate.apply_test_patch"
       },
       "name": "apply_test_patch",
@@ -36784,7 +36855,7 @@
       "id": "function:python:app.core.task_spec_gate.evaluate_negative_contract",
       "language": "python",
       "metadata": {
-        "line": 156,
+        "line": 160,
         "qualified_name": "app.core.task_spec_gate.evaluate_negative_contract"
       },
       "name": "evaluate_negative_contract",
@@ -36795,7 +36866,7 @@
       "id": "function:python:app.core.task_spec_gate.evaluate_positive_contract",
       "language": "python",
       "metadata": {
-        "line": 249,
+        "line": 263,
         "qualified_name": "app.core.task_spec_gate.evaluate_positive_contract"
       },
       "name": "evaluate_positive_contract",
@@ -36806,7 +36877,7 @@
       "id": "function:python:app.core.task_spec_gate.run_environment_setup",
       "language": "python",
       "metadata": {
-        "line": 87,
+        "line": 88,
         "qualified_name": "app.core.task_spec_gate.run_environment_setup"
       },
       "name": "run_environment_setup",
@@ -46288,7 +46359,7 @@
       "id": "function:python:tests.test_task_spec_contract_prep._git_repo",
       "language": "python",
       "metadata": {
-        "line": 42,
+        "line": 43,
         "qualified_name": "tests.test_task_spec_contract_prep._git_repo"
       },
       "name": "_git_repo",
@@ -46299,7 +46370,7 @@
       "id": "function:python:tests.test_task_spec_contract_prep.boom",
       "language": "python",
       "metadata": {
-        "line": 175,
+        "line": 234,
         "qualified_name": "tests.test_task_spec_contract_prep.boom"
       },
       "name": "boom",
@@ -46307,10 +46378,21 @@
       "type": "function"
     },
     {
+      "id": "function:python:tests.test_task_spec_contract_prep.fake_run",
+      "language": "python",
+      "metadata": {
+        "line": 197,
+        "qualified_name": "tests.test_task_spec_contract_prep.fake_run"
+      },
+      "name": "fake_run",
+      "path": "tests/test_task_spec_contract_prep.py",
+      "type": "function"
+    },
+    {
       "id": "function:python:tests.test_task_spec_contract_prep.test_applies_unified_diff",
       "language": "python",
       "metadata": {
-        "line": 88,
+        "line": 89,
         "qualified_name": "tests.test_task_spec_contract_prep.test_applies_unified_diff"
       },
       "name": "test_applies_unified_diff",
@@ -46321,7 +46403,7 @@
       "id": "function:python:tests.test_task_spec_contract_prep.test_bad_patch_raises",
       "language": "python",
       "metadata": {
-        "line": 94,
+        "line": 95,
         "qualified_name": "tests.test_task_spec_contract_prep.test_bad_patch_raises"
       },
       "name": "test_bad_patch_raises",
@@ -46332,7 +46414,7 @@
       "id": "function:python:tests.test_task_spec_contract_prep.test_empty_patch_is_noop",
       "language": "python",
       "metadata": {
-        "line": 83,
+        "line": 84,
         "qualified_name": "tests.test_task_spec_contract_prep.test_empty_patch_is_noop"
       },
       "name": "test_empty_patch_is_noop",
@@ -46343,7 +46425,7 @@
       "id": "function:python:tests.test_task_spec_contract_prep.test_failure_raises_with_command",
       "language": "python",
       "metadata": {
-        "line": 118,
+        "line": 119,
         "qualified_name": "tests.test_task_spec_contract_prep.test_failure_raises_with_command"
       },
       "name": "test_failure_raises_with_command",
@@ -46354,7 +46436,7 @@
       "id": "function:python:tests.test_task_spec_contract_prep.test_from_swebench_parses_test_patch_and_setup_commands",
       "language": "python",
       "metadata": {
-        "line": 67,
+        "line": 68,
         "qualified_name": "tests.test_task_spec_contract_prep.test_from_swebench_parses_test_patch_and_setup_commands"
       },
       "name": "test_from_swebench_parses_test_patch_and_setup_commands",
@@ -46362,10 +46444,21 @@
       "type": "function"
     },
     {
+      "id": "function:python:tests.test_task_spec_contract_prep.test_missing_pytest_is_inconclusive_not_a_proven_bug",
+      "language": "python",
+      "metadata": {
+        "line": 186,
+        "qualified_name": "tests.test_task_spec_contract_prep.test_missing_pytest_is_inconclusive_not_a_proven_bug"
+      },
+      "name": "test_missing_pytest_is_inconclusive_not_a_proven_bug",
+      "path": "tests/test_task_spec_contract_prep.py",
+      "type": "function"
+    },
+    {
       "id": "function:python:tests.test_task_spec_contract_prep.test_no_commands_is_noop",
       "language": "python",
       "metadata": {
-        "line": 105,
+        "line": 106,
         "qualified_name": "tests.test_task_spec_contract_prep.test_no_commands_is_noop"
       },
       "name": "test_no_commands_is_noop",
@@ -46373,10 +46466,21 @@
       "type": "function"
     },
     {
+      "id": "function:python:tests.test_task_spec_contract_prep.test_probe_keeps_venv_symlink_unresolved",
+      "language": "python",
+      "metadata": {
+        "line": 164,
+        "qualified_name": "tests.test_task_spec_contract_prep.test_probe_keeps_venv_symlink_unresolved"
+      },
+      "name": "test_probe_keeps_venv_symlink_unresolved",
+      "path": "tests/test_task_spec_contract_prep.py",
+      "type": "function"
+    },
+    {
       "id": "function:python:tests.test_task_spec_contract_prep.test_probe_prefers_repo_local_venv",
       "language": "python",
       "metadata": {
-        "line": 135,
+        "line": 136,
         "qualified_name": "tests.test_task_spec_contract_prep.test_probe_prefers_repo_local_venv"
       },
       "name": "test_probe_prefers_repo_local_venv",
@@ -46387,7 +46491,7 @@
       "id": "function:python:tests.test_task_spec_contract_prep.test_probe_spawn_failure_is_inconclusive_not_crash",
       "language": "python",
       "metadata": {
-        "line": 164,
+        "line": 223,
         "qualified_name": "tests.test_task_spec_contract_prep.test_probe_spawn_failure_is_inconclusive_not_crash"
       },
       "name": "test_probe_spawn_failure_is_inconclusive_not_crash",
@@ -46398,7 +46502,7 @@
       "id": "function:python:tests.test_task_spec_contract_prep.test_probe_uses_harness_python_without_repo_venv",
       "language": "python",
       "metadata": {
-        "line": 129,
+        "line": 130,
         "qualified_name": "tests.test_task_spec_contract_prep.test_probe_uses_harness_python_without_repo_venv"
       },
       "name": "test_probe_uses_harness_python_without_repo_venv",
@@ -46409,7 +46513,7 @@
       "id": "function:python:tests.test_task_spec_contract_prep.test_probe_venv_path_is_absolute_for_relative_repo",
       "language": "python",
       "metadata": {
-        "line": 145,
+        "line": 146,
         "qualified_name": "tests.test_task_spec_contract_prep.test_probe_venv_path_is_absolute_for_relative_repo"
       },
       "name": "test_probe_venv_path_is_absolute_for_relative_repo",
@@ -46420,7 +46524,7 @@
       "id": "function:python:tests.test_task_spec_contract_prep.test_runs_commands_in_the_repo",
       "language": "python",
       "metadata": {
-        "line": 109,
+        "line": 110,
         "qualified_name": "tests.test_task_spec_contract_prep.test_runs_commands_in_the_repo"
       },
       "name": "test_runs_commands_in_the_repo",
@@ -46431,7 +46535,7 @@
       "id": "function:python:tests.test_task_spec_contract_prep.test_test_patch_defaults_empty",
       "language": "python",
       "metadata": {
-        "line": 57,
+        "line": 58,
         "qualified_name": "tests.test_task_spec_contract_prep.test_test_patch_defaults_empty"
       },
       "name": "test_test_patch_defaults_empty",
@@ -57767,7 +57871,7 @@
       "id": "method:python:tests.test_task_spec_contract_prep.TestApplyTestPatch.test_applies_unified_diff",
       "language": "python",
       "metadata": {
-        "line": 88,
+        "line": 89,
         "qualified_name": "tests.test_task_spec_contract_prep.TestApplyTestPatch.test_applies_unified_diff"
       },
       "name": "test_applies_unified_diff",
@@ -57778,7 +57882,7 @@
       "id": "method:python:tests.test_task_spec_contract_prep.TestApplyTestPatch.test_bad_patch_raises",
       "language": "python",
       "metadata": {
-        "line": 94,
+        "line": 95,
         "qualified_name": "tests.test_task_spec_contract_prep.TestApplyTestPatch.test_bad_patch_raises"
       },
       "name": "test_bad_patch_raises",
@@ -57789,7 +57893,7 @@
       "id": "method:python:tests.test_task_spec_contract_prep.TestApplyTestPatch.test_empty_patch_is_noop",
       "language": "python",
       "metadata": {
-        "line": 83,
+        "line": 84,
         "qualified_name": "tests.test_task_spec_contract_prep.TestApplyTestPatch.test_empty_patch_is_noop"
       },
       "name": "test_empty_patch_is_noop",
@@ -57800,7 +57904,7 @@
       "id": "method:python:tests.test_task_spec_contract_prep.TestEnvironmentSetup.test_failure_raises_with_command",
       "language": "python",
       "metadata": {
-        "line": 118,
+        "line": 119,
         "qualified_name": "tests.test_task_spec_contract_prep.TestEnvironmentSetup.test_failure_raises_with_command"
       },
       "name": "test_failure_raises_with_command",
@@ -57811,7 +57915,7 @@
       "id": "method:python:tests.test_task_spec_contract_prep.TestEnvironmentSetup.test_no_commands_is_noop",
       "language": "python",
       "metadata": {
-        "line": 105,
+        "line": 106,
         "qualified_name": "tests.test_task_spec_contract_prep.TestEnvironmentSetup.test_no_commands_is_noop"
       },
       "name": "test_no_commands_is_noop",
@@ -57822,7 +57926,7 @@
       "id": "method:python:tests.test_task_spec_contract_prep.TestEnvironmentSetup.test_runs_commands_in_the_repo",
       "language": "python",
       "metadata": {
-        "line": 109,
+        "line": 110,
         "qualified_name": "tests.test_task_spec_contract_prep.TestEnvironmentSetup.test_runs_commands_in_the_repo"
       },
       "name": "test_runs_commands_in_the_repo",
@@ -57830,10 +57934,21 @@
       "type": "method"
     },
     {
+      "id": "method:python:tests.test_task_spec_contract_prep.TestGateEnvSniffing.test_missing_pytest_is_inconclusive_not_a_proven_bug",
+      "language": "python",
+      "metadata": {
+        "line": 186,
+        "qualified_name": "tests.test_task_spec_contract_prep.TestGateEnvSniffing.test_missing_pytest_is_inconclusive_not_a_proven_bug"
+      },
+      "name": "test_missing_pytest_is_inconclusive_not_a_proven_bug",
+      "path": "tests/test_task_spec_contract_prep.py",
+      "type": "method"
+    },
+    {
       "id": "method:python:tests.test_task_spec_contract_prep.TestGateInfraFailureIsInconclusive.test_probe_spawn_failure_is_inconclusive_not_crash",
       "language": "python",
       "metadata": {
-        "line": 164,
+        "line": 223,
         "qualified_name": "tests.test_task_spec_contract_prep.TestGateInfraFailureIsInconclusive.test_probe_spawn_failure_is_inconclusive_not_crash"
       },
       "name": "test_probe_spawn_failure_is_inconclusive_not_crash",
@@ -57841,10 +57956,21 @@
       "type": "method"
     },
     {
+      "id": "method:python:tests.test_task_spec_contract_prep.TestProbeIsolation.test_probe_keeps_venv_symlink_unresolved",
+      "language": "python",
+      "metadata": {
+        "line": 164,
+        "qualified_name": "tests.test_task_spec_contract_prep.TestProbeIsolation.test_probe_keeps_venv_symlink_unresolved"
+      },
+      "name": "test_probe_keeps_venv_symlink_unresolved",
+      "path": "tests/test_task_spec_contract_prep.py",
+      "type": "method"
+    },
+    {
       "id": "method:python:tests.test_task_spec_contract_prep.TestProbeIsolation.test_probe_prefers_repo_local_venv",
       "language": "python",
       "metadata": {
-        "line": 135,
+        "line": 136,
         "qualified_name": "tests.test_task_spec_contract_prep.TestProbeIsolation.test_probe_prefers_repo_local_venv"
       },
       "name": "test_probe_prefers_repo_local_venv",
@@ -57855,7 +57981,7 @@
       "id": "method:python:tests.test_task_spec_contract_prep.TestProbeIsolation.test_probe_uses_harness_python_without_repo_venv",
       "language": "python",
       "metadata": {
-        "line": 129,
+        "line": 130,
         "qualified_name": "tests.test_task_spec_contract_prep.TestProbeIsolation.test_probe_uses_harness_python_without_repo_venv"
       },
       "name": "test_probe_uses_harness_python_without_repo_venv",
@@ -57866,7 +57992,7 @@
       "id": "method:python:tests.test_task_spec_contract_prep.TestProbeIsolation.test_probe_venv_path_is_absolute_for_relative_repo",
       "language": "python",
       "metadata": {
-        "line": 145,
+        "line": 146,
         "qualified_name": "tests.test_task_spec_contract_prep.TestProbeIsolation.test_probe_venv_path_is_absolute_for_relative_repo"
       },
       "name": "test_probe_venv_path_is_absolute_for_relative_repo",
@@ -57877,7 +58003,7 @@
       "id": "method:python:tests.test_task_spec_contract_prep.TestSchema.test_from_swebench_parses_test_patch_and_setup_commands",
       "language": "python",
       "metadata": {
-        "line": 67,
+        "line": 68,
         "qualified_name": "tests.test_task_spec_contract_prep.TestSchema.test_from_swebench_parses_test_patch_and_setup_commands"
       },
       "name": "test_from_swebench_parses_test_patch_and_setup_commands",
@@ -57888,7 +58014,7 @@
       "id": "method:python:tests.test_task_spec_contract_prep.TestSchema.test_test_patch_defaults_empty",
       "language": "python",
       "metadata": {
-        "line": 57,
+        "line": 58,
         "qualified_name": "tests.test_task_spec_contract_prep.TestSchema.test_test_patch_defaults_empty"
       },
       "name": "test_test_patch_defaults_empty",

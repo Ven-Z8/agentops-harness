@@ -1,8 +1,8 @@
 {
   "counts": {
-    "edges": 4438,
+    "edges": 4448,
     "included_files": 342,
-    "nodes": 3025,
+    "nodes": 3031,
     "source_files": 244,
     "test_files": 104
   },
@@ -27,7 +27,7 @@
     "target/",
     "vendor/"
   ],
-  "generated_at": "2026-09-04T18:34:11Z",
+  "generated_at": "2026-09-04T18:46:29Z",
   "generator_version": "1",
   "included_paths": [
     ".env.example",
@@ -397,6 +397,6 @@
     ]
   },
   "schema_version": 1,
-  "source_commit": "4bba06e8d8f15853410c2c9bdd63324062220107",
-  "source_tree_digest": "d25288d25bcf7e2017541fc5cd15f0f61c47412a05e27d6973b8ca62bfbd051f"
+  "source_commit": "496b92353c6bd586e674278b9deaa0bddd0c12f5",
+  "source_tree_digest": "4adfacd74c771552f85b165d42bafe231f3b731f7e21abdef8f69ffb34aaa0b9"
 }

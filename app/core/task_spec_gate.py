@@ -27,6 +27,7 @@ replayability is the point (§5.2.1).
 
 from __future__ import annotations
 
+import os
 import shlex
 import subprocess
 from dataclasses import dataclass, field
@@ -147,9 +148,12 @@ def _pytest_command_for(test_id: str, repo_path: Path) -> str:
     python = "python"
     venv_python = Path(repo_path) / ".venv" / "bin" / "python"
     if venv_python.exists():
-        # Absolute: probes run with cwd=repo_path, so a relative repo path
-        # would otherwise resolve the venv reference inside the repo.
-        python = str(venv_python.resolve())
+        # Absolute, but WITHOUT resolving symlinks: .venv/bin/python is a
+        # symlink and the venv only activates when invoked through it —
+        # resolve() would follow it to the bare base interpreter, which has
+        # none of the target's packages (and then 'No module named pytest'
+        # masquerades as test failures on both gates).
+        python = os.path.abspath(venv_python)
     return f"{python} -m pytest {shlex.quote(test_id)} -q -o addopts="
 
 
@@ -200,6 +204,16 @@ def evaluate_negative_contract(
                 f"Negative contract violated: {test_id} PASSES at base_commit "
                 f"({spec.base_commit[:12]}) — the bug it names is not "
                 f"reproducible; fix the spec before running a worker."
+            )
+        elif result.exit_code != 0 and "No module named pytest" in output_tail:
+            # A probe that cannot even import pytest proves nothing — its
+            # exit 1 is 'python: No module named pytest', not a test failure.
+            # (Seen live: invoking a venv's resolved base interpreter instead
+            # of the venv itself.) Inconclusive, never a proven bug.
+            reasons.append(
+                f"Inconclusive: {test_id} could not run — pytest is missing from "
+                f"the probe environment (exit {result.exit_code}); fix the spec's "
+                f"environment setup before running a worker."
             )
         elif result.exit_code in (2, 4, 5) or "ERROR" in (result.stderr or "")[:2000]:
             # pytest exit 2 = interrupted/collection error, 4 = usage error,
