@@ -78,6 +78,32 @@ class GitHubIssue:
         return "\n".join(lines)
 
 
+def spec_issue_stub(task_spec) -> GitHubIssue:
+    """A GitHubIssue-shaped identity derived from a task spec (spec mode).
+
+    prepare_issue_workspace needs owner/repo/number to name the clone dir
+    and branch; the spec carries all of it — no network fetch required.
+    Shared by the CLI (issue solve --task-spec) and the console's
+    pre-dispatch endpoint (AO-UI-01): one identity derivation, never two.
+    """
+    owner, _, name = task_spec.repo.partition("/")
+    repo_name = name or owner
+    # Stable, deterministic issue-number stand-in derived from the pinned
+    # commit (never Python's randomized hash(): the clone dir must be
+    # reproducible across processes and runs).
+    number = int(task_spec.base_commit[:8], 16) % 900000
+    return GitHubIssue(
+        owner=owner or "spec",
+        repo=repo_name,
+        number=number,
+        title=task_spec.problem_statement[:120],
+        body=task_spec.problem_statement,
+        labels=(),
+        state="spec",
+        html_url=f"spec://{task_spec.repo}@{task_spec.base_commit}",
+    )
+
+
 def _run_gh(args: list[str], timeout: int = 60) -> str:
     """Run a gh CLI command and return stdout; raise IssueError on failure."""
     completed = subprocess.run(

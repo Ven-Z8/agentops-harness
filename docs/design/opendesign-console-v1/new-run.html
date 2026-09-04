@@ -248,33 +248,32 @@ h1, h2, h3 { margin: 0; font-weight: 600; }
       <!-- negative contract gate -->
       <section class="panel gate" id="gate" data-od-id="negative-contract-gate" aria-label="Negative-contract gate">
         <div class="gate-status" data-od-id="gate-status">
-          <span class="chip chip-ok" id="gateChip"><span class="cdot"></span>gate open</span>
-          <span class="big" id="gateBig">Negative contract proven</span>
+          <span class="chip chip-muted" id="gateChip"><span class="cdot"></span>gate idle</span>
+          <span class="big" id="gateBig">Negative contract not proven yet</span>
           <span class="meta" style="margin-left:auto;">step 3 of 4 · pre-dispatch</span>
         </div>
-        <div class="gate-probe">
-          <span>tests/test_kasiopea.py::TestBadJudgeFeedbackMessage <span style="color:var(--muted)">(FAIL_TO_PASS)</span></span>
-          <span class="meta mono">0.9s</span>
-          <span class="exit exit-n">exit 1</span>
+        <div id="gateProbes"></div>
+        <div class="gate-verdict" data-od-id="gate-verdict" id="gateVerdict">
+          <b>No gate evidence yet.</b> Attach a task spec and run the probe: the harness clones at <span class="mono">base_commit</span> and runs every FAIL_TO_PASS test against it. No reproducible failing test, no run — the gate fail-closes.
         </div>
-        <div class="gate-probe">
-          <span>python -m unittest discover tests/ <span style="color:var(--muted)">(PASS_TO_PASS baseline)</span></span>
-          <span class="meta mono">11.2s</span>
-          <span class="exit exit-n">exit 1</span>
-        </div>
-        <div class="gate-verdict" data-od-id="gate-verdict">
-          <b>The bug exists at base.</b> The FAIL_TO_PASS probe fails at <span class="mono">b86d1d7</span> — the premise holds. The PASS_TO_PASS probe also fails at base (<span class="mono">minibox.c</span> targets Linux; this host is macOS) → recorded <b style="color:var(--warn)">inconclusive</b>, not a pass. The gate stays open because the negative contract itself is proven; the environmental gap is disclosed, not hidden.
+        <div class="launch-row" style="border-top:1px solid var(--border);">
+          <button class="btn btn-secondary" id="gateBtn" disabled>Prove negative contract</button>
+          <span class="launch-note" id="gateNote">Attach a task spec to run the probe.</span>
         </div>
       </section>
 
       <!-- launch -->
       <section class="panel" data-od-id="launch-panel" aria-label="Launch">
         <div class="launch-row">
-          <button class="btn btn-primary" id="launchBtn" data-od-id="launch-cta">
+          <button class="btn btn-primary" id="launchBtn" data-od-id="launch-cta" disabled>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
             Dispatch governed run
           </button>
-          <span class="launch-note">Runs locally · evidence bundle lands in <span class="mono">.agentops/runs/&lt;id&gt;/</span> · you can judge it in under 10 seconds when it finishes.</span>
+          <span class="launch-note" id="launchNote">The gate must open first — a run without a proven bug is not a governed run.</span>
+        </div>
+        <div class="launch-row" id="dispatchRow" style="display:none; border-top:1px solid var(--border); flex-direction:column; align-items:stretch; gap:8px;">
+          <span class="launch-note">Dispatch runs through the governed CLI — the console proves the contract, the CLI holds worker credentials. Run:</span>
+          <code class="mono" id="dispatchCmd" style="font-size:12px; word-break:break-all; background:var(--bg); border:1px solid var(--border-strong); border-radius:var(--radius); padding:10px 12px;"></code>
         </div>
       </section>
     </main>
@@ -295,27 +294,198 @@ h1, h2, h3 { margin: 0; font-weight: 600; }
   var attach = document.getElementById('attach');
   var specPanel = document.querySelector('section[data-od-id="task-spec-attach"]');
   var SPECS = {
-    'pisek-683': { repo: 'piskoviste/pisek', base: 'b86d1d7d72f55ef6a4424069bfebdb608e248153', ftp: ['tests/test_kasiopea.py::TestBadJudgeFeedbackMessage'], ptp: ['python -m unittest discover tests/'], env: 'requires-python ≥3.12 · host: macOS (gap: Linux-only minibox.c)' },
-    'dmr-1325': { repo: 'wemake-services/django-modern-rest', base: '0cf1affc7debeaec530a2c41bd2c080462eeb87e', ftp: ['tests/test_unit/test_components/test_query.py::test_cast_bool'], ptp: ['pytest tests/test_unit tests/test_integration/test_openapi/test_views.py'], env: 'requires-python ≥3.11 · scoped suite · redis/allauth environmental' }
+    'pisek-683': { repo: 'piskoviste/pisek', base: 'b86d1d7d72f55ef6a4424069bfebdb608e248153', ftp: ['tests/test_kasiopea.py::TestBadJudgeFeedbackMessage'], ptp: ['python -m unittest discover tests/'], env: 'requires-python ≥3.12 · host: macOS (gap: Linux-only minibox.c)', problem: 'When the judge evaluates a sample as wrong, the failure message shows only "Check tests/_inputs/sample.out failed". To make it easier to debug the judge, share the contents of tests/_inputs/sample.judge.log.' },
+    'dmr-1325': { repo: 'wemake-services/django-modern-rest', base: '0cf1affc7debeaec530a2c41bd2c080462eeb87e', ftp: ['tests/test_unit/test_components/test_query.py::test_cast_bool'], ptp: ['pytest tests/test_unit tests/test_integration/test_openapi/test_views.py'], env: 'requires-python ≥3.11 · scoped suite · redis/allauth environmental', problem: 'Strict boolean Query component cannot parse valid OpenAPI boolean values: boolean query parameters fail under Pydantic strict validation even though DMR generates a valid OpenAPI schema for them.' }
   };
+  var SPEC_EMPTY = specPanel.innerHTML;
+
+  var gateEl = document.getElementById('gate');
+  var gateChip = document.getElementById('gateChip');
+  var gateBig = document.getElementById('gateBig');
+  var gateProbes = document.getElementById('gateProbes');
+  var gateVerdict = document.getElementById('gateVerdict');
+  var gateBtn = document.getElementById('gateBtn');
+  var gateNote = document.getElementById('gateNote');
+  var launchBtn = document.getElementById('launchBtn');
+  var launchNote = document.getElementById('launchNote');
+  var dispatchRow = document.getElementById('dispatchRow');
+  var dispatchCmd = document.getElementById('dispatchCmd');
+
+  var currentSpec = null;
+  var gateState = 'idle';   /* idle | loading | passed | blocked | error */
+
+  function esc(text) {
+    var div = document.createElement('div');
+    div.textContent = text == null ? '' : String(text);
+    return div.innerHTML;
+  }
+
+  function setChip(cls, label) {
+    gateChip.className = 'chip ' + cls;
+    gateChip.innerHTML = '<span class="cdot"></span>' + esc(label);
+  }
+
+  function renderGateIdle() {
+    gateEl.classList.remove('gate-open');
+    setChip('chip-muted', 'gate idle');
+    gateBig.textContent = 'Negative contract not proven yet';
+    gateProbes.innerHTML = '';
+    gateVerdict.innerHTML = '<b>No gate evidence yet.</b> Attach a task spec and run the probe: the harness clones at <span class="mono">base_commit</span> and runs every FAIL_TO_PASS test against it. No reproducible failing test, no run — the gate fail-closes.';
+    gateNote.textContent = currentSpec ? 'Runs a real clone at base_commit and executes the spec’s FAIL_TO_PASS tests.' : 'Attach a task spec to run the probe.';
+    gateBtn.disabled = !currentSpec;
+    updateLaunch();
+  }
+
+  function renderGateLoading() {
+    setChip('chip-warn', 'proving…');
+    gateBig.textContent = 'Proving the bug at base_commit…';
+    gateProbes.innerHTML = '<div class="gate-probe"><span style="color:var(--muted)">cloning at base_commit · running FAIL_TO_PASS probes…</span><span class="meta mono"></span><span class="exit exit-q">running</span></div>';
+    gateVerdict.innerHTML = '<b>Gate running.</b> This clones the repository at the pinned commit and executes each FAIL_TO_PASS test — real work, real evidence.';
+    gateBtn.disabled = true;
+    gateNote.textContent = 'Probe in flight…';
+  }
+
+  function renderProbeRow(command, exitCode) {
+    var cls = exitCode === 0 ? 'exit-0' : (exitCode === 2 || exitCode === 4 || exitCode === 5 ? 'exit-q' : 'exit-n');
+    return '<div class="gate-probe">' +
+      '<span>' + esc(command) + ' <span style="color:var(--muted)">(FAIL_TO_PASS · must fail at base)</span></span>' +
+      '<span class="meta mono"></span>' +
+      '<span class="exit ' + cls + '">exit ' + esc(exitCode) + '</span>' +
+      '</div>';
+  }
+
+  function renderGateResult(body) {
+    var gate = body.gate;
+    if (gate && gate.command_results) {
+      gateProbes.innerHTML = gate.command_results.map(function (r) {
+        return renderProbeRow(r.command, r.exit_code);
+      }).join('');
+    } else {
+      gateProbes.innerHTML = '';
+    }
+
+    var reasons = (body.errors && body.errors.length ? body.errors : (gate && gate.reasons) || []);
+    var reasonHtml = reasons.length
+      ? '<ul style="margin:6px 0 0 18px; padding:0;">' + reasons.map(function (r) { return '<li>' + esc(r) + '</li>'; }).join('') + '</ul>'
+      : '';
+
+    if (body.stage === 'gate_passed') {
+      gateState = 'passed';
+      gateEl.classList.add('gate-open');
+      setChip('chip-ok', 'gate open');
+      gateBig.textContent = 'Negative contract proven';
+      gateVerdict.innerHTML = '<b>The bug exists at base.</b> Every FAIL_TO_PASS probe fails at <span class="mono">' + esc(body.spec.base_commit.slice(0, 7)) + '</span> — the premise holds, dispatch may proceed.' + reasonHtml;
+      gateNote.textContent = 'Gate evidence recorded in the pre-dispatch response.';
+    } else if (body.stage === 'gate_blocked') {
+      gateState = 'blocked';
+      gateEl.classList.remove('gate-open');
+      setChip('chip-warn', 'gate blocked');
+      gateBig.textContent = 'Negative contract FAILED';
+      gateVerdict.innerHTML = '<b>Dispatch blocked.</b> The spec’s premise does not hold at base_commit — fix the spec, not the code.' + reasonHtml;
+      gateNote.textContent = 'Fail-closed: no reproducible bug, no run.';
+    } else if (body.stage === 'environment_blocked') {
+      gateState = 'blocked';
+      gateEl.classList.remove('gate-open');
+      setChip('chip-warn', 'env blocked');
+      gateBig.textContent = 'Environment identity not verified';
+      gateVerdict.innerHTML = '<b>Dispatch blocked.</b> The spec pins an environment the console cannot guarantee on this host.' + reasonHtml;
+      gateNote.textContent = 'Run via the governed CLI with --workspace docker.';
+    } else {
+      gateState = 'error';
+      gateEl.classList.remove('gate-open');
+      setChip('chip-warn', 'inconclusive');
+      gateBig.textContent = 'Pre-dispatch inconclusive';
+      gateVerdict.innerHTML = '<b>The gate could not complete.</b> Inconclusive is never a pass.' + reasonHtml;
+      gateNote.textContent = 'Check the server, then retry.';
+    }
+    gateBtn.disabled = false;
+    updateLaunch(body.dispatch_hint);
+  }
+
+  function renderGateError(message) {
+    gateState = 'error';
+    gateEl.classList.remove('gate-open');
+    setChip('chip-warn', 'error');
+    gateBig.textContent = 'Cannot reach the harness API';
+    gateProbes.innerHTML = '';
+    gateVerdict.innerHTML = '<b>' + esc(message) + '</b> The console needs the harness server (agentops serve) on this origin.';
+    gateBtn.disabled = false;
+    gateNote.textContent = 'Error state — no evidence was fabricated.';
+    updateLaunch();
+  }
+
+  function updateLaunch(hint) {
+    if (gateState === 'passed' && hint) {
+      launchBtn.disabled = false;
+      launchNote.textContent = 'Gate open — dispatch runs through the governed CLI (the console never holds worker credentials).';
+      dispatchRow.style.display = 'flex';
+      dispatchCmd.textContent = hint;
+    } else {
+      launchBtn.disabled = true;
+      dispatchRow.style.display = 'none';
+      launchNote.textContent = gateState === 'loading'
+        ? 'Waiting for the gate…'
+        : 'The gate must open first — a run without a proven bug is not a governed run.';
+    }
+  }
+
+  function proveNegativeContract() {
+    if (!currentSpec) return;
+    gateState = 'loading';
+    renderGateLoading();
+    var s = SPECS[currentSpec];
+    var payload = {
+      spec: {
+        repo: s.repo,
+        base_commit: s.base,
+        problem_statement: s.problem,
+        FAIL_TO_PASS: s.ftp,
+        PASS_TO_PASS: s.ptp
+      },
+      run_gate: true
+    };
+    fetch('/runs/spec/pre-dispatch', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+      .then(function (response) {
+        return response.json().then(function (body) { return body; });
+      })
+      .then(renderGateResult)
+      .catch(function (err) {
+        renderGateError('Network error: ' + (err && err.message ? err.message : 'request failed') + '.');
+      });
+  }
+
+  gateBtn.addEventListener('click', proveNegativeContract);
+  launchBtn.addEventListener('click', function () {
+    dispatchRow.style.display = 'flex';
+    dispatchCmd.select && dispatchCmd.select();
+  });
+
   attach.addEventListener('change', function () {
     var v = attach.value;
-    if (v === 'none') return;
+    if (v === 'none') {
+      currentSpec = null;
+      gateState = 'idle';
+      specPanel.innerHTML = SPEC_EMPTY;
+      renderGateIdle();
+      return;
+    }
+    currentSpec = v;
+    gateState = 'idle';
     var s = SPECS[v];
     specPanel.innerHTML =
       '<div class="panel-head"><span class="panel-title">Task spec · ' + v + '</span><span class="meta mono">SWE-bench contract</span></div>' +
       '<div class="panel-body spec-summary">' +
-      '<div class="spec-row"><span class="spec-k">repo</span><span class="spec-v">' + s.repo + '</span></div>' +
-      '<div class="spec-row"><span class="spec-k">base_commit</span><span class="spec-v">' + s.base + '</span></div>' +
-      '<div class="spec-row"><span class="spec-k">FAIL_TO_PASS</span><span class="spec-v" style="color:var(--fail)">' + s.ftp.join('<br/>') + '</span></div>' +
-      '<div class="spec-row"><span class="spec-k">PASS_TO_PASS</span><span class="spec-v">' + s.ptp.join('<br/>') + '</span></div>' +
-      '<div class="spec-row"><span class="spec-k">environment</span><span class="spec-v" style="color:var(--warn)">' + s.env + '</span></div>' +
+      '<div class="spec-row"><span class="spec-k">repo</span><span class="spec-v">' + esc(s.repo) + '</span></div>' +
+      '<div class="spec-row"><span class="spec-k">base_commit</span><span class="spec-v">' + esc(s.base) + '</span></div>' +
+      '<div class="spec-row"><span class="spec-k">FAIL_TO_PASS</span><span class="spec-v" style="color:var(--fail)">' + esc(s.ftp.join(', ')) + '</span></div>' +
+      '<div class="spec-row"><span class="spec-k">PASS_TO_PASS</span><span class="spec-v">' + esc(s.ptp.join(', ')) + '</span></div>' +
+      '<div class="spec-row"><span class="spec-k">environment</span><span class="spec-v" style="color:var(--warn)">' + esc(s.env) + '</span></div>' +
       '</div>';
-    /* reflect on the gate: the pisek spec is the one with the proven negative contract */
-    var gate = document.getElementById('gate');
-    if (v === 'pisek-683') {
-      gate.classList.add('gate-open');
-    }
+    renderGateIdle();
   });
 })();
 </script>

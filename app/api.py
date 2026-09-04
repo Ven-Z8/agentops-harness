@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Literal
 
 from fastapi import FastAPI, HTTPException, Query
-from fastapi.responses import PlainTextResponse
+from fastapi.responses import JSONResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -33,6 +33,19 @@ class CreateRunRequest(BaseModel):
     worker_command: str | None = None
     worker_timeout_seconds: int = 300
     allow_dirty: bool = False
+
+
+class SpecPreDispatchRequest(BaseModel):
+    """Composer request: a raw SWE-bench-style spec plus pre-dispatch options.
+
+    ``run_gate`` clones at base_commit and proves the negative contract —
+    real work, so the console triggers it deliberately, not on every keystroke.
+    """
+
+    spec: dict
+    run_gate: bool = False
+    clone_url: str | None = None
+    workspace_root: Path | None = None
 
 
 _WORKER_EVENT_KINDS = {
@@ -418,6 +431,113 @@ def create_api(storage_path: Path | None = None, llm_client: LLMClient | None = 
             render_handoff_markdown(packet),
             media_type="text/markdown; charset=utf-8",
         )
+
+    @api.post("/runs/spec/pre-dispatch")
+    def pre_dispatch_spec(request: SpecPreDispatchRequest) -> dict:
+        """The deterministic pre-dispatch half of a governed spec run (AO-UI-01).
+
+        Validate the spec, enforce environment identity, and — on demand —
+        prove the negative contract against a real clone at base_commit.
+        Dispatch itself stays with the governed CLI: the endpoint returns the
+        exact command once the gate opens. Worker secrets and long-running
+        dispatch do not belong in the console.
+        """
+        from pydantic import ValidationError
+
+        from app.core.environment_guard import (
+            docker_image_digest,
+            verify_environment_identity,
+        )
+        from app.schemas.task_spec import SweTaskSpec
+
+        payload: dict[str, object] = {
+            "ok": False,
+            "stage": "invalid",
+            "spec": None,
+            "environment": None,
+            "gate": None,
+            "workspace": None,
+            "dispatch_hint": None,
+            "errors": [],
+        }
+
+        try:
+            task_spec = SweTaskSpec.from_swebench_instance(request.spec)
+        except (KeyError, ValueError, ValidationError) as exc:
+            payload["errors"] = [str(exc)]
+            return JSONResponse(status_code=422, content=payload)
+
+        payload["spec"] = {
+            "repo": task_spec.repo,
+            "base_commit": task_spec.base_commit,
+            "fail_to_pass": len(task_spec.fail_to_pass),
+            "pass_to_pass": len(task_spec.pass_to_pass),
+        }
+
+        # The console gates on the host; a pinned image identity cannot be
+        # guaranteed there (AO-D03-02) — fail closed with the reason.
+        env = verify_environment_identity(
+            task_spec.environment,
+            workspace_kind="local",
+            image_ref=None,
+            resolve_image_digest=docker_image_digest,
+        )
+        payload["environment"] = {"pinned": env.pinned, "ok": env.ok, "reasons": env.reasons}
+        if not env.ok:
+            payload["stage"] = "environment_blocked"
+            payload["errors"] = env.reasons
+            return payload
+
+        if not request.run_gate:
+            payload.update(ok=True, stage="validated")
+            return payload
+
+        from app.core.issues import prepare_issue_workspace, spec_issue_stub
+        from app.core.task_spec_gate import evaluate_negative_contract
+
+        workspace_root = request.workspace_root or Path(".agentops/issues")
+        try:
+            repo_path, _branch = prepare_issue_workspace(
+                spec_issue_stub(task_spec),
+                workspace_root,
+                ref=task_spec.base_commit,
+                clone_url=request.clone_url,
+            )
+            gate = evaluate_negative_contract(task_spec, repo_path)
+        except Exception as exc:  # noqa: BLE001 — infra failure is inconclusive, never a pass
+            payload["stage"] = "error"
+            payload["errors"] = [f"Pre-dispatch could not complete: {exc}"]
+            return payload
+
+        payload["gate"] = {
+            "passed": gate.passed,
+            "reasons": gate.reasons,
+            "command_results": [
+                {
+                    "command": result.command,
+                    "exit_code": result.exit_code,
+                    "output_tail": result.output_tail,
+                }
+                for result in gate.command_results
+            ],
+        }
+        payload["workspace"] = str(repo_path)
+        if gate.passed:
+            owner, _, name = task_spec.repo.partition("/")
+            number = int(task_spec.base_commit[:8], 16) % 900000
+            payload.update(
+                ok=True,
+                stage="gate_passed",
+                dispatch_hint=(
+                    "agentops issue solve --task-spec <spec.json>"
+                    f" --owner {owner or 'spec'} --repo {name or owner}"
+                    f" --number {number} --worker openhands"
+                ),
+            )
+            return payload
+        payload["stage"] = "gate_blocked"
+        payload["errors"] = gate.reasons
+        return payload
 
     mount_cockpit(api, selected_storage)
     _mount_console(api)

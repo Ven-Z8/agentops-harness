@@ -249,3 +249,146 @@ class TestRunEvents:
         client = _client(tmp_path, monkeypatch)
         response = client.get("/runs/nonexistent/events")
         assert response.status_code == 404
+
+
+class TestSpecPreDispatch:
+    """AO-UI-01 composer backend: the deterministic pre-dispatch half of the
+    governed pipeline, callable from the console — validate the spec, enforce
+    environment identity, and (on demand) prove the negative contract against
+    a real clone. Dispatch itself stays with the governed CLI (worker secrets
+    and long-running dispatch do not belong in the console); the endpoint
+    returns the exact command on gate pass."""
+
+    def _buggy_spec(self, base: str, fail_to_pass: list[str]) -> dict:
+        return {
+            "repo": "example/widgetlib",
+            "base_commit": base,
+            "problem_statement": "reset(keep_name=True) drops the configured name.",
+            "FAIL_TO_PASS": json.dumps(fail_to_pass),
+            "PASS_TO_PASS": json.dumps(["test_widget.py::test_reset_clears_name_by_default"]),
+        }
+
+    def test_pre_dispatch_rejects_schema_invalid_spec(
+        self, tmp_path: Path, monkeypatch
+    ) -> None:
+        client = _client(tmp_path, monkeypatch)
+        response = client.post(
+            "/runs/spec/pre-dispatch",
+            json={
+                "spec": {"repo": "example/widgetlib", "base_commit": "abc"},
+                "workspace_root": str(tmp_path / "workspaces"),
+            },
+        )
+        assert response.status_code == 422
+        payload = response.json()
+        assert payload["ok"] is False
+        assert payload["stage"] == "invalid"
+        assert payload["errors"]
+
+    def test_pre_dispatch_validate_only_skips_gate(
+        self, tmp_path: Path, monkeypatch
+    ) -> None:
+        from tests.test_task_spec_solve import _make_remote_with_bug
+
+        client = _client(tmp_path, monkeypatch)
+        _, base = _make_remote_with_bug(tmp_path)
+        response = client.post(
+            "/runs/spec/pre-dispatch",
+            json={
+                "spec": self._buggy_spec(
+                    base, ["test_widget.py::test_reset_keeps_name_when_requested"]
+                ),
+                "run_gate": False,
+                "workspace_root": str(tmp_path / "workspaces"),
+            },
+        )
+        assert response.status_code == 200
+        payload = response.json()
+        assert payload["ok"] is True
+        assert payload["stage"] == "validated"
+        assert payload["gate"] is None
+        assert payload["spec"]["fail_to_pass"] == 1
+
+    def test_pre_dispatch_gate_proves_bug_at_base(
+        self, tmp_path: Path, monkeypatch
+    ) -> None:
+        """The gate runs the real FAIL_TO_PASS probe against a real clone and
+        returns evidence (commands + exit codes), not a verdict by assertion."""
+        from tests.test_task_spec_solve import _make_remote_with_bug
+
+        client = _client(tmp_path, monkeypatch)
+        remote, base = _make_remote_with_bug(tmp_path)
+        response = client.post(
+            "/runs/spec/pre-dispatch",
+            json={
+                "spec": self._buggy_spec(
+                    base, ["test_widget.py::test_reset_keeps_name_when_requested"]
+                ),
+                "run_gate": True,
+                "clone_url": str(remote),
+                "workspace_root": str(tmp_path / "workspaces"),
+            },
+        )
+        assert response.status_code == 200
+        payload = response.json()
+        assert payload["ok"] is True
+        assert payload["stage"] == "gate_passed"
+        gate = payload["gate"]
+        assert gate["passed"] is True
+        assert gate["command_results"]
+        assert all(result["exit_code"] != 0 for result in gate["command_results"])
+        assert payload["workspace"]
+        assert "agentops issue solve" in payload["dispatch_hint"]
+
+    def test_pre_dispatch_gate_blocks_unreproducible_bug(
+        self, tmp_path: Path, monkeypatch
+    ) -> None:
+        """Fail-closed: a FAIL_TO_PASS test that passes at base means the bug
+        is not reproducible — the console must be able to refuse dispatch."""
+        from tests.test_task_spec_solve import _make_remote_with_bug
+
+        client = _client(tmp_path, monkeypatch)
+        remote, base = _make_remote_with_bug(tmp_path)
+        response = client.post(
+            "/runs/spec/pre-dispatch",
+            json={
+                "spec": self._buggy_spec(
+                    base, ["test_widget.py::test_reset_clears_name_by_default"]
+                ),
+                "run_gate": True,
+                "clone_url": str(remote),
+                "workspace_root": str(tmp_path / "workspaces"),
+            },
+        )
+        assert response.status_code == 200
+        payload = response.json()
+        assert payload["ok"] is False
+        assert payload["stage"] == "gate_blocked"
+        assert payload["gate"]["passed"] is False
+        assert payload["gate"]["reasons"]
+
+    def test_pre_dispatch_blocks_pinned_environment_without_docker(
+        self, tmp_path: Path, monkeypatch
+    ) -> None:
+        """AO-D03-02 in the console: a spec pinning an image digest cannot be
+        guaranteed by the console's host-side gate — blocked, with the reason."""
+        from tests.test_task_spec_solve import _make_remote_with_bug
+
+        client = _client(tmp_path, monkeypatch)
+        _, base = _make_remote_with_bug(tmp_path)
+        spec = self._buggy_spec(base, ["test_widget.py::test_reset_keeps_name_when_requested"])
+        spec["environment"] = {"image_digest": "sha256:" + "ab" * 32}
+        response = client.post(
+            "/runs/spec/pre-dispatch",
+            json={
+                "spec": spec,
+                "run_gate": False,
+                "workspace_root": str(tmp_path / "workspaces"),
+            },
+        )
+        assert response.status_code == 200
+        payload = response.json()
+        assert payload["ok"] is False
+        assert payload["stage"] == "environment_blocked"
+        assert payload["environment"]["pinned"] is True
+        assert payload["environment"]["reasons"]

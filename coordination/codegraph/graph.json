@@ -1227,6 +1227,12 @@
     {
       "metadata": {},
       "source": "file:app/api.py",
+      "target": "class:python:app.api.SpecPreDispatchRequest",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/api.py",
       "target": "function:python:app.api._get_record",
       "type": "defines"
     },
@@ -1323,6 +1329,12 @@
     {
       "metadata": {},
       "source": "file:app/api.py",
+      "target": "function:python:app.api.pre_dispatch_spec",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/api.py",
       "target": "import:python:app.cockpit.mount_cockpit",
       "type": "imports"
     },
@@ -1330,6 +1342,18 @@
       "metadata": {},
       "source": "file:app/api.py",
       "target": "import:python:app.core.config.settings",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/api.py",
+      "target": "import:python:app.core.environment_guard.docker_image_digest",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/api.py",
+      "target": "import:python:app.core.environment_guard.verify_environment_identity",
       "type": "imports"
     },
     {
@@ -1359,6 +1383,18 @@
     {
       "metadata": {},
       "source": "file:app/api.py",
+      "target": "import:python:app.core.issues.prepare_issue_workspace",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/api.py",
+      "target": "import:python:app.core.issues.spec_issue_stub",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/api.py",
       "target": "import:python:app.core.llm.LLMClient",
       "type": "imports"
     },
@@ -1378,6 +1414,12 @@
       "metadata": {},
       "source": "file:app/api.py",
       "target": "import:python:app.core.storage.RunStorage",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/api.py",
+      "target": "import:python:app.core.task_spec_gate.evaluate_negative_contract",
       "type": "imports"
     },
     {
@@ -1425,6 +1467,12 @@
     {
       "metadata": {},
       "source": "file:app/api.py",
+      "target": "import:python:app.schemas.task_spec.SweTaskSpec",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/api.py",
       "target": "import:python:app.schemas.test.TestRunSummary",
       "type": "imports"
     },
@@ -1467,6 +1515,12 @@
     {
       "metadata": {},
       "source": "file:app/api.py",
+      "target": "import:python:fastapi.responses.JSONResponse",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/api.py",
       "target": "import:python:fastapi.responses.PlainTextResponse",
       "type": "imports"
     },
@@ -1492,6 +1546,12 @@
       "metadata": {},
       "source": "file:app/api.py",
       "target": "import:python:pydantic.BaseModel",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/api.py",
+      "target": "import:python:pydantic.ValidationError",
       "type": "imports"
     },
     {
@@ -1719,12 +1779,6 @@
     {
       "metadata": {},
       "source": "file:app/cli.py",
-      "target": "import:python:app.core.issues.GitHubIssue",
-      "type": "imports"
-    },
-    {
-      "metadata": {},
-      "source": "file:app/cli.py",
       "target": "import:python:app.core.issues.commit_workspace_changes",
       "type": "imports"
     },
@@ -1750,6 +1804,12 @@
       "metadata": {},
       "source": "file:app/cli.py",
       "target": "import:python:app.core.issues.prepare_issue_workspace",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/cli.py",
+      "target": "import:python:app.core.issues.spec_issue_stub",
       "type": "imports"
     },
     {
@@ -3982,6 +4042,12 @@
       "metadata": {},
       "source": "file:app/core/issues.py",
       "target": "function:python:app.core.issues.slug",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/core/issues.py",
+      "target": "function:python:app.core.issues.spec_issue_stub",
       "type": "defines"
     },
     {
@@ -15381,6 +15447,18 @@
     {
       "metadata": {},
       "source": "file:tests/test_console_api.py",
+      "target": "class:python:tests.test_console_api.TestSpecPreDispatch",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_console_api.py",
+      "target": "function:python:tests.test_console_api._buggy_spec",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_console_api.py",
       "target": "function:python:tests.test_console_api._client",
       "type": "defines"
     },
@@ -15454,6 +15532,36 @@
       "metadata": {},
       "source": "file:tests/test_console_api.py",
       "target": "function:python:tests.test_console_api.test_list_orders_runs_most_recent_first_across_sources",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_console_api.py",
+      "target": "function:python:tests.test_console_api.test_pre_dispatch_blocks_pinned_environment_without_docker",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_console_api.py",
+      "target": "function:python:tests.test_console_api.test_pre_dispatch_gate_blocks_unreproducible_bug",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_console_api.py",
+      "target": "function:python:tests.test_console_api.test_pre_dispatch_gate_proves_bug_at_base",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_console_api.py",
+      "target": "function:python:tests.test_console_api.test_pre_dispatch_rejects_schema_invalid_spec",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_console_api.py",
+      "target": "function:python:tests.test_console_api.test_pre_dispatch_validate_only_skips_gate",
       "type": "defines"
     },
     {
@@ -15537,6 +15645,42 @@
     {
       "metadata": {},
       "source": "file:tests/test_console_api.py",
+      "target": "method:python:tests.test_console_api.TestSpecPreDispatch._buggy_spec",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_console_api.py",
+      "target": "method:python:tests.test_console_api.TestSpecPreDispatch.test_pre_dispatch_blocks_pinned_environment_without_docker",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_console_api.py",
+      "target": "method:python:tests.test_console_api.TestSpecPreDispatch.test_pre_dispatch_gate_blocks_unreproducible_bug",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_console_api.py",
+      "target": "method:python:tests.test_console_api.TestSpecPreDispatch.test_pre_dispatch_gate_proves_bug_at_base",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_console_api.py",
+      "target": "method:python:tests.test_console_api.TestSpecPreDispatch.test_pre_dispatch_rejects_schema_invalid_spec",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_console_api.py",
+      "target": "method:python:tests.test_console_api.TestSpecPreDispatch.test_pre_dispatch_validate_only_skips_gate",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_console_api.py",
       "target": "import:python:__future__.annotations",
       "type": "imports"
     },
@@ -15562,6 +15706,12 @@
       "metadata": {},
       "source": "file:tests/test_console_api.py",
       "target": "import:python:pathlib.Path",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_console_api.py",
+      "target": "import:python:tests.test_task_spec_solve._make_remote_with_bug",
       "type": "imports"
     },
     {
@@ -26000,6 +26150,12 @@
     },
     {
       "metadata": {},
+      "source": "function:python:app.api.pre_dispatch_spec",
+      "target": "route:python:POST:/runs/spec/pre-dispatch",
+      "type": "exposes_route"
+    },
+    {
+      "metadata": {},
       "source": "function:python:app.cockpit.mount.get_artifact",
       "target": "route:python:GET:/runs/{run_id}/artifacts/{name}",
       "type": "exposes_route"
@@ -26166,6 +26322,17 @@
         "qualified_name": "app.api.CreateRunRequest"
       },
       "name": "CreateRunRequest",
+      "path": "app/api.py",
+      "type": "class"
+    },
+    {
+      "id": "class:python:app.api.SpecPreDispatchRequest",
+      "language": "python",
+      "metadata": {
+        "line": 38,
+        "qualified_name": "app.api.SpecPreDispatchRequest"
+      },
+      "name": "SpecPreDispatchRequest",
       "path": "app/api.py",
       "type": "class"
     },
@@ -28366,6 +28533,17 @@
         "qualified_name": "tests.test_console_api.TestRunEvents"
       },
       "name": "TestRunEvents",
+      "path": "tests/test_console_api.py",
+      "type": "class"
+    },
+    {
+      "id": "class:python:tests.test_console_api.TestSpecPreDispatch",
+      "language": "python",
+      "metadata": {
+        "line": 254,
+        "qualified_name": "tests.test_console_api.TestSpecPreDispatch"
+      },
+      "name": "TestSpecPreDispatch",
       "path": "tests/test_console_api.py",
       "type": "class"
     },
@@ -32732,7 +32910,7 @@
       "id": "function:python:app.api._get_record",
       "language": "python",
       "metadata": {
-        "line": 81,
+        "line": 94,
         "qualified_name": "app.api._get_record"
       },
       "name": "_get_record",
@@ -32743,7 +32921,7 @@
       "id": "function:python:app.api._interrupted_run_record",
       "language": "python",
       "metadata": {
-        "line": 172,
+        "line": 185,
         "qualified_name": "app.api._interrupted_run_record"
       },
       "name": "_interrupted_run_record",
@@ -32754,7 +32932,7 @@
       "id": "function:python:app.api._is_interrupted_run",
       "language": "python",
       "metadata": {
-        "line": 164,
+        "line": 177,
         "qualified_name": "app.api._is_interrupted_run"
       },
       "name": "_is_interrupted_run",
@@ -32765,7 +32943,7 @@
       "id": "function:python:app.api._load_worker_summary",
       "language": "python",
       "metadata": {
-        "line": 157,
+        "line": 170,
         "qualified_name": "app.api._load_worker_summary"
       },
       "name": "_load_worker_summary",
@@ -32776,7 +32954,7 @@
       "id": "function:python:app.api._mount_console",
       "language": "python",
       "metadata": {
-        "line": 427,
+        "line": 547,
         "qualified_name": "app.api._mount_console"
       },
       "name": "_mount_console",
@@ -32787,7 +32965,7 @@
       "id": "function:python:app.api._reconciled_records",
       "language": "python",
       "metadata": {
-        "line": 104,
+        "line": 117,
         "qualified_name": "app.api._reconciled_records"
       },
       "name": "_reconciled_records",
@@ -32798,7 +32976,7 @@
       "id": "function:python:app.api._worker_event",
       "language": "python",
       "metadata": {
-        "line": 48,
+        "line": 61,
         "qualified_name": "app.api._worker_event"
       },
       "name": "_worker_event",
@@ -32809,7 +32987,7 @@
       "id": "function:python:app.api.create_api",
       "language": "python",
       "metadata": {
-        "line": 246,
+        "line": 259,
         "qualified_name": "app.api.create_api"
       },
       "name": "create_api",
@@ -32820,7 +32998,7 @@
       "id": "function:python:app.api.create_run",
       "language": "python",
       "metadata": {
-        "line": 254,
+        "line": 267,
         "qualified_name": "app.api.create_run"
       },
       "name": "create_run",
@@ -32831,7 +33009,7 @@
       "id": "function:python:app.api.get_events",
       "language": "python",
       "metadata": {
-        "line": 366,
+        "line": 379,
         "qualified_name": "app.api.get_events"
       },
       "name": "get_events",
@@ -32842,7 +33020,7 @@
       "id": "function:python:app.api.get_handoff",
       "language": "python",
       "metadata": {
-        "line": 403,
+        "line": 416,
         "qualified_name": "app.api.get_handoff"
       },
       "name": "get_handoff",
@@ -32853,7 +33031,7 @@
       "id": "function:python:app.api.get_kpis",
       "language": "python",
       "metadata": {
-        "line": 324,
+        "line": 337,
         "qualified_name": "app.api.get_kpis"
       },
       "name": "get_kpis",
@@ -32864,7 +33042,7 @@
       "id": "function:python:app.api.get_logs",
       "language": "python",
       "metadata": {
-        "line": 358,
+        "line": 371,
         "qualified_name": "app.api.get_logs"
       },
       "name": "get_logs",
@@ -32875,7 +33053,7 @@
       "id": "function:python:app.api.get_report",
       "language": "python",
       "metadata": {
-        "line": 350,
+        "line": 363,
         "qualified_name": "app.api.get_report"
       },
       "name": "get_report",
@@ -32886,7 +33064,7 @@
       "id": "function:python:app.api.get_run",
       "language": "python",
       "metadata": {
-        "line": 337,
+        "line": 350,
         "qualified_name": "app.api.get_run"
       },
       "name": "get_run",
@@ -32897,10 +33075,21 @@
       "id": "function:python:app.api.list_runs",
       "language": "python",
       "metadata": {
-        "line": 268,
+        "line": 281,
         "qualified_name": "app.api.list_runs"
       },
       "name": "list_runs",
+      "path": "app/api.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.api.pre_dispatch_spec",
+      "language": "python",
+      "metadata": {
+        "line": 436,
+        "qualified_name": "app.api.pre_dispatch_spec"
+      },
+      "name": "pre_dispatch_spec",
       "path": "app/api.py",
       "type": "function"
     },
@@ -32996,7 +33185,7 @@
       "id": "function:python:app.cli.issue_solve",
       "language": "python",
       "metadata": {
-        "line": 531,
+        "line": 513,
         "qualified_name": "app.cli.issue_solve"
       },
       "name": "issue_solve",
@@ -33007,7 +33196,7 @@
       "id": "function:python:app.cli.issue_view",
       "language": "python",
       "metadata": {
-        "line": 512,
+        "line": 494,
         "qualified_name": "app.cli.issue_view"
       },
       "name": "issue_view",
@@ -34459,7 +34648,7 @@
       "id": "function:python:app.core.issues._run_gh",
       "language": "python",
       "metadata": {
-        "line": 81,
+        "line": 107,
         "qualified_name": "app.core.issues._run_gh"
       },
       "name": "_run_gh",
@@ -34470,7 +34659,7 @@
       "id": "function:python:app.core.issues.commit_workspace_changes",
       "language": "python",
       "metadata": {
-        "line": 227,
+        "line": 253,
         "qualified_name": "app.core.issues.commit_workspace_changes"
       },
       "name": "commit_workspace_changes",
@@ -34492,7 +34681,7 @@
       "id": "function:python:app.core.issues.compose_worker_command",
       "language": "python",
       "metadata": {
-        "line": 260,
+        "line": 286,
         "qualified_name": "app.core.issues.compose_worker_command"
       },
       "name": "compose_worker_command",
@@ -34503,7 +34692,7 @@
       "id": "function:python:app.core.issues.export_patch",
       "language": "python",
       "metadata": {
-        "line": 212,
+        "line": 238,
         "qualified_name": "app.core.issues.export_patch"
       },
       "name": "export_patch",
@@ -34514,7 +34703,7 @@
       "id": "function:python:app.core.issues.fetch_issue",
       "language": "python",
       "metadata": {
-        "line": 96,
+        "line": 122,
         "qualified_name": "app.core.issues.fetch_issue"
       },
       "name": "fetch_issue",
@@ -34525,7 +34714,7 @@
       "id": "function:python:app.core.issues.prepare_issue_workspace",
       "language": "python",
       "metadata": {
-        "line": 153,
+        "line": 179,
         "qualified_name": "app.core.issues.prepare_issue_workspace"
       },
       "name": "prepare_issue_workspace",
@@ -34536,7 +34725,7 @@
       "id": "function:python:app.core.issues.quote_args",
       "language": "python",
       "metadata": {
-        "line": 252,
+        "line": 278,
         "qualified_name": "app.core.issues.quote_args"
       },
       "name": "quote_args",
@@ -34551,6 +34740,17 @@
         "qualified_name": "app.core.issues.slug"
       },
       "name": "slug",
+      "path": "app/core/issues.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.core.issues.spec_issue_stub",
+      "language": "python",
+      "metadata": {
+        "line": 81,
+        "qualified_name": "app.core.issues.spec_issue_stub"
+      },
+      "name": "spec_issue_stub",
       "path": "app/core/issues.py",
       "type": "function"
     },
@@ -41089,6 +41289,17 @@
       "type": "function"
     },
     {
+      "id": "function:python:tests.test_console_api._buggy_spec",
+      "language": "python",
+      "metadata": {
+        "line": 262,
+        "qualified_name": "tests.test_console_api._buggy_spec"
+      },
+      "name": "_buggy_spec",
+      "path": "tests/test_console_api.py",
+      "type": "function"
+    },
+    {
       "id": "function:python:tests.test_console_api._client",
       "language": "python",
       "metadata": {
@@ -41228,6 +41439,61 @@
         "qualified_name": "tests.test_console_api.test_list_orders_runs_most_recent_first_across_sources"
       },
       "name": "test_list_orders_runs_most_recent_first_across_sources",
+      "path": "tests/test_console_api.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_console_api.test_pre_dispatch_blocks_pinned_environment_without_docker",
+      "language": "python",
+      "metadata": {
+        "line": 370,
+        "qualified_name": "tests.test_console_api.test_pre_dispatch_blocks_pinned_environment_without_docker"
+      },
+      "name": "test_pre_dispatch_blocks_pinned_environment_without_docker",
+      "path": "tests/test_console_api.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_console_api.test_pre_dispatch_gate_blocks_unreproducible_bug",
+      "language": "python",
+      "metadata": {
+        "line": 343,
+        "qualified_name": "tests.test_console_api.test_pre_dispatch_gate_blocks_unreproducible_bug"
+      },
+      "name": "test_pre_dispatch_gate_blocks_unreproducible_bug",
+      "path": "tests/test_console_api.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_console_api.test_pre_dispatch_gate_proves_bug_at_base",
+      "language": "python",
+      "metadata": {
+        "line": 312,
+        "qualified_name": "tests.test_console_api.test_pre_dispatch_gate_proves_bug_at_base"
+      },
+      "name": "test_pre_dispatch_gate_proves_bug_at_base",
+      "path": "tests/test_console_api.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_console_api.test_pre_dispatch_rejects_schema_invalid_spec",
+      "language": "python",
+      "metadata": {
+        "line": 271,
+        "qualified_name": "tests.test_console_api.test_pre_dispatch_rejects_schema_invalid_spec"
+      },
+      "name": "test_pre_dispatch_rejects_schema_invalid_spec",
+      "path": "tests/test_console_api.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_console_api.test_pre_dispatch_validate_only_skips_gate",
+      "language": "python",
+      "metadata": {
+        "line": 288,
+        "qualified_name": "tests.test_console_api.test_pre_dispatch_validate_only_skips_gate"
+      },
+      "name": "test_pre_dispatch_validate_only_skips_gate",
       "path": "tests/test_console_api.py",
       "type": "function"
     },
@@ -48603,6 +48869,16 @@
       "type": "import"
     },
     {
+      "id": "import:python:app.core.issues.spec_issue_stub",
+      "language": "python",
+      "metadata": {
+        "imported_from": "app.core.issues"
+      },
+      "name": "app.core.issues.spec_issue_stub",
+      "path": null,
+      "type": "import"
+    },
+    {
       "id": "import:python:app.core.llm.LLMClient",
       "language": "python",
       "metadata": {
@@ -51203,6 +51479,16 @@
       "type": "import"
     },
     {
+      "id": "import:python:fastapi.responses.JSONResponse",
+      "language": "python",
+      "metadata": {
+        "imported_from": "fastapi.responses"
+      },
+      "name": "fastapi.responses.JSONResponse",
+      "path": null,
+      "type": "import"
+    },
+    {
       "id": "import:python:fastapi.responses.PlainTextResponse",
       "language": "python",
       "metadata": {
@@ -51899,6 +52185,16 @@
         "imported_from": "tests.helpers_runrecord"
       },
       "name": "tests.helpers_runrecord.minimal_run_record",
+      "path": null,
+      "type": "import"
+    },
+    {
+      "id": "import:python:tests.test_task_spec_solve._make_remote_with_bug",
+      "language": "python",
+      "metadata": {
+        "imported_from": "tests.test_task_spec_solve"
+      },
+      "name": "tests.test_task_spec_solve._make_remote_with_bug",
       "path": null,
       "type": "import"
     },
@@ -55999,6 +56295,72 @@
       "type": "method"
     },
     {
+      "id": "method:python:tests.test_console_api.TestSpecPreDispatch._buggy_spec",
+      "language": "python",
+      "metadata": {
+        "line": 262,
+        "qualified_name": "tests.test_console_api.TestSpecPreDispatch._buggy_spec"
+      },
+      "name": "_buggy_spec",
+      "path": "tests/test_console_api.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_console_api.TestSpecPreDispatch.test_pre_dispatch_blocks_pinned_environment_without_docker",
+      "language": "python",
+      "metadata": {
+        "line": 370,
+        "qualified_name": "tests.test_console_api.TestSpecPreDispatch.test_pre_dispatch_blocks_pinned_environment_without_docker"
+      },
+      "name": "test_pre_dispatch_blocks_pinned_environment_without_docker",
+      "path": "tests/test_console_api.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_console_api.TestSpecPreDispatch.test_pre_dispatch_gate_blocks_unreproducible_bug",
+      "language": "python",
+      "metadata": {
+        "line": 343,
+        "qualified_name": "tests.test_console_api.TestSpecPreDispatch.test_pre_dispatch_gate_blocks_unreproducible_bug"
+      },
+      "name": "test_pre_dispatch_gate_blocks_unreproducible_bug",
+      "path": "tests/test_console_api.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_console_api.TestSpecPreDispatch.test_pre_dispatch_gate_proves_bug_at_base",
+      "language": "python",
+      "metadata": {
+        "line": 312,
+        "qualified_name": "tests.test_console_api.TestSpecPreDispatch.test_pre_dispatch_gate_proves_bug_at_base"
+      },
+      "name": "test_pre_dispatch_gate_proves_bug_at_base",
+      "path": "tests/test_console_api.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_console_api.TestSpecPreDispatch.test_pre_dispatch_rejects_schema_invalid_spec",
+      "language": "python",
+      "metadata": {
+        "line": 271,
+        "qualified_name": "tests.test_console_api.TestSpecPreDispatch.test_pre_dispatch_rejects_schema_invalid_spec"
+      },
+      "name": "test_pre_dispatch_rejects_schema_invalid_spec",
+      "path": "tests/test_console_api.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_console_api.TestSpecPreDispatch.test_pre_dispatch_validate_only_skips_gate",
+      "language": "python",
+      "metadata": {
+        "line": 288,
+        "qualified_name": "tests.test_console_api.TestSpecPreDispatch.test_pre_dispatch_validate_only_skips_gate"
+      },
+      "name": "test_pre_dispatch_validate_only_skips_gate",
+      "path": "tests/test_console_api.py",
+      "type": "method"
+    },
+    {
       "id": "method:python:tests.test_environment_guard.TestDigestNormalization.test_extracts_sha_from_repo_qualified_digest",
       "language": "python",
       "metadata": {
@@ -56729,7 +57091,7 @@
       "id": "route:python:GET:/runs",
       "language": "python",
       "metadata": {
-        "line": 268,
+        "line": 281,
         "method": "GET",
         "path": "/runs"
       },
@@ -56741,7 +57103,7 @@
       "id": "route:python:GET:/runs/kpis",
       "language": "python",
       "metadata": {
-        "line": 324,
+        "line": 337,
         "method": "GET",
         "path": "/runs/kpis"
       },
@@ -56753,7 +57115,7 @@
       "id": "route:python:GET:/runs/{run_id}",
       "language": "python",
       "metadata": {
-        "line": 337,
+        "line": 350,
         "method": "GET",
         "path": "/runs/{run_id}"
       },
@@ -56789,7 +57151,7 @@
       "id": "route:python:GET:/runs/{run_id}/events",
       "language": "python",
       "metadata": {
-        "line": 366,
+        "line": 379,
         "method": "GET",
         "path": "/runs/{run_id}/events"
       },
@@ -56801,7 +57163,7 @@
       "id": "route:python:GET:/runs/{run_id}/handoff",
       "language": "python",
       "metadata": {
-        "line": 403,
+        "line": 416,
         "method": "GET",
         "path": "/runs/{run_id}/handoff"
       },
@@ -56813,7 +57175,7 @@
       "id": "route:python:GET:/runs/{run_id}/logs",
       "language": "python",
       "metadata": {
-        "line": 358,
+        "line": 371,
         "method": "GET",
         "path": "/runs/{run_id}/logs"
       },
@@ -56825,7 +57187,7 @@
       "id": "route:python:GET:/runs/{run_id}/report",
       "language": "python",
       "metadata": {
-        "line": 350,
+        "line": 363,
         "method": "GET",
         "path": "/runs/{run_id}/report"
       },
@@ -56873,11 +57235,23 @@
       "id": "route:python:POST:/runs",
       "language": "python",
       "metadata": {
-        "line": 254,
+        "line": 267,
         "method": "POST",
         "path": "/runs"
       },
       "name": "POST /runs",
+      "path": "app/api.py",
+      "type": "route"
+    },
+    {
+      "id": "route:python:POST:/runs/spec/pre-dispatch",
+      "language": "python",
+      "metadata": {
+        "line": 436,
+        "method": "POST",
+        "path": "/runs/spec/pre-dispatch"
+      },
+      "name": "POST /runs/spec/pre-dispatch",
       "path": "app/api.py",
       "type": "route"
     }
