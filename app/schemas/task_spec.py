@@ -104,11 +104,28 @@ class SweTaskSpec(BaseModel):
                 return [str(item) for item in value]
             raise ValueError(f"Unsupported FAIL_TO_PASS/PASS_TO_PASS shape: {type(value)}")
 
+        def _parse_environment(value: object) -> EnvironmentIdentity:
+            # AO-D03-02: carry a pinned execution environment through the
+            # parser so enforcement can act on it. Absent/empty → the default
+            # empty identity (a recorded gap, never an assumed match).
+            if not isinstance(value, dict):
+                return EnvironmentIdentity()
+            notes = value.get("notes") or []
+            if not isinstance(notes, list):
+                notes = [str(notes)]
+            return EnvironmentIdentity(
+                image_digest=value.get("image_digest"),
+                python_version=value.get("python_version"),
+                lockfile_digest=value.get("lockfile_digest"),
+                notes=[str(note) for note in notes],
+            )
+
         return cls(
             repo=str(raw["repo"]),
             base_commit=str(raw["base_commit"]),
             problem_statement=str(raw.get("problem_statement") or raw.get("issue_body") or ""),
             fail_to_pass=_parse_tests(raw.get("FAIL_TO_PASS") or []),
             pass_to_pass=_parse_tests(raw.get("PASS_TO_PASS") or []),
+            environment=_parse_environment(raw.get("environment")),
             source="swebench_verified",
         )

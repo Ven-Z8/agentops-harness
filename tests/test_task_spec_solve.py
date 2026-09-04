@@ -120,6 +120,55 @@ class TestTaskSpecCLIWiring:
         assert "Negative contract" in result.output
         assert not dispatched, "worker must not dispatch when the gate blocks"
 
+    def test_solve_blocks_when_pinned_environment_unverifiable(self, tmp_path: Path) -> None:
+        """AO-D03-02: a spec that pins an image digest cannot be guaranteed on a
+        local workspace — fail closed before any dispatch (exit 5), no worker,
+        no clone budget burned."""
+        from app.cli import app
+        from app.core import issues as issues_module
+
+        remote, base = _make_remote_with_bug(tmp_path)
+        spec = _spec_json(
+            "example/widgetlib",
+            base,
+            ["test_widget.py::test_reset_keeps_name_when_requested"],
+        )
+        spec["environment"] = {"image_digest": "sha256:" + "ab" * 32}
+        spec_file = tmp_path / "spec.json"
+        spec_file.write_text(json.dumps(spec))
+
+        dispatched: list[dict] = []
+
+        def fail_run_harness(**kwargs):
+            dispatched.append(kwargs)
+            raise AssertionError(
+                "run_harness must not be called when the environment is unverified"
+            )
+
+        with (
+            patch.object(issues_module, "fetch_issue") as fake_fetch,
+            patch("app.cli.run_harness", fail_run_harness),
+        ):
+            fake_fetch.return_value = None
+            result = CliRunner().invoke(
+                app,
+                [
+                    "issue", "solve",
+                    "--task-spec", str(spec_file),
+                    "--owner", "example",
+                    "--repo", "widgetlib",
+                    "--number", "42",
+                    "--worker", "codex",
+                    "--clone-url", str(remote),
+                    "--workspace-root", str(tmp_path / "workspaces"),
+                ],
+            )
+        assert result.exit_code == 5, (
+            f"expected env-block exit 5, got {result.exit_code}: {result.output}"
+        )
+        assert "environment" in result.output.lower()
+        assert not dispatched, "worker must not dispatch when the environment is unverified"
+
     def test_solve_with_task_spec_pins_commit_and_composes_task(self, tmp_path: Path) -> None:
         """Happy path: the workspace is checked out at base_commit, the gate
         passes (bug present), and run_harness receives the spec's problem

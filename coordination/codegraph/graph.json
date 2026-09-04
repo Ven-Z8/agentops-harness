@@ -1665,6 +1665,18 @@
     {
       "metadata": {},
       "source": "file:app/cli.py",
+      "target": "import:python:app.core.environment_guard.docker_image_digest",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/cli.py",
+      "target": "import:python:app.core.environment_guard.verify_environment_identity",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/cli.py",
       "target": "import:python:app.core.graph.run_harness",
       "type": "imports"
     },
@@ -1816,6 +1828,12 @@
       "metadata": {},
       "source": "file:app/cli.py",
       "target": "import:python:app.core.workload.load_workload_manifest",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/cli.py",
+      "target": "import:python:app.core.workspace.docker.DEFAULT_IMAGE",
       "type": "imports"
     },
     {
@@ -2914,6 +2932,78 @@
       "metadata": {},
       "source": "file:app/core/edit_runner.py",
       "target": "import:python:time",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/core/environment_guard.py",
+      "target": "class:python:app.core.environment_guard.EnvironmentVerification",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/core/environment_guard.py",
+      "target": "function:python:app.core.environment_guard.docker_image_digest",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/core/environment_guard.py",
+      "target": "function:python:app.core.environment_guard.normalize_image_digest",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/core/environment_guard.py",
+      "target": "function:python:app.core.environment_guard.ok",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/core/environment_guard.py",
+      "target": "function:python:app.core.environment_guard.verify_environment_identity",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/core/environment_guard.py",
+      "target": "method:python:app.core.environment_guard.EnvironmentVerification.ok",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/core/environment_guard.py",
+      "target": "import:python:__future__.annotations",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/core/environment_guard.py",
+      "target": "import:python:app.schemas.task_spec.EnvironmentIdentity",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/core/environment_guard.py",
+      "target": "import:python:collections.abc.Callable",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/core/environment_guard.py",
+      "target": "import:python:dataclasses.dataclass",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/core/environment_guard.py",
+      "target": "import:python:dataclasses.field",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/core/environment_guard.py",
+      "target": "import:python:subprocess",
       "type": "imports"
     },
     {
@@ -12543,6 +12633,12 @@
     {
       "metadata": {},
       "source": "file:app/schemas/task_spec.py",
+      "target": "function:python:app.schemas.task_spec._parse_environment",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:app/schemas/task_spec.py",
       "target": "function:python:app.schemas.task_spec._parse_tests",
       "type": "defines"
     },
@@ -15706,6 +15802,252 @@
       "metadata": {},
       "source": "file:tests/test_edit_runner.py",
       "target": "file:app/core/edit_runner.py",
+      "type": "likely_tests"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_environment_guard.py",
+      "target": "class:python:tests.test_environment_guard.TestDigestNormalization",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_environment_guard.py",
+      "target": "class:python:tests.test_environment_guard.TestImageDigestEnforced",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_environment_guard.py",
+      "target": "class:python:tests.test_environment_guard.TestNoIdentityPinned",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_environment_guard.py",
+      "target": "class:python:tests.test_environment_guard.TestRealDockerResolver",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_environment_guard.py",
+      "target": "function:python:tests.test_environment_guard._docker_up",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_environment_guard.py",
+      "target": "function:python:tests.test_environment_guard._pinned",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_environment_guard.py",
+      "target": "function:python:tests.test_environment_guard.test_digest_mismatch_blocks",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_environment_guard.py",
+      "target": "function:python:tests.test_environment_guard.test_docker_workspace_without_image_ref_blocks",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_environment_guard.py",
+      "target": "function:python:tests.test_environment_guard.test_empty_identity_is_ok_and_records_the_gap",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_environment_guard.py",
+      "target": "function:python:tests.test_environment_guard.test_extracts_sha_from_repo_qualified_digest",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_environment_guard.py",
+      "target": "function:python:tests.test_environment_guard.test_local_workspace_cannot_guarantee_pinned_image",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_environment_guard.py",
+      "target": "function:python:tests.test_environment_guard.test_lockfile_or_python_only_is_recorded_not_blocking",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_environment_guard.py",
+      "target": "function:python:tests.test_environment_guard.test_match_ignores_repo_prefix",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_environment_guard.py",
+      "target": "function:python:tests.test_environment_guard.test_matching_digest_on_docker_workspace_is_verified",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_environment_guard.py",
+      "target": "function:python:tests.test_environment_guard.test_passthrough_bare_digest",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_environment_guard.py",
+      "target": "function:python:tests.test_environment_guard.test_real_resolver_mismatch_blocks",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_environment_guard.py",
+      "target": "function:python:tests.test_environment_guard.test_resolve_default_image_digest_and_verify",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_environment_guard.py",
+      "target": "function:python:tests.test_environment_guard.test_unresolvable_digest_is_indeterminate_not_pass",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_environment_guard.py",
+      "target": "method:python:tests.test_environment_guard.TestDigestNormalization.test_extracts_sha_from_repo_qualified_digest",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_environment_guard.py",
+      "target": "method:python:tests.test_environment_guard.TestDigestNormalization.test_match_ignores_repo_prefix",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_environment_guard.py",
+      "target": "method:python:tests.test_environment_guard.TestDigestNormalization.test_passthrough_bare_digest",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_environment_guard.py",
+      "target": "method:python:tests.test_environment_guard.TestImageDigestEnforced._pinned",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_environment_guard.py",
+      "target": "method:python:tests.test_environment_guard.TestImageDigestEnforced.test_digest_mismatch_blocks",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_environment_guard.py",
+      "target": "method:python:tests.test_environment_guard.TestImageDigestEnforced.test_docker_workspace_without_image_ref_blocks",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_environment_guard.py",
+      "target": "method:python:tests.test_environment_guard.TestImageDigestEnforced.test_local_workspace_cannot_guarantee_pinned_image",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_environment_guard.py",
+      "target": "method:python:tests.test_environment_guard.TestImageDigestEnforced.test_matching_digest_on_docker_workspace_is_verified",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_environment_guard.py",
+      "target": "method:python:tests.test_environment_guard.TestImageDigestEnforced.test_unresolvable_digest_is_indeterminate_not_pass",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_environment_guard.py",
+      "target": "method:python:tests.test_environment_guard.TestNoIdentityPinned.test_empty_identity_is_ok_and_records_the_gap",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_environment_guard.py",
+      "target": "method:python:tests.test_environment_guard.TestNoIdentityPinned.test_lockfile_or_python_only_is_recorded_not_blocking",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_environment_guard.py",
+      "target": "method:python:tests.test_environment_guard.TestRealDockerResolver.test_real_resolver_mismatch_blocks",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_environment_guard.py",
+      "target": "method:python:tests.test_environment_guard.TestRealDockerResolver.test_resolve_default_image_digest_and_verify",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_environment_guard.py",
+      "target": "import:python:__future__.annotations",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_environment_guard.py",
+      "target": "import:python:app.core.environment_guard.docker_image_digest",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_environment_guard.py",
+      "target": "import:python:app.core.environment_guard.normalize_image_digest",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_environment_guard.py",
+      "target": "import:python:app.core.environment_guard.verify_environment_identity",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_environment_guard.py",
+      "target": "import:python:app.core.workspace.docker.DEFAULT_IMAGE",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_environment_guard.py",
+      "target": "import:python:app.schemas.task_spec.EnvironmentIdentity",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_environment_guard.py",
+      "target": "import:python:pytest",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_environment_guard.py",
+      "target": "import:python:shutil",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_environment_guard.py",
+      "target": "import:python:subprocess",
+      "type": "imports"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_environment_guard.py",
+      "target": "file:app/core/environment_guard.py",
       "type": "likely_tests"
     },
     {
@@ -20487,6 +20829,18 @@
     {
       "metadata": {},
       "source": "file:tests/test_task_spec.py",
+      "target": "function:python:tests.test_task_spec.test_spec_from_swebench_parses_environment_identity",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec.py",
+      "target": "function:python:tests.test_task_spec.test_spec_from_swebench_without_environment_defaults_empty",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec.py",
       "target": "function:python:tests.test_task_spec.test_spec_requires_at_least_one_fail_to_pass",
       "type": "defines"
     },
@@ -20554,6 +20908,18 @@
       "metadata": {},
       "source": "file:tests/test_task_spec.py",
       "target": "method:python:tests.test_task_spec.TestSweTaskSpecSchema.test_spec_from_swebench_json_tuple",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec.py",
+      "target": "method:python:tests.test_task_spec.TestSweTaskSpecSchema.test_spec_from_swebench_parses_environment_identity",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec.py",
+      "target": "method:python:tests.test_task_spec.TestSweTaskSpecSchema.test_spec_from_swebench_without_environment_defaults_empty",
       "type": "defines"
     },
     {
@@ -20685,6 +21051,12 @@
     {
       "metadata": {},
       "source": "file:tests/test_task_spec_solve.py",
+      "target": "function:python:tests.test_task_spec_solve.test_solve_blocks_when_pinned_environment_unverifiable",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_solve.py",
       "target": "function:python:tests.test_task_spec_solve.test_solve_enforces_positive_contract_after_run",
       "type": "defines"
     },
@@ -20716,6 +21088,12 @@
       "metadata": {},
       "source": "file:tests/test_task_spec_solve.py",
       "target": "method:python:tests.test_task_spec_solve.TestTaskSpecCLIWiring.test_solve_blocks_when_negative_contract_fails",
+      "type": "defines"
+    },
+    {
+      "metadata": {},
+      "source": "file:tests/test_task_spec_solve.py",
+      "target": "method:python:tests.test_task_spec_solve.TestTaskSpecCLIWiring.test_solve_blocks_when_pinned_environment_unverifiable",
       "type": "defines"
     },
     {
@@ -23547,6 +23925,12 @@
     {
       "metadata": {},
       "source": "folder:app/core",
+      "target": "file:app/core/environment_guard.py",
+      "type": "contains"
+    },
+    {
+      "metadata": {},
+      "source": "folder:app/core",
       "target": "file:app/core/evolution.py",
       "type": "contains"
     },
@@ -24993,6 +25377,12 @@
     {
       "metadata": {},
       "source": "folder:tests",
+      "target": "file:tests/test_environment_guard.py",
+      "type": "contains"
+    },
+    {
+      "metadata": {},
+      "source": "folder:tests",
       "target": "file:tests/test_ephemeral_and_predispatch.py",
       "type": "contains"
     },
@@ -25887,6 +26277,17 @@
       },
       "name": "ExternalWorkerRunner",
       "path": "app/core/edit_runner.py",
+      "type": "class"
+    },
+    {
+      "id": "class:python:app.core.environment_guard.EnvironmentVerification",
+      "language": "python",
+      "metadata": {
+        "line": 35,
+        "qualified_name": "app.core.environment_guard.EnvironmentVerification"
+      },
+      "name": "EnvironmentVerification",
+      "path": "app/core/environment_guard.py",
       "type": "class"
     },
     {
@@ -27969,6 +28370,50 @@
       "type": "class"
     },
     {
+      "id": "class:python:tests.test_environment_guard.TestDigestNormalization",
+      "language": "python",
+      "metadata": {
+        "line": 116,
+        "qualified_name": "tests.test_environment_guard.TestDigestNormalization"
+      },
+      "name": "TestDigestNormalization",
+      "path": "tests/test_environment_guard.py",
+      "type": "class"
+    },
+    {
+      "id": "class:python:tests.test_environment_guard.TestImageDigestEnforced",
+      "language": "python",
+      "metadata": {
+        "line": 54,
+        "qualified_name": "tests.test_environment_guard.TestImageDigestEnforced"
+      },
+      "name": "TestImageDigestEnforced",
+      "path": "tests/test_environment_guard.py",
+      "type": "class"
+    },
+    {
+      "id": "class:python:tests.test_environment_guard.TestNoIdentityPinned",
+      "language": "python",
+      "metadata": {
+        "line": 28,
+        "qualified_name": "tests.test_environment_guard.TestNoIdentityPinned"
+      },
+      "name": "TestNoIdentityPinned",
+      "path": "tests/test_environment_guard.py",
+      "type": "class"
+    },
+    {
+      "id": "class:python:tests.test_environment_guard.TestRealDockerResolver",
+      "language": "python",
+      "metadata": {
+        "line": 146,
+        "qualified_name": "tests.test_environment_guard.TestRealDockerResolver"
+      },
+      "name": "TestRealDockerResolver",
+      "path": "tests/test_environment_guard.py",
+      "type": "class"
+    },
+    {
       "id": "class:python:tests.test_evidence_guard.HallucinatingReportLLM",
       "language": "python",
       "metadata": {
@@ -28093,7 +28538,7 @@
       "id": "class:python:tests.test_task_spec.TestNegativeContractGate",
       "language": "python",
       "metadata": {
-        "line": 80,
+        "line": 112,
         "qualified_name": "tests.test_task_spec.TestNegativeContractGate"
       },
       "name": "TestNegativeContractGate",
@@ -28104,7 +28549,7 @@
       "id": "class:python:tests.test_task_spec.TestPositiveContractGate",
       "language": "python",
       "metadata": {
-        "line": 132,
+        "line": 164,
         "qualified_name": "tests.test_task_spec.TestPositiveContractGate"
       },
       "name": "TestPositiveContractGate",
@@ -28126,7 +28571,7 @@
       "id": "class:python:tests.test_task_spec_solve.TestPositiveContractEnforcement",
       "language": "python",
       "metadata": {
-        "line": 198,
+        "line": 247,
         "qualified_name": "tests.test_task_spec_solve.TestPositiveContractEnforcement"
       },
       "name": "TestPositiveContractEnforcement",
@@ -28691,6 +29136,14 @@
       "metadata": {},
       "name": "edit_runner.py",
       "path": "app/core/edit_runner.py",
+      "type": "file"
+    },
+    {
+      "id": "file:app/core/environment_guard.py",
+      "language": "python",
+      "metadata": {},
+      "name": "environment_guard.py",
+      "path": "app/core/environment_guard.py",
       "type": "file"
     },
     {
@@ -30379,6 +30832,14 @@
       "metadata": {},
       "name": "test_edit_runner.py",
       "path": "tests/test_edit_runner.py",
+      "type": "test"
+    },
+    {
+      "id": "file:tests/test_environment_guard.py",
+      "language": "python",
+      "metadata": {},
+      "name": "test_environment_guard.py",
+      "path": "tests/test_environment_guard.py",
       "type": "test"
     },
     {
@@ -33310,6 +33771,50 @@
       },
       "name": "run",
       "path": "app/core/edit_runner.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.core.environment_guard.docker_image_digest",
+      "language": "python",
+      "metadata": {
+        "line": 61,
+        "qualified_name": "app.core.environment_guard.docker_image_digest"
+      },
+      "name": "docker_image_digest",
+      "path": "app/core/environment_guard.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.core.environment_guard.normalize_image_digest",
+      "language": "python",
+      "metadata": {
+        "line": 54,
+        "qualified_name": "app.core.environment_guard.normalize_image_digest"
+      },
+      "name": "normalize_image_digest",
+      "path": "app/core/environment_guard.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.core.environment_guard.ok",
+      "language": "python",
+      "metadata": {
+        "line": 50,
+        "qualified_name": "app.core.environment_guard.ok"
+      },
+      "name": "ok",
+      "path": "app/core/environment_guard.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:app.core.environment_guard.verify_environment_identity",
+      "language": "python",
+      "metadata": {
+        "line": 85,
+        "qualified_name": "app.core.environment_guard.verify_environment_identity"
+      },
+      "name": "verify_environment_identity",
+      "path": "app/core/environment_guard.py",
       "type": "function"
     },
     {
@@ -38725,6 +39230,17 @@
       "type": "function"
     },
     {
+      "id": "function:python:app.schemas.task_spec._parse_environment",
+      "language": "python",
+      "metadata": {
+        "line": 107,
+        "qualified_name": "app.schemas.task_spec._parse_environment"
+      },
+      "name": "_parse_environment",
+      "path": "app/schemas/task_spec.py",
+      "type": "function"
+    },
+    {
       "id": "function:python:app.schemas.task_spec._parse_tests",
       "language": "python",
       "metadata": {
@@ -40911,6 +41427,160 @@
       },
       "name": "test_render_worker_command_rejects_destructive_template",
       "path": "tests/test_edit_runner.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_environment_guard._docker_up",
+      "language": "python",
+      "metadata": {
+        "line": 134,
+        "qualified_name": "tests.test_environment_guard._docker_up"
+      },
+      "name": "_docker_up",
+      "path": "tests/test_environment_guard.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_environment_guard._pinned",
+      "language": "python",
+      "metadata": {
+        "line": 55,
+        "qualified_name": "tests.test_environment_guard._pinned"
+      },
+      "name": "_pinned",
+      "path": "tests/test_environment_guard.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_environment_guard.test_digest_mismatch_blocks",
+      "language": "python",
+      "metadata": {
+        "line": 71,
+        "qualified_name": "tests.test_environment_guard.test_digest_mismatch_blocks"
+      },
+      "name": "test_digest_mismatch_blocks",
+      "path": "tests/test_environment_guard.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_environment_guard.test_docker_workspace_without_image_ref_blocks",
+      "language": "python",
+      "metadata": {
+        "line": 105,
+        "qualified_name": "tests.test_environment_guard.test_docker_workspace_without_image_ref_blocks"
+      },
+      "name": "test_docker_workspace_without_image_ref_blocks",
+      "path": "tests/test_environment_guard.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_environment_guard.test_empty_identity_is_ok_and_records_the_gap",
+      "language": "python",
+      "metadata": {
+        "line": 29,
+        "qualified_name": "tests.test_environment_guard.test_empty_identity_is_ok_and_records_the_gap"
+      },
+      "name": "test_empty_identity_is_ok_and_records_the_gap",
+      "path": "tests/test_environment_guard.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_environment_guard.test_extracts_sha_from_repo_qualified_digest",
+      "language": "python",
+      "metadata": {
+        "line": 117,
+        "qualified_name": "tests.test_environment_guard.test_extracts_sha_from_repo_qualified_digest"
+      },
+      "name": "test_extracts_sha_from_repo_qualified_digest",
+      "path": "tests/test_environment_guard.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_environment_guard.test_local_workspace_cannot_guarantee_pinned_image",
+      "language": "python",
+      "metadata": {
+        "line": 83,
+        "qualified_name": "tests.test_environment_guard.test_local_workspace_cannot_guarantee_pinned_image"
+      },
+      "name": "test_local_workspace_cannot_guarantee_pinned_image",
+      "path": "tests/test_environment_guard.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_environment_guard.test_lockfile_or_python_only_is_recorded_not_blocking",
+      "language": "python",
+      "metadata": {
+        "line": 40,
+        "qualified_name": "tests.test_environment_guard.test_lockfile_or_python_only_is_recorded_not_blocking"
+      },
+      "name": "test_lockfile_or_python_only_is_recorded_not_blocking",
+      "path": "tests/test_environment_guard.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_environment_guard.test_match_ignores_repo_prefix",
+      "language": "python",
+      "metadata": {
+        "line": 123,
+        "qualified_name": "tests.test_environment_guard.test_match_ignores_repo_prefix"
+      },
+      "name": "test_match_ignores_repo_prefix",
+      "path": "tests/test_environment_guard.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_environment_guard.test_matching_digest_on_docker_workspace_is_verified",
+      "language": "python",
+      "metadata": {
+        "line": 58,
+        "qualified_name": "tests.test_environment_guard.test_matching_digest_on_docker_workspace_is_verified"
+      },
+      "name": "test_matching_digest_on_docker_workspace_is_verified",
+      "path": "tests/test_environment_guard.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_environment_guard.test_passthrough_bare_digest",
+      "language": "python",
+      "metadata": {
+        "line": 120,
+        "qualified_name": "tests.test_environment_guard.test_passthrough_bare_digest"
+      },
+      "name": "test_passthrough_bare_digest",
+      "path": "tests/test_environment_guard.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_environment_guard.test_real_resolver_mismatch_blocks",
+      "language": "python",
+      "metadata": {
+        "line": 163,
+        "qualified_name": "tests.test_environment_guard.test_real_resolver_mismatch_blocks"
+      },
+      "name": "test_real_resolver_mismatch_blocks",
+      "path": "tests/test_environment_guard.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_environment_guard.test_resolve_default_image_digest_and_verify",
+      "language": "python",
+      "metadata": {
+        "line": 147,
+        "qualified_name": "tests.test_environment_guard.test_resolve_default_image_digest_and_verify"
+      },
+      "name": "test_resolve_default_image_digest_and_verify",
+      "path": "tests/test_environment_guard.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_environment_guard.test_unresolvable_digest_is_indeterminate_not_pass",
+      "language": "python",
+      "metadata": {
+        "line": 94,
+        "qualified_name": "tests.test_environment_guard.test_unresolvable_digest_is_indeterminate_not_pass"
+      },
+      "name": "test_unresolvable_digest_is_indeterminate_not_pass",
+      "path": "tests/test_environment_guard.py",
       "type": "function"
     },
     {
@@ -44569,7 +45239,7 @@
       "id": "function:python:tests.test_task_spec._fixture_repo",
       "language": "python",
       "metadata": {
-        "line": 201,
+        "line": 233,
         "qualified_name": "tests.test_task_spec._fixture_repo"
       },
       "name": "_fixture_repo",
@@ -44580,7 +45250,7 @@
       "id": "function:python:tests.test_task_spec._fixture_spec",
       "language": "python",
       "metadata": {
-        "line": 254,
+        "line": 286,
         "qualified_name": "tests.test_task_spec._fixture_spec"
       },
       "name": "_fixture_spec",
@@ -44591,7 +45261,7 @@
       "id": "function:python:tests.test_task_spec._spec_for",
       "language": "python",
       "metadata": {
-        "line": 244,
+        "line": 276,
         "qualified_name": "tests.test_task_spec._spec_for"
       },
       "name": "_spec_for",
@@ -44602,7 +45272,7 @@
       "id": "function:python:tests.test_task_spec._two_test_repo",
       "language": "python",
       "metadata": {
-        "line": 299,
+        "line": 331,
         "qualified_name": "tests.test_task_spec._two_test_repo"
       },
       "name": "_two_test_repo",
@@ -44613,7 +45283,7 @@
       "id": "function:python:tests.test_task_spec._two_test_spec",
       "language": "python",
       "metadata": {
-        "line": 320,
+        "line": 352,
         "qualified_name": "tests.test_task_spec._two_test_spec"
       },
       "name": "_two_test_spec",
@@ -44624,7 +45294,7 @@
       "id": "function:python:tests.test_task_spec.test_gate_blocks_inconclusive_tests",
       "language": "python",
       "metadata": {
-        "line": 177,
+        "line": 209,
         "qualified_name": "tests.test_task_spec.test_gate_blocks_inconclusive_tests"
       },
       "name": "test_gate_blocks_inconclusive_tests",
@@ -44635,7 +45305,7 @@
       "id": "function:python:tests.test_task_spec.test_gate_blocks_when_fail_to_pass_passes_at_base",
       "language": "python",
       "metadata": {
-        "line": 81,
+        "line": 113,
         "qualified_name": "tests.test_task_spec.test_gate_blocks_when_fail_to_pass_passes_at_base"
       },
       "name": "test_gate_blocks_when_fail_to_pass_passes_at_base",
@@ -44646,7 +45316,7 @@
       "id": "function:python:tests.test_task_spec.test_gate_blocks_when_test_runner_errors",
       "language": "python",
       "metadata": {
-        "line": 105,
+        "line": 137,
         "qualified_name": "tests.test_task_spec.test_gate_blocks_when_test_runner_errors"
       },
       "name": "test_gate_blocks_when_test_runner_errors",
@@ -44657,7 +45327,7 @@
       "id": "function:python:tests.test_task_spec.test_gate_fails_when_fail_to_pass_still_fails",
       "language": "python",
       "metadata": {
-        "line": 151,
+        "line": 183,
         "qualified_name": "tests.test_task_spec.test_gate_fails_when_fail_to_pass_still_fails"
       },
       "name": "test_gate_fails_when_fail_to_pass_still_fails",
@@ -44668,7 +45338,7 @@
       "id": "function:python:tests.test_task_spec.test_gate_fails_when_pass_to_pass_regresses",
       "language": "python",
       "metadata": {
-        "line": 165,
+        "line": 197,
         "qualified_name": "tests.test_task_spec.test_gate_fails_when_pass_to_pass_regresses"
       },
       "name": "test_gate_fails_when_pass_to_pass_regresses",
@@ -44679,7 +45349,7 @@
       "id": "function:python:tests.test_task_spec.test_gate_passes_when_bug_reproduces",
       "language": "python",
       "metadata": {
-        "line": 95,
+        "line": 127,
         "qualified_name": "tests.test_task_spec.test_gate_passes_when_bug_reproduces"
       },
       "name": "test_gate_passes_when_bug_reproduces",
@@ -44690,7 +45360,7 @@
       "id": "function:python:tests.test_task_spec.test_gate_passes_when_fix_holds_and_no_regression",
       "language": "python",
       "metadata": {
-        "line": 139,
+        "line": 171,
         "qualified_name": "tests.test_task_spec.test_gate_passes_when_fix_holds_and_no_regression"
       },
       "name": "test_gate_passes_when_fix_holds_and_no_regression",
@@ -44701,7 +45371,7 @@
       "id": "function:python:tests.test_task_spec.test_gate_records_commands_and_exit_codes",
       "language": "python",
       "metadata": {
-        "line": 117,
+        "line": 149,
         "qualified_name": "tests.test_task_spec.test_gate_records_commands_and_exit_codes"
       },
       "name": "test_gate_records_commands_and_exit_codes",
@@ -44716,6 +45386,28 @@
         "qualified_name": "tests.test_task_spec.test_spec_from_swebench_json_tuple"
       },
       "name": "test_spec_from_swebench_json_tuple",
+      "path": "tests/test_task_spec.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_task_spec.test_spec_from_swebench_parses_environment_identity",
+      "language": "python",
+      "metadata": {
+        "line": 79,
+        "qualified_name": "tests.test_task_spec.test_spec_from_swebench_parses_environment_identity"
+      },
+      "name": "test_spec_from_swebench_parses_environment_identity",
+      "path": "tests/test_task_spec.py",
+      "type": "function"
+    },
+    {
+      "id": "function:python:tests.test_task_spec.test_spec_from_swebench_without_environment_defaults_empty",
+      "language": "python",
+      "metadata": {
+        "line": 99,
+        "qualified_name": "tests.test_task_spec.test_spec_from_swebench_without_environment_defaults_empty"
+      },
+      "name": "test_spec_from_swebench_without_environment_defaults_empty",
       "path": "tests/test_task_spec.py",
       "type": "function"
     },
@@ -44756,7 +45448,7 @@
       "id": "function:python:tests.test_task_spec_solve._load_spec",
       "language": "python",
       "metadata": {
-        "line": 320,
+        "line": 369,
         "qualified_name": "tests.test_task_spec_solve._load_spec"
       },
       "name": "_load_spec",
@@ -44800,7 +45492,7 @@
       "id": "function:python:tests.test_task_spec_solve.fake_run_harness",
       "language": "python",
       "metadata": {
-        "line": 149,
+        "line": 198,
         "qualified_name": "tests.test_task_spec_solve.fake_run_harness"
       },
       "name": "fake_run_harness",
@@ -44819,10 +45511,21 @@
       "type": "function"
     },
     {
+      "id": "function:python:tests.test_task_spec_solve.test_solve_blocks_when_pinned_environment_unverifiable",
+      "language": "python",
+      "metadata": {
+        "line": 123,
+        "qualified_name": "tests.test_task_spec_solve.test_solve_blocks_when_pinned_environment_unverifiable"
+      },
+      "name": "test_solve_blocks_when_pinned_environment_unverifiable",
+      "path": "tests/test_task_spec_solve.py",
+      "type": "function"
+    },
+    {
       "id": "function:python:tests.test_task_spec_solve.test_solve_enforces_positive_contract_after_run",
       "language": "python",
       "metadata": {
-        "line": 204,
+        "line": 253,
         "qualified_name": "tests.test_task_spec_solve.test_solve_enforces_positive_contract_after_run"
       },
       "name": "test_solve_enforces_positive_contract_after_run",
@@ -44833,7 +45536,7 @@
       "id": "function:python:tests.test_task_spec_solve.test_solve_keeps_completed_when_positive_contract_holds",
       "language": "python",
       "metadata": {
-        "line": 259,
+        "line": 308,
         "qualified_name": "tests.test_task_spec_solve.test_solve_keeps_completed_when_positive_contract_holds"
       },
       "name": "test_solve_keeps_completed_when_positive_contract_holds",
@@ -44844,7 +45547,7 @@
       "id": "function:python:tests.test_task_spec_solve.test_solve_with_task_spec_pins_commit_and_composes_task",
       "language": "python",
       "metadata": {
-        "line": 123,
+        "line": 172,
         "qualified_name": "tests.test_task_spec_solve.test_solve_with_task_spec_pins_commit_and_composes_task"
       },
       "name": "test_solve_with_task_spec_pins_commit_and_composes_task",
@@ -47550,6 +48253,36 @@
       "type": "import"
     },
     {
+      "id": "import:python:app.core.environment_guard.docker_image_digest",
+      "language": "python",
+      "metadata": {
+        "imported_from": "app.core.environment_guard"
+      },
+      "name": "app.core.environment_guard.docker_image_digest",
+      "path": null,
+      "type": "import"
+    },
+    {
+      "id": "import:python:app.core.environment_guard.normalize_image_digest",
+      "language": "python",
+      "metadata": {
+        "imported_from": "app.core.environment_guard"
+      },
+      "name": "app.core.environment_guard.normalize_image_digest",
+      "path": null,
+      "type": "import"
+    },
+    {
+      "id": "import:python:app.core.environment_guard.verify_environment_identity",
+      "language": "python",
+      "metadata": {
+        "imported_from": "app.core.environment_guard"
+      },
+      "name": "app.core.environment_guard.verify_environment_identity",
+      "path": null,
+      "type": "import"
+    },
+    {
       "id": "import:python:app.core.evolution.EvolutionAgent",
       "language": "python",
       "metadata": {
@@ -48806,6 +49539,16 @@
         "imported_from": "app.core.workspace.base"
       },
       "name": "app.core.workspace.base.Workspace",
+      "path": null,
+      "type": "import"
+    },
+    {
+      "id": "import:python:app.core.workspace.docker.DEFAULT_IMAGE",
+      "language": "python",
+      "metadata": {
+        "imported_from": "app.core.workspace.docker"
+      },
+      "name": "app.core.workspace.docker.DEFAULT_IMAGE",
       "path": null,
       "type": "import"
     },
@@ -50106,6 +50849,16 @@
         "imported_from": "app.schemas.showcase"
       },
       "name": "app.schemas.showcase.ShowcaseManifest",
+      "path": null,
+      "type": "import"
+    },
+    {
+      "id": "import:python:app.schemas.task_spec.EnvironmentIdentity",
+      "language": "python",
+      "metadata": {
+        "imported_from": "app.schemas.task_spec"
+      },
+      "name": "app.schemas.task_spec.EnvironmentIdentity",
       "path": null,
       "type": "import"
     },
@@ -52504,6 +53257,17 @@
       },
       "name": "run",
       "path": "app/core/edit_runner.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:app.core.environment_guard.EnvironmentVerification.ok",
+      "language": "python",
+      "metadata": {
+        "line": 50,
+        "qualified_name": "app.core.environment_guard.EnvironmentVerification.ok"
+      },
+      "name": "ok",
+      "path": "app/core/environment_guard.py",
       "type": "method"
     },
     {
@@ -55235,6 +55999,149 @@
       "type": "method"
     },
     {
+      "id": "method:python:tests.test_environment_guard.TestDigestNormalization.test_extracts_sha_from_repo_qualified_digest",
+      "language": "python",
+      "metadata": {
+        "line": 117,
+        "qualified_name": "tests.test_environment_guard.TestDigestNormalization.test_extracts_sha_from_repo_qualified_digest"
+      },
+      "name": "test_extracts_sha_from_repo_qualified_digest",
+      "path": "tests/test_environment_guard.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_environment_guard.TestDigestNormalization.test_match_ignores_repo_prefix",
+      "language": "python",
+      "metadata": {
+        "line": 123,
+        "qualified_name": "tests.test_environment_guard.TestDigestNormalization.test_match_ignores_repo_prefix"
+      },
+      "name": "test_match_ignores_repo_prefix",
+      "path": "tests/test_environment_guard.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_environment_guard.TestDigestNormalization.test_passthrough_bare_digest",
+      "language": "python",
+      "metadata": {
+        "line": 120,
+        "qualified_name": "tests.test_environment_guard.TestDigestNormalization.test_passthrough_bare_digest"
+      },
+      "name": "test_passthrough_bare_digest",
+      "path": "tests/test_environment_guard.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_environment_guard.TestImageDigestEnforced._pinned",
+      "language": "python",
+      "metadata": {
+        "line": 55,
+        "qualified_name": "tests.test_environment_guard.TestImageDigestEnforced._pinned"
+      },
+      "name": "_pinned",
+      "path": "tests/test_environment_guard.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_environment_guard.TestImageDigestEnforced.test_digest_mismatch_blocks",
+      "language": "python",
+      "metadata": {
+        "line": 71,
+        "qualified_name": "tests.test_environment_guard.TestImageDigestEnforced.test_digest_mismatch_blocks"
+      },
+      "name": "test_digest_mismatch_blocks",
+      "path": "tests/test_environment_guard.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_environment_guard.TestImageDigestEnforced.test_docker_workspace_without_image_ref_blocks",
+      "language": "python",
+      "metadata": {
+        "line": 105,
+        "qualified_name": "tests.test_environment_guard.TestImageDigestEnforced.test_docker_workspace_without_image_ref_blocks"
+      },
+      "name": "test_docker_workspace_without_image_ref_blocks",
+      "path": "tests/test_environment_guard.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_environment_guard.TestImageDigestEnforced.test_local_workspace_cannot_guarantee_pinned_image",
+      "language": "python",
+      "metadata": {
+        "line": 83,
+        "qualified_name": "tests.test_environment_guard.TestImageDigestEnforced.test_local_workspace_cannot_guarantee_pinned_image"
+      },
+      "name": "test_local_workspace_cannot_guarantee_pinned_image",
+      "path": "tests/test_environment_guard.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_environment_guard.TestImageDigestEnforced.test_matching_digest_on_docker_workspace_is_verified",
+      "language": "python",
+      "metadata": {
+        "line": 58,
+        "qualified_name": "tests.test_environment_guard.TestImageDigestEnforced.test_matching_digest_on_docker_workspace_is_verified"
+      },
+      "name": "test_matching_digest_on_docker_workspace_is_verified",
+      "path": "tests/test_environment_guard.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_environment_guard.TestImageDigestEnforced.test_unresolvable_digest_is_indeterminate_not_pass",
+      "language": "python",
+      "metadata": {
+        "line": 94,
+        "qualified_name": "tests.test_environment_guard.TestImageDigestEnforced.test_unresolvable_digest_is_indeterminate_not_pass"
+      },
+      "name": "test_unresolvable_digest_is_indeterminate_not_pass",
+      "path": "tests/test_environment_guard.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_environment_guard.TestNoIdentityPinned.test_empty_identity_is_ok_and_records_the_gap",
+      "language": "python",
+      "metadata": {
+        "line": 29,
+        "qualified_name": "tests.test_environment_guard.TestNoIdentityPinned.test_empty_identity_is_ok_and_records_the_gap"
+      },
+      "name": "test_empty_identity_is_ok_and_records_the_gap",
+      "path": "tests/test_environment_guard.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_environment_guard.TestNoIdentityPinned.test_lockfile_or_python_only_is_recorded_not_blocking",
+      "language": "python",
+      "metadata": {
+        "line": 40,
+        "qualified_name": "tests.test_environment_guard.TestNoIdentityPinned.test_lockfile_or_python_only_is_recorded_not_blocking"
+      },
+      "name": "test_lockfile_or_python_only_is_recorded_not_blocking",
+      "path": "tests/test_environment_guard.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_environment_guard.TestRealDockerResolver.test_real_resolver_mismatch_blocks",
+      "language": "python",
+      "metadata": {
+        "line": 163,
+        "qualified_name": "tests.test_environment_guard.TestRealDockerResolver.test_real_resolver_mismatch_blocks"
+      },
+      "name": "test_real_resolver_mismatch_blocks",
+      "path": "tests/test_environment_guard.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_environment_guard.TestRealDockerResolver.test_resolve_default_image_digest_and_verify",
+      "language": "python",
+      "metadata": {
+        "line": 147,
+        "qualified_name": "tests.test_environment_guard.TestRealDockerResolver.test_resolve_default_image_digest_and_verify"
+      },
+      "name": "test_resolve_default_image_digest_and_verify",
+      "path": "tests/test_environment_guard.py",
+      "type": "method"
+    },
+    {
       "id": "method:python:tests.test_evidence_guard.HallucinatingReportLLM.generate_structured",
       "language": "python",
       "metadata": {
@@ -55480,7 +56387,7 @@
       "id": "method:python:tests.test_task_spec.TestNegativeContractGate.test_gate_blocks_when_fail_to_pass_passes_at_base",
       "language": "python",
       "metadata": {
-        "line": 81,
+        "line": 113,
         "qualified_name": "tests.test_task_spec.TestNegativeContractGate.test_gate_blocks_when_fail_to_pass_passes_at_base"
       },
       "name": "test_gate_blocks_when_fail_to_pass_passes_at_base",
@@ -55491,7 +56398,7 @@
       "id": "method:python:tests.test_task_spec.TestNegativeContractGate.test_gate_blocks_when_test_runner_errors",
       "language": "python",
       "metadata": {
-        "line": 105,
+        "line": 137,
         "qualified_name": "tests.test_task_spec.TestNegativeContractGate.test_gate_blocks_when_test_runner_errors"
       },
       "name": "test_gate_blocks_when_test_runner_errors",
@@ -55502,7 +56409,7 @@
       "id": "method:python:tests.test_task_spec.TestNegativeContractGate.test_gate_passes_when_bug_reproduces",
       "language": "python",
       "metadata": {
-        "line": 95,
+        "line": 127,
         "qualified_name": "tests.test_task_spec.TestNegativeContractGate.test_gate_passes_when_bug_reproduces"
       },
       "name": "test_gate_passes_when_bug_reproduces",
@@ -55513,7 +56420,7 @@
       "id": "method:python:tests.test_task_spec.TestNegativeContractGate.test_gate_records_commands_and_exit_codes",
       "language": "python",
       "metadata": {
-        "line": 117,
+        "line": 149,
         "qualified_name": "tests.test_task_spec.TestNegativeContractGate.test_gate_records_commands_and_exit_codes"
       },
       "name": "test_gate_records_commands_and_exit_codes",
@@ -55524,7 +56431,7 @@
       "id": "method:python:tests.test_task_spec.TestPositiveContractGate.test_gate_blocks_inconclusive_tests",
       "language": "python",
       "metadata": {
-        "line": 177,
+        "line": 209,
         "qualified_name": "tests.test_task_spec.TestPositiveContractGate.test_gate_blocks_inconclusive_tests"
       },
       "name": "test_gate_blocks_inconclusive_tests",
@@ -55535,7 +56442,7 @@
       "id": "method:python:tests.test_task_spec.TestPositiveContractGate.test_gate_fails_when_fail_to_pass_still_fails",
       "language": "python",
       "metadata": {
-        "line": 151,
+        "line": 183,
         "qualified_name": "tests.test_task_spec.TestPositiveContractGate.test_gate_fails_when_fail_to_pass_still_fails"
       },
       "name": "test_gate_fails_when_fail_to_pass_still_fails",
@@ -55546,7 +56453,7 @@
       "id": "method:python:tests.test_task_spec.TestPositiveContractGate.test_gate_fails_when_pass_to_pass_regresses",
       "language": "python",
       "metadata": {
-        "line": 165,
+        "line": 197,
         "qualified_name": "tests.test_task_spec.TestPositiveContractGate.test_gate_fails_when_pass_to_pass_regresses"
       },
       "name": "test_gate_fails_when_pass_to_pass_regresses",
@@ -55557,7 +56464,7 @@
       "id": "method:python:tests.test_task_spec.TestPositiveContractGate.test_gate_passes_when_fix_holds_and_no_regression",
       "language": "python",
       "metadata": {
-        "line": 139,
+        "line": 171,
         "qualified_name": "tests.test_task_spec.TestPositiveContractGate.test_gate_passes_when_fix_holds_and_no_regression"
       },
       "name": "test_gate_passes_when_fix_holds_and_no_regression",
@@ -55572,6 +56479,28 @@
         "qualified_name": "tests.test_task_spec.TestSweTaskSpecSchema.test_spec_from_swebench_json_tuple"
       },
       "name": "test_spec_from_swebench_json_tuple",
+      "path": "tests/test_task_spec.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_task_spec.TestSweTaskSpecSchema.test_spec_from_swebench_parses_environment_identity",
+      "language": "python",
+      "metadata": {
+        "line": 79,
+        "qualified_name": "tests.test_task_spec.TestSweTaskSpecSchema.test_spec_from_swebench_parses_environment_identity"
+      },
+      "name": "test_spec_from_swebench_parses_environment_identity",
+      "path": "tests/test_task_spec.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_task_spec.TestSweTaskSpecSchema.test_spec_from_swebench_without_environment_defaults_empty",
+      "language": "python",
+      "metadata": {
+        "line": 99,
+        "qualified_name": "tests.test_task_spec.TestSweTaskSpecSchema.test_spec_from_swebench_without_environment_defaults_empty"
+      },
+      "name": "test_spec_from_swebench_without_environment_defaults_empty",
       "path": "tests/test_task_spec.py",
       "type": "method"
     },
@@ -55612,7 +56541,7 @@
       "id": "method:python:tests.test_task_spec_solve.TestPositiveContractEnforcement.test_solve_enforces_positive_contract_after_run",
       "language": "python",
       "metadata": {
-        "line": 204,
+        "line": 253,
         "qualified_name": "tests.test_task_spec_solve.TestPositiveContractEnforcement.test_solve_enforces_positive_contract_after_run"
       },
       "name": "test_solve_enforces_positive_contract_after_run",
@@ -55623,7 +56552,7 @@
       "id": "method:python:tests.test_task_spec_solve.TestPositiveContractEnforcement.test_solve_keeps_completed_when_positive_contract_holds",
       "language": "python",
       "metadata": {
-        "line": 259,
+        "line": 308,
         "qualified_name": "tests.test_task_spec_solve.TestPositiveContractEnforcement.test_solve_keeps_completed_when_positive_contract_holds"
       },
       "name": "test_solve_keeps_completed_when_positive_contract_holds",
@@ -55642,10 +56571,21 @@
       "type": "method"
     },
     {
-      "id": "method:python:tests.test_task_spec_solve.TestTaskSpecCLIWiring.test_solve_with_task_spec_pins_commit_and_composes_task",
+      "id": "method:python:tests.test_task_spec_solve.TestTaskSpecCLIWiring.test_solve_blocks_when_pinned_environment_unverifiable",
       "language": "python",
       "metadata": {
         "line": 123,
+        "qualified_name": "tests.test_task_spec_solve.TestTaskSpecCLIWiring.test_solve_blocks_when_pinned_environment_unverifiable"
+      },
+      "name": "test_solve_blocks_when_pinned_environment_unverifiable",
+      "path": "tests/test_task_spec_solve.py",
+      "type": "method"
+    },
+    {
+      "id": "method:python:tests.test_task_spec_solve.TestTaskSpecCLIWiring.test_solve_with_task_spec_pins_commit_and_composes_task",
+      "language": "python",
+      "metadata": {
+        "line": 172,
         "qualified_name": "tests.test_task_spec_solve.TestTaskSpecCLIWiring.test_solve_with_task_spec_pins_commit_and_composes_task"
       },
       "name": "test_solve_with_task_spec_pins_commit_and_composes_task",
@@ -55956,8 +56896,8 @@
       "python"
     ],
     "risk_count": 0,
-    "source_file_count": 241,
-    "test_file_count": 102,
+    "source_file_count": 243,
+    "test_file_count": 103,
     "test_frameworks": [
       "pytest"
     ]

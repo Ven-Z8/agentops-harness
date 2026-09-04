@@ -76,6 +76,38 @@ class TestSweTaskSpecSchema:
         assert spec.repo == "psf/requests"
         assert spec.base_commit == "abc123"
 
+    def test_spec_from_swebench_parses_environment_identity(self) -> None:
+        """AO-D03-02: a spec may pin its execution environment. The parser must
+        carry the identity through so enforcement can act on it."""
+        digest = "sha256:" + "ab" * 32
+        raw = {
+            "repo": "psf/requests",
+            "base_commit": "abc123",
+            "problem_statement": "Session fails on redirect",
+            "FAIL_TO_PASS": "[\"tests/test_requests.py::test_pass\"]",
+            "environment": {
+                "image_digest": digest,
+                "python_version": "3.12",
+                "lockfile_digest": "sha256:" + "cd" * 32,
+            },
+        }
+        spec = SweTaskSpec.from_swebench_instance(raw)
+        assert spec.environment.image_digest == digest
+        assert spec.environment.python_version == "3.12"
+        assert spec.environment.lockfile_digest == "sha256:" + "cd" * 32
+
+    def test_spec_from_swebench_without_environment_defaults_empty(self) -> None:
+        raw = {
+            "repo": "psf/requests",
+            "base_commit": "abc123",
+            "problem_statement": "x",
+            "FAIL_TO_PASS": "[\"tests/test_a.py::test_b\"]",
+        }
+        spec = SweTaskSpec.from_swebench_instance(raw)
+        assert spec.environment.image_digest is None
+        assert spec.environment.lockfile_digest is None
+        assert spec.environment.python_version is None
+
 
 class TestNegativeContractGate:
     def test_gate_blocks_when_fail_to_pass_passes_at_base(self, tmp_path: Path) -> None:

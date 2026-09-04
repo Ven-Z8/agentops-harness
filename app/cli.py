@@ -596,6 +596,16 @@ def issue_solve(
             help="Override the clone URL (tests, mirrors, local fixtures).",
         ),
     ] = None,
+    workspace: Annotated[
+        str,
+        typer.Option(
+            "--workspace",
+            help=(
+                "Validation workspace: local (default) or docker. A task spec "
+                "that pins an image digest requires docker (environment identity)."
+            ),
+        ),
+    ] = "local",
     goal: Annotated[
         str | None, typer.Option("--goal", help="Intent-graph goal id this run targets.")
     ] = None,
@@ -638,6 +648,33 @@ def issue_solve(
             f"({len(task_spec.fail_to_pass)} fail_to_pass, "
             f"{len(task_spec.pass_to_pass)} pass_to_pass)"
         )
+
+        # AO-D03-02: environment-identity enforcement. A spec that pins an
+        # image digest requires a docker testbed whose resolved digest
+        # matches. Fail-closed, before clone and dispatch: an environment
+        # that cannot be guaranteed blocks the run (dependency rot must never
+        # masquerade as a code result).
+        from app.core.environment_guard import (
+            docker_image_digest,
+            verify_environment_identity,
+        )
+        from app.core.workspace.docker import DEFAULT_IMAGE
+
+        env_check = verify_environment_identity(
+            task_spec.environment,
+            workspace_kind=workspace,
+            image_ref=DEFAULT_IMAGE if workspace == "docker" else None,
+            resolve_image_digest=docker_image_digest,
+        )
+        for reason in env_check.reasons:
+            console.print(f"[dim]{reason}[/dim]")
+        if not env_check.ok:
+            console.print(
+                "[red]Environment identity NOT verified — run blocked before "
+                "dispatch (fail-closed: an unverified environment is never a "
+                "match).[/red]"
+            )
+            raise typer.Exit(code=5)
 
     if task_spec is not None:
         # Spec mode: the spec IS the identity — repo + base_commit + statement.
@@ -711,6 +748,7 @@ def issue_solve(
         max_attempts=max_attempts,
         target_goal_id=goal,
         allow_dirty=True,  # the issue branch IS the workspace; attribution is per-branch
+        workspace_kind=workspace,
     )
 
     if task_spec is not None:
