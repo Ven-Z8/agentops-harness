@@ -71,24 +71,24 @@ h1, h2, h3 { margin: 0; font-weight: 600; }
     <p class="lead">A run is a governed attempt to resolve a real GitHub issue on a real repo. It produces a patch plus an evidence bundle. <b>Every claim on screen traces to evidence</b> — and a failed run is a first-class outcome, never hidden or spun.</p>
     <div class="screens">
       <a class="screen-card" href="runs-list.html" data-od-id="launch-runs">
-        <span class="sc-label">01 · home</span>
+        <span class="sc-label">01 · home · <b style="color:var(--ok)">live</b></span>
         <span class="sc-name">Runs list</span>
         <span class="sc-note">Live + stored runs, KPIs, honest status chips, per-run risk badges.</span>
       </a>
       <a class="screen-card" href="run-detail.html" data-od-id="launch-run-detail">
-        <span class="sc-label">02 · the heart</span>
+        <span class="sc-label">02 · the heart · <b style="color:var(--ok)">live with ?id=</b></span>
         <span class="sc-name">Run detail</span>
-        <span class="sc-note">Stage timeline, test exits, evidence citations, the patch, event replay. Includes <span class="mono">showcase mode</span>.</span>
+        <span class="sc-note">Stage timeline, test exits, evidence citations, the patch, event replay. Without an id it shows the curated dmr case study. Includes <span class="mono">showcase mode</span>.</span>
       </a>
       <a class="screen-card" href="new-run.html" data-od-id="launch-new-run">
-        <span class="sc-label">03 · compose</span>
+        <span class="sc-label">03 · compose · <b style="color:var(--ok)">live gate</b></span>
         <span class="sc-name">New governed run</span>
-        <span class="sc-note">Pick a real issue, choose a worker, prove the bug exists at base before dispatch.</span>
+        <span class="sc-note">Pick a real issue, choose a worker, prove the bug exists at base before dispatch — the gate runs the real negative contract. Dispatch hands off to the governed CLI.</span>
       </a>
       <a class="screen-card" href="task-specs.html" data-od-id="launch-task-specs">
-        <span class="sc-label">04 · library</span>
+        <span class="sc-label">04 · library · <b style="color:var(--warn)">case study</b></span>
         <span class="sc-name">Task-spec library</span>
-        <span class="sc-note">Pinned commits, FAIL_TO_PASS / PASS_TO_PASS lists, environment identity — ready to fire.</span>
+        <span class="sc-note">Pinned commits, FAIL_TO_PASS / PASS_TO_PASS lists, environment identity — curated content, not yet served from storage.</span>
       </a>
     </div>
   </section>
